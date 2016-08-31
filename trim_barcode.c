@@ -145,7 +145,7 @@ main (int argc, char *argv[])
     /* Pair the mates in the database */
     if (cp->is_paired)
         {
-            if ((pair_mates (reads)) < 0)
+            if ((pair_fastq_mates (reads)) < 0)
                 {
                     fprintf (stderr, "[trim_barcode:%s:%d] Error pairing mates "
                              "in fastQ database\n", __func__, __LINE__);

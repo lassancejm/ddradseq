@@ -182,7 +182,7 @@ main (int argc, char *argv[])
 			strcat (filename_base, p);
 			free (cc);
 
-			if ((pair_mates (reads)) < 0)
+			if ((pair_fastq_mates (reads)) < 0)
 				{
 					fprintf (stderr, "[trim_3prime:%s:%d] Error pairing "
 					         "mates in fastQ database.\n", __func__,
