@@ -823,10 +823,11 @@ def checkResources(params):
 
     # Get RAM available per thread
     perThreadRAM = memoryAvailable / threadsAvailable
-    logger.info("{:.3f} Gb available per thread".format(perThreadRAM))
+    perThreadRAMGigs = perThreadRAM / (1024**3)
+    logger.info("{:.3f} Gb available per thread".format(perThreadRAMGigs))
     if params.stage in stageParsePool:
         fileList = list()
-        totalFileSize = 0
+        fileSize = []
         for root, directs, filenames in os.walk(params.inputDir):
             searchPattern = os.path.join(root, "*.fastq.gz")
             fileList.extend(glob.glob(searchPattern))
@@ -835,11 +836,13 @@ def checkResources(params):
                 searchPattern = os.path.join(dirPath, "*.fastq.gz")
                 fileList.extend(glob.glob(searchPattern))
         for f in fileList:
-            totalFileSize += os.path.getsize(f)
-        logger.info("All input fastQ files total {:.3f} Gb".format(totalFileSize))
-        if totalFileSize > perThreadRAM:
-            logger.error("Estimated RAM usage exceeds that available")
-            sys.exit('FATAL ERROR: estimated RAM usage exceeds that available')
+            fileSize.append(os.path.getsize(f))
+        sortedFileSizes = sorted(fileSize, key=float, reverse=True)
+        fileSizeGigs = (sortedFileSizes[0] + sortedFileSizes[1]) / (1024**3)
+        logger.info("All input fastQ files total {:.3f} Gb".format(fileSizeGigs))
+        if sortedFileSizes[0] + sortedFileSizes[1] > perThreadRAM:
+            logger.error("Estimated maximum RAM usage exceeds that available")
+            sys.exit('FATAL ERROR: estimated maximum RAM usage exceeds that available')
 
 """
 ------------------------------------------------------------
