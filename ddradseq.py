@@ -39,7 +39,7 @@ def main(args):
     initializeLog()
     
     # Check system resources
-    checkResources(parameters.numThreads, parameters.stage)
+    checkResources(parameters)
 
     # Check for write permissions on output directory
     checkPermissions(parameters.outputDir)
@@ -810,19 +810,36 @@ Return value is trivial
 """
 
 
-def checkResources(numThreadsRequested, stage):
+def checkResources(params):
     # Get system memory
     memoryAvailable = float(os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES'))
     memGigs = memoryAvailable / (1024**3)
     logger.info("System reports {:.3f} Gb of RAM available".format(memGigs))
 
     # Get number of CPU threads
-    logger.info("{:d} CPU threads requested by user".format(numThreadsRequested))
+    logger.info("{:d} CPU threads requested by user".format(params.numThreads))
     threadsAvailable = multiprocessing.cpu_count()
     logger.info("System reports {:d} threads available".format(threadsAvailable))
+
+    # Get RAM available per thread
     perThreadRAM = memoryAvailable / threadsAvailable
     logger.info("{:.3f} Gb available per thread".format(perThreadRAM))
-
+    if params.stage in stageParsePool:
+        fileList = list()
+        totalFileSize = 0
+        for root, directs, filenames in os.walk(params.inputDir):
+            searchPattern = os.path.join(root, "*.fastq.gz")
+            fileList.extend(glob.glob(searchPattern))
+            for direct in directs:
+                dirPath = os.path.join(root, direct)
+                searchPattern = os.path.join(dirPath, "*.fastq.gz")
+                fileList.extend(glob.glob(searchPattern))
+        for f in fileList:
+            totalFileSize += os.path.getsize(f)
+        logger.info("All input fastQ files total {:.3f} Gb".format(totalFileSize))
+        if totalFileSize > perThreadRAM:
+            logger.error("Estimated RAM usage exceeds that available")
+            sys.exit('FATAL ERROR: estimated RAM usage exceeds that available')
 
 """
 ------------------------------------------------------------
