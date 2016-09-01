@@ -839,7 +839,7 @@ def checkResources(params):
             fileSize.append(os.path.getsize(f))
         sortedFileSizes = sorted(fileSize, key=float, reverse=True)
         fileSizeGigs = (sortedFileSizes[0] + sortedFileSizes[1]) / (1024**3)
-        logger.info("All input fastQ files total {:.3f} Gb".format(fileSizeGigs))
+        logger.info("Maximum pair of fastQ files totals {:.3f} Gb".format(fileSizeGigs))
         if sortedFileSizes[0] + sortedFileSizes[1] > perThreadRAM:
             logger.error("Estimated maximum RAM usage exceeds that available")
             sys.exit('FATAL ERROR: estimated maximum RAM usage exceeds that available')
