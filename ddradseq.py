@@ -35,11 +35,11 @@ def main(args):
     # Parse command line arguments
     parameters = getCommandLine(args)
 
-    # Get user name
-    userName = os.environ['USER']
-
     # Start pipeline logger
-    initializeLog(userName)
+    initializeLog()
+    
+    # Check system resources
+    checkResources(parameters.numThreads, parameters.stage)
 
     # Check for write permissions on output directory
     checkPermissions(parameters.outputDir)
@@ -776,14 +776,14 @@ def getFastqFilenames(inputDir, pattern):
 ------------------------------------------------------------
 initializeLog()
 ------------------------------------------------------------
-Function to setup the log file
-Takes the login name of the user running the script
+Function to initialize the log file
+and print a brief header
 Return value is trivial
 ------------------------------------------------------------
 """
 
 
-def initializeLog(userName):
+def initializeLog():
     logger.setLevel(logging.INFO)
     fh = logging.FileHandler("ddradseq.log")
     formatter = logging.Formatter(
@@ -791,8 +791,38 @@ def initializeLog(userName):
         '%(levelname)s - %(message)s')
     fh.setFormatter(formatter)
     logger.addHandler(fh)
+
+    # Get user name
+    userName = os.environ['USER']
     logger.info("ddradseq.py program started by user {}".format(userName))
     return 0
+
+
+"""
+------------------------------------------------------------
+checkResources()
+------------------------------------------------------------
+Function to check and compare requested and available
+system resources
+Takes the requested number of CPU threads as argument
+Return value is trivial
+------------------------------------------------------------
+"""
+
+
+def checkResources(numThreadsRequested, stage):
+    # Get system memory
+    memoryAvailable = float(os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES'))
+    memGigs = memoryAvailable / (1024**3)
+    logger.info("System reports {:.3f} Gb of RAM available".format(memGigs))
+
+    # Get number of CPU threads
+    logger.info("{:d} CPU threads requested by user".format(numThreadsRequested))
+    threadsAvailable = multiprocessing.cpu_count()
+    logger.info("System reports {:d} threads available".format(threadsAvailable))
+    perThreadRAM = memoryAvailable / threadsAvailable
+    logger.info("{:.3f} Gb available per thread".format(perThreadRAM))
+
 
 """
 ------------------------------------------------------------
