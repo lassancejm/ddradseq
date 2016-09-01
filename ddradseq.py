@@ -861,7 +861,7 @@ Start pipeline at a particular stage
                         metavar='N'
                         )
     parser.add_argument('-d', '--dir',
-                        required=True,
+                        required=False,
                         dest='inputDir',
                         help="Directory containing input fastQ files",
                         metavar='DIR'
@@ -930,6 +930,8 @@ Start pipeline at a particular stage
 
     # Check if pool database CSV file is needed
     if parameters.stage in stageParsePool:
+        if not parameters.inputDir:
+            parser.error('FATAL ERROR: parse_pool stage requires --dir switch')
         if not parameters.poolCSV:
             parser.error('FATAL ERROR: pool CSV file needed as input')
         else:
