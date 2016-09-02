@@ -3,10 +3,10 @@
 # File: ddradseq.py
 #
 # Author: Lummei Analytics LLC
-# Last updated: August 2016
+# Last updated: September 2016
 #
-# Description: A control script for running the ddRadSeq
-# pipeline in the Hoekstra lab
+# Description: A control script for running the Double
+# Digest RADseq pipeline
 #----------------------------------------------------------
 
 import os
@@ -36,20 +36,20 @@ def main(args):
     parameters = getCommandLine(args)
 
     # Start pipeline logger
-    initializeLog()
-    
+    initializeLog(parameters)
+
     # Check system resources
     checkResources(parameters)
 
     # Check for write permissions on output directory
-    checkPermissions(parameters.outputDir)
+    checkPermissions(parameters)
 
     # Check for executable worker programs in user's path
-    checkWorkers(parameters.stage)
+    checkWorkers(parameters)
 
     # If bwa stage is to be run, check for reference index files
     if parameters.stage in stageBWA:
-        checkRefIndex(parameters.referenceFile)
+        checkRefIndex(parameters)
 
     # Check CSV database files
     if parameters.stage in stageParsePool:
@@ -58,34 +58,27 @@ def main(args):
         checkDatabase(parameters.barcodeCSV)
 
     # Check for files in existing output directories, if any
-    checkExistingDirs(parameters.outputDir, parameters.stage)
+    checkExistingDirs(parameters)
 
     # Run the parse_pool stage of the pipeline
     if parameters.stage in stageParsePool:
-        runParsePool(
-            parameters.inputDir,
-            parameters.outputDir,
-            parameters.poolCSV,
-			parameters.numThreads)
+        runParsePool(parameters)
 
     # Run the trim_barcode stage of the pipeline
     if parameters.stage in stageTrimBarcode:
-        runTrimBarcode(parameters.outputDir, parameters.barcodeCSV, parameters.numThreads)
+        runTrimBarcode(parameters)
 
     # Run the trim_3prime stage of the pipeline
     if parameters.stage in stageTrimThreePrime:
-        runTrimThreePrime(parameters.outputDir, parameters.numThreads)
+        runTrimThreePrime(parameters)
 
     # Run the bwa stage of the pipeline
     if parameters.stage in stageBWA:
-        runBWA(
-            parameters.outputDir,
-            parameters.referenceFile,
-            parameters.numThreads,
-            parameters.threadsBWA)
+        runBWA(parameters)
 
     # Finish pipeline
     logger.info("ddradseq.py pipeline done")
+
 
 """
 ------------------------------------------------------------
@@ -134,8 +127,7 @@ def execBWA(threadID, nthreadsBWA, outputDir, referenceFile,
 runBWA()
 ------------------------------------------------------------
 Function to run bwa to map reads
-Takes the directory of the output directory and the input
-fastA reference genome file as arguments
+Takes the full parameters data structure as argument
 Return value is trivial
 Exits the script if bwa encounters run-time error
 (e.g., non-zero return value to shell)
@@ -143,21 +135,21 @@ Exits the script if bwa encounters run-time error
 """
 
 
-def runBWA(outputDir, referenceFile, numThreads, nthreadsBWA):
+def runBWA(params):
     logger.info("Running the bwa mem stage of the pipeline")
     logger.info(
-        "Starting to map reads to reference genome in {}.".format(referenceFile))
+        "Starting to map reads to reference genome in {}.".format(params.referenceFile))
 
     # Get the stage start time
     startTime = time.time()
 
     # Construct sorted arrays of mate pair input file names
-    fullPathForward = os.path.join(outputDir, 'final/final_*.R1.fq.gz')
+    fullPathForward = os.path.join(params.outputDir, 'final/final_*.R1.fq.gz')
     filenamesForward = glob.glob(fullPathForward)
     if not filenamesForward:
         logger.error("bwa mem error: no input R1 fastQ files found")
         sys.exit('FATAL ERROR: no R1 fastQ files for bwa mem input found')
-    fullPathReverse = os.path.join(outputDir, 'final/final_*.R2.fq.gz')
+    fullPathReverse = os.path.join(params.outputDir, 'final/final_*.R2.fq.gz')
     filenamesReverse = glob.glob(fullPathReverse)
     if not filenamesReverse:
         logger.error("bwa mem error: no input R2 fastQ files found")
@@ -166,7 +158,7 @@ def runBWA(outputDir, referenceFile, numThreads, nthreadsBWA):
     filenamesReverseSort = sorted(filenamesReverse)
 
     # Make a bwa subdirectory in outdir
-    outSubDir = os.path.join(outputDir, "bam")
+    outSubDir = os.path.join(params.outputDir, "bam")
     try:
         os.makedirs(outSubDir)
     except OSError:
@@ -174,21 +166,21 @@ def runBWA(outputDir, referenceFile, numThreads, nthreadsBWA):
 
     # Iterate through input fastQ files
     numFiles = len(filenamesForwardSort)
-    fileStart = [0] * numThreads
-    fileEnd = [0] * numThreads
+    fileStart = [0] * params.numThreads
+    fileEnd = [0] * params.numThreads
     jobs = []
-    filesPerThread = (numFiles + numThreads - 1) / numThreads
-    for tid in range(numThreads):
+    filesPerThread = (numFiles + params.numThreads - 1) / params.numThreads
+    for tid in range(params.numThreads):
         fileStart[tid] = tid * filesPerThread
         fileEnd[tid] = (tid + 1) * filesPerThread
-    fileEnd[numThreads - 1] = numFiles
-    for tid in range(numThreads):
+    fileEnd[params.numThreads - 1] = numFiles
+    for tid in range(params.numThreads):
         proc = multiprocessing.Process(
             target=execBWA,
             args=(tid,
-                  nthreadsBWA,
-                  outputDir,
-                  referenceFile,
+                  params.threadsBWA,
+                  params.outputDir,
+                  params.referenceFile,
                   fileStart[tid],
                   fileEnd[tid],
                   filenamesForwardSort,
@@ -210,6 +202,7 @@ def runBWA(outputDir, referenceFile, numThreads, nthreadsBWA):
     logger.info(
         "Total elapsed bwa mem time: {0:02d}:{1:02d}:{2:02d}".format(hour, min, sec))
     return 0
+
 
 """
 ------------------------------------------------------------
@@ -259,8 +252,7 @@ def execThreePrime(threadID, outputDir, fileStart,
 runTrimThreePrime()
 ------------------------------------------------------------
 Function to run the trim_3prime worker program
-Takes the directory of the output fastQ files from
-trim_barcode work program as an argument
+Takes the full parameters data structure as an argument
 Return value is trivial
 Exits the script if trim_3prime encounters run-time error
 (e.g., non-zero return value to shell)
@@ -268,19 +260,19 @@ Exits the script if trim_3prime encounters run-time error
 """
 
 
-def runTrimThreePrime(outputDir, numThreads):
+def runTrimThreePrime(params):
     logger.info("Running the trim_3prime stage of the pipeline")
 
     # Get the stage start time
     startTime = time.time()
 
     # Construct sorted arrays of mate pair input file names
-    fullPathForward = os.path.join(outputDir, 'trim/trim_*.R1.fq.gz')
+    fullPathForward = os.path.join(params.outputDir, 'trim/trim_*.R1.fq.gz')
     filenamesForward = glob.glob(fullPathForward)
     if not filenamesForward:
         logger.error("trim_3prime error: no input R1 fastQ files found")
         sys.exit('FATAL ERROR: no R1 fastQ files for trim_3prime input found')
-    fullPathReverse = os.path.join(outputDir, 'trim/trim_*.R2.fq.gz')
+    fullPathReverse = os.path.join(params.outputDir, 'trim/trim_*.R2.fq.gz')
     filenamesReverse = glob.glob(fullPathReverse)
     if not filenamesReverse:
         logger.error("trim_3prime error: no input R2 fastQ files found")
@@ -289,19 +281,19 @@ def runTrimThreePrime(outputDir, numThreads):
     filenamesReverseSort = sorted(filenamesReverse)
 
     numFiles = len(filenamesForwardSort)
-    fileStart = [0] * numThreads
-    fileEnd = [0] * numThreads
+    fileStart = [0] * params.numThreads
+    fileEnd = [0] * params.numThreads
     jobs = []
-    filesPerThread = (numFiles + numThreads - 1) / numThreads
-    for tid in range(numThreads):
+    filesPerThread = (numFiles + params.numThreads - 1) / params.numThreads
+    for tid in range(params.numThreads):
         fileStart[tid] = tid * filesPerThread
         fileEnd[tid] = (tid + 1) * filesPerThread
-    fileEnd[numThreads - 1] = numFiles
-    for tid in range(numThreads):
+    fileEnd[params.numThreads - 1] = numFiles
+    for tid in range(params.numThreads):
         proc = multiprocessing.Process(
             target=execThreePrime,
             args=(tid,
-                  outputDir,
+                  params.outputDir,
                   fileStart[tid],
                   fileEnd[tid],
                   filenamesForwardSort,
@@ -329,10 +321,7 @@ def runTrimThreePrime(outputDir, numThreads):
 runTrimBarcode()
 ------------------------------------------------------------
 Function to run the trim_barcode worker program
-Takes the name of the directory containing the output fastQ
-files from the parse_pool worker program and the
-comma-separated text file with custom barcodes and individual
-sample names as arguments
+Takes the full parameter data structure as an argument
 Return value is trivial
 Exits the script if trim_barcode encounters run-time error
 (e.g., non-zero return value to shell)
@@ -340,19 +329,19 @@ Exits the script if trim_barcode encounters run-time error
 """
 
 
-def runTrimBarcode(outputDir, barcodeCSV, numThreads):
+def runTrimBarcode(params):
     logger.info("Running the trim_barcode stage of the pipeline")
 
     # Get the stage start time
     startTime = time.time()
 
     # Construct sorted arrays of mate pair input file names
-    fullPathForward = os.path.join(outputDir, 'pool/pool_*.R1.fq.gz')
+    fullPathForward = os.path.join(params.outputDir, 'pool/pool_*.R1.fq.gz')
     filenamesForward = glob.glob(fullPathForward)
     if not filenamesForward:
         logger.error("trim_barcode error: no input R1 fastQ files found")
         sys.exit('FATAL ERROR: no R1 fastQ files for trim_barcode input found')
-    fullPathReverse = os.path.join(outputDir, 'pool/pool_*.R2.fq.gz')
+    fullPathReverse = os.path.join(params.outputDir, 'pool/pool_*.R2.fq.gz')
     filenamesReverse = glob.glob(fullPathReverse)
     if not filenamesReverse:
         logger.error("trim_barcode error: no input R2 fastQ files found")
@@ -363,7 +352,7 @@ def runTrimBarcode(outputDir, barcodeCSV, numThreads):
     # Iterate through input fastQ files
     for index, f in enumerate(filenamesForwardSort):
         cmdTrimBarcode = "trim_barcode -t {} -o {} {} {} {}".format(
-            numThreads, outputDir, f, filenamesReverseSort[index], barcodeCSV)
+            params.numThreads, params.outputDir, f, filenamesReverseSort[index], params.barcodeCSV)
         logger.info("Running command: {}".format(cmdTrimBarcode))
         proc = subprocess.Popen(
             cmdTrimBarcode,
@@ -403,9 +392,9 @@ Exits the script if parse_pool encounters run-time error
 """
 
 
-def runParsePool(inputDir, outputDir, poolCSV, numThreads):
+def runParsePool(params):
     # Get a list of infile fastQ file names
-    infileNames = getFastqFilenames(inputDir, "*.fastq.gz")
+    infileNames = getFastqFilenames(params.inputDir, "*.fastq.gz")
 
     # Count the number of input fastQ files
     numInfiles = len(infileNames)
@@ -418,8 +407,8 @@ def runParsePool(inputDir, outputDir, poolCSV, numThreads):
     # Iterate through input fastQ files
     for f in infileNames:
         sizeInfile = os.path.getsize(f) / (1024 * 1024.0)
-        logger.info("File: {}  size: {:.2f} Mb".format(f, sizeInfile))
-        cmdParsePool = "parse_pool -t {:d} -o {} {} {}".format(numThreads, outputDir, f, poolCSV)
+        logger.info("File: {}  size: {:.3f} Mb".format(f, sizeInfile))
+        cmdParsePool = "parse_pool -t {:d} -o {} {} {}".format(params.numThreads, params.outputDir, f, params.poolCSV)
         logger.info("Running command: {}".format(cmdParsePool))
         proc = subprocess.Popen(
             cmdParsePool,
@@ -457,9 +446,9 @@ Return value is trivial
 """
 
 
-def checkWorkers(stage):
+def checkWorkers(params):
     # If needed, check for the parse_pool program
-    if stage in stageParsePool:
+    if params.stage in stageParsePool:
         try:
             logger.info(
                 "Checking whether parse_pool executable is in user PATH")
@@ -471,7 +460,7 @@ def checkWorkers(stage):
         logger.info("parse_pool executable found at: {}".format(pathParsePool))
 
     # If needed, check for the trim_barcode program
-    if stage in stageTrimBarcode:
+    if params.stage in stageTrimBarcode:
         try:
             logger.info(
                 "Check whether the trim_barcode executable is in user PATH")
@@ -484,7 +473,7 @@ def checkWorkers(stage):
             "trim_barcode executable found at: {}".format(pathTrimBarcode))
 
     # If needed, check for the trim_3prime program
-    if stage in stageTrimThreePrime:
+    if params.stage in stageTrimThreePrime:
         try:
             logger.info(
                 "Checking whether the trim_3prime executable is in user PATH")
@@ -497,7 +486,7 @@ def checkWorkers(stage):
             "trim_3prime executable found at: {}".format(pathTrimThreePrime))
 
     # If needed, check for both bwa and samtools programs
-    if stage in stageBWA:
+    if params.stage in stageBWA:
         try:
             logger.info("Checking whether the bwa executable is in user PATH")
             pathBWA = subprocess.check_output('which bwa', shell=True)
@@ -532,35 +521,35 @@ Return value is trivial
 """
 
 
-def checkRefIndex(referenceFile):
-    referenceDir = os.path.dirname(referenceFile)
+def checkRefIndex(params):
+    referenceDir = os.path.dirname(params.referenceFile)
     logger.info("Checking {} for existing bwa reference index files".format(referenceDir))
-    ambFile = referenceFile + ".amb"
+    ambFile = params.referenceFile + ".amb"
     makeIndex = False
     if not os.path.isfile(ambFile):
         logger.warn("bwa index file {} not found.".format(ambFile))
         makeIndex = True
-    annFile = referenceFile + ".ann"
+    annFile = params.referenceFile + ".ann"
     if not os.path.isfile(annFile):
         logger.warn("bwa index file {} not found.".format(annFile))
         makeIndex = True
-    bwtFile = referenceFile + ".bwt"
+    bwtFile = params.referenceFile + ".bwt"
     if not os.path.isfile(bwtFile):
         logger.warn("bwa index file {} not found.".format(bwtFile))
         makeIndex = True
-    faiFile = referenceFile + ".fai"
+    faiFile = params.referenceFile + ".fai"
     if not os.path.isfile(faiFile):
         logger.warn("bwa index file {} not found.".format(faiFile))
         makeIndex = True
-    pacFile = referenceFile + ".pac"
+    pacFile = params.referenceFile + ".pac"
     if not os.path.isfile(pacFile):
         logger.warn("bwa index file {} not found.".format(pacFile))
         makeIndex = True
-    saFile = referenceFile + ".sa"
+    saFile = params.referenceFile + ".sa"
     if not os.path.isfile(saFile):
         logger.warn("bwa index file {} not found.".format(saFile))
         makeIndex = True
-    indexDir = os.path.dirname(referenceFile)
+    indexDir = os.path.dirname(params.referenceFile)
     checkPermissions(indexDir)
     if makeIndex:
         logger.info("Making bwa index files from reference {}.".format(referenceFile))
@@ -623,6 +612,7 @@ def checkDatabase(CSVfile):
                 "CSV database file {} has no duplicate keys".format(CSVfile))
     return 0
 
+
 """
 ------------------------------------------------------------
 checkPermissions()
@@ -633,15 +623,15 @@ Return value is trivial
 """
 
 
-def checkPermissions(outputDir):
-    isDir = os.path.isdir(outputDir)
+def checkPermissions(params):
+    isDir = os.path.isdir(params.outputDir)
     if isDir:
         logger.info(
-            "Confirmed that specified path to output directory {} exists".format(outputDir))
+            "Confirmed that specified path to output directory {} exists".format(params.outputDir))
         logger.info(
-            "Now testing for user write permissions on {}".format(outputDir))
+            "Now testing for user write permissions on {}".format(params.outputDir))
         try:
-            fileName = os.path.join(outputDir, "test")
+            fileName = os.path.join(params.outputDir, "test")
             f = open(fileName, "w")
             f.close()
             os.remove(fileName)
@@ -649,8 +639,9 @@ def checkPermissions(outputDir):
             logger.error("{}".format(e))
             sys.exit('FATAL ERROR: cannot write to specified output directory')
         logger.info(
-            "Confirmed that the user is able to write to {}".format(outputDir))
+            "Confirmed that the user is able to write to {}".format(params.outputDir))
     return 0
+
 
 """
 ------------------------------------------------------------
@@ -662,13 +653,13 @@ Return value is trivial
 """
 
 
-def checkExistingDirs(outputDir, stage):
+def checkExistingDirs(params):
     logger.info(
-        "Checking for existing output directories in {}".format(outputDir))
+        "Checking for existing output directories in {}".format(params.outputDir))
 
     # Log the results of the subdirectory scan
-    if stage in stageParsePool:
-        poolDir = os.path.join(outputDir, 'pool')
+    if params.stage in stageParsePool:
+        poolDir = os.path.join(params.outputDir, 'pool')
         pool_isdir = os.path.isdir(poolDir)
         if pool_isdir:
             logger.info(
@@ -686,8 +677,8 @@ def checkExistingDirs(outputDir, stage):
             logger.info(
                 "parse_pool output directory {} does not exist-- it will be created".format(poolDir))
 
-    if stage in stageTrimBarcode:
-        trimDir = os.path.join(outputDir, 'trim')
+    if params.stage in stageTrimBarcode:
+        trimDir = os.path.join(params.outputDir, 'trim')
         trim_isdir = os.path.isdir(trimDir)
         if trim_isdir:
             logger.info(
@@ -705,8 +696,8 @@ def checkExistingDirs(outputDir, stage):
             logger.info(
                 "trim_barcode output directory {} does not exist-- it will be created".format(trimDir))
 
-    if stage in stageTrimThreePrime:
-        finalDir = os.path.join(outputDir, 'final')
+    if params.stage in stageTrimThreePrime:
+        finalDir = os.path.join(params.outputDir, 'final')
         final_isdir = os.path.isdir(finalDir)
         if final_isdir:
             logger.info(
@@ -724,8 +715,8 @@ def checkExistingDirs(outputDir, stage):
             logger.info(
                 "trim_3prime output directory {} does not exist-- it will be created".format(finalDir))
 
-    if stage in stageBWA:
-        bamDir = os.path.join(outputDir, 'bam')
+    if params.stage in stageBWA:
+        bamDir = os.path.join(params.outputDir, 'bam')
         bam_isdir = os.path.isdir(bamDir)
         if bam_isdir:
             logger.info(
@@ -744,6 +735,7 @@ def checkExistingDirs(outputDir, stage):
                 "bwa mem output directory {} does not exist-- it will be created".format(bamDir))
 
     return 0
+
 
 """
 ------------------------------------------------------------
@@ -783,7 +775,7 @@ Return value is trivial
 """
 
 
-def initializeLog():
+def initializeLog(params):
     logger.setLevel(logging.INFO)
     fh = logging.FileHandler("ddradseq.log")
     formatter = logging.Formatter(
@@ -795,6 +787,40 @@ def initializeLog():
     # Get user name
     userName = os.environ['USER']
     logger.info("ddradseq.py program started by user {}".format(userName))
+
+	# List run-time parameters
+    logger.info("Run-time parameters:")
+    if params.inputDir:
+        logger.info("Input directory: {}".format(params.inputDir))
+    if params.outputDir:
+        logger.info("Output directory: {}".format(params.outputDir))
+    if params.referenceFile:
+        logger.info("Reference file: {}".format(params.referenceFile))
+    if params.poolCSV:
+        logger.info("Pool CSV database file: {}".format(params.poolCSV))
+    if params.barcodeCSV:
+        logger.info("Custom barcode CSV database file: {}".format(params.barcodeCSV))
+    if params.numThreads:
+        logger.info("Number of concurrent threads to run: {:d}".format(params.numThreads))
+    if params.threadsBWA:
+        logger.info("Number of concurrent threads to run bwa: {:d}".format(params.threadsBWA))
+    if params.stage:
+        if params.stage == 0:
+            logger.info("Running pipeline from beginning")
+        elif params.stage == 1:
+            logger.info("Running pipeline from trim_barcode stage")
+        elif params.stage == 2:
+            logger.info("Running pipeline from trim_3prime stage")
+        elif params.stage == 3:
+            logger.info("Running pipline from bwa stage")
+        elif params.stage == 4:
+            logger.info("Running only the parse_pool stage")
+        elif params.stage == 5:
+            logger.info("Running only the trim_barcode stage")
+        elif params.stage == 6:
+            logger.info("Running only the trim_3prime stage")
+        elif params.stage == 7:
+            logger.info("Running only the bwa stage")
     return 0
 
 
@@ -818,13 +844,15 @@ def checkResources(params):
 
     # Get number of CPU threads
     logger.info("{:d} CPU threads requested by user".format(params.numThreads))
-    threadsAvailable = multiprocessing.cpu_count()
-    logger.info("System reports {:d} threads available".format(threadsAvailable))
+    logger.info("System reports {:d} threads available".format(params.threadsAvailable))
 
     # Get RAM available per thread
-    perThreadRAM = memoryAvailable / threadsAvailable
+    perThreadRAM = memoryAvailable / params.numThreads
     perThreadRAMGigs = perThreadRAM / (1024**3)
     logger.info("{:.3f} Gb available per thread".format(perThreadRAMGigs))
+
+	# Check maximum size of input fastQ file pairs
+	# This will be taken as an estimate of maximum RAM usage
     if params.stage in stageParsePool:
         fileList = list()
         fileSize = []
@@ -838,11 +866,13 @@ def checkResources(params):
         for f in fileList:
             fileSize.append(os.path.getsize(f))
         sortedFileSizes = sorted(fileSize, key=float, reverse=True)
-        fileSizeGigs = (sortedFileSizes[0] + sortedFileSizes[1]) / (1024**3)
+        maxPairSize = sortedFileSizes[0] + sortedFileSizes[1]
+        fileSizeGigs = maxPairSize / (1024**3)
         logger.info("Maximum pair of fastQ files totals {:.3f} Gb".format(fileSizeGigs))
-        if sortedFileSizes[0] + sortedFileSizes[1] > perThreadRAM:
+        if maxPairSize > perThreadRAM:
             logger.error("Estimated maximum RAM usage exceeds that available")
             sys.exit('FATAL ERROR: estimated maximum RAM usage exceeds that available')
+
 
 """
 ------------------------------------------------------------
@@ -941,12 +971,12 @@ Start pipeline at a particular stage
     parameters = parser.parse_args(args)
 
     # Check if there are enough available CPU threads
-    availableCores = multiprocessing.cpu_count()
-    requestedCores = parameters.numThreads * parameters.threadsBWA
-    if requestedCores > availableCores:
+    parameters.threadsAvailable = multiprocessing.cpu_count()
+    threadsRequestedTotal = parameters.numThreads * parameters.threadsBWA
+    if threadsRequestedTotal > parameters.threadsAvailable:
         parser.error(
             'FATAL ERROR: {:d} threads requested, only {:d} threads available on host'.format(
-                requestedCores, availableCores))
+                threadsRequestedTotal, parameters.threadsAvailable))
 
     # Check if pool database CSV file is needed
     if parameters.stage in stageParsePool:
