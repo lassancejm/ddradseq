@@ -45,22 +45,22 @@ struct cmdparam
 };
 
 unsigned char seq_nt4_table[256] = {
-	4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
-	4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
-	4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
-	4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
-	4, 0, 4, 1,  4, 4, 4, 2,  4, 4, 4, 4,  4, 4, 4, 4,
-	4, 4, 4, 4,  3, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
-	4, 0, 4, 1,  4, 4, 4, 2,  4, 4, 4, 4,  4, 4, 4, 4,
-	4, 4, 4, 4,  3, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
-	4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
-	4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
-	4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
-	4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
-	4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
-	4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
-	4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
-	4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4
+    4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
+    4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
+    4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
+    4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
+    4, 0, 4, 1,  4, 4, 4, 2,  4, 4, 4, 4,  4, 4, 4, 4,
+    4, 4, 4, 4,  3, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
+    4, 0, 4, 1,  4, 4, 4, 2,  4, 4, 4, 4,  4, 4, 4, 4,
+    4, 4, 4, 4,  3, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
+    4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
+    4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
+    4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
+    4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
+    4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
+    4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
+    4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
+    4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4
 };
 
 char alpha[5] = "ACGTN";
@@ -156,116 +156,116 @@ main (int argc, char *argv[])
             return DATABASE_CREATION_FAILED;
         }
 
-	/* Pair the mates in the database */
-	if (cp->is_paired)
-		{
-			char *filename_base = NULL;
-			char *p = NULL;
-			char *cc = NULL;
-			char *reserve = NULL;
-			char seps[] = "_.";
+    /* Pair the mates in the database */
+    if (cp->is_paired)
+        {
+            char *filename_base = NULL;
+            char *p = NULL;
+            char *cc = NULL;
+            char *reserve = NULL;
+            char seps[] = "_.";
 
-			/* Allocate memory for filename_base */
-			if ((filename_base = malloc (strlen (cp->outdir) + strlen (cp->filename1) + 2)) == NULL)
-				{
-					fprintf (stderr, "[trim_3prime:%s:%d] Error allocating memory "
-							 "for filename_base.\n", __func__, __LINE__);
-					return ALLOC_ERROR;
-				}
+            /* Allocate memory for filename_base */
+            if ((filename_base = malloc (strlen (cp->outdir) + strlen (cp->filename1) + 2)) == NULL)
+                {
+                    fprintf (stderr, "[trim_3prime:%s:%d] Error allocating memory "
+                             "for filename_base.\n", __func__, __LINE__);
+                    return ALLOC_ERROR;
+                }
 
-			/* Parse input file name to get the sample ID */
-			cc = strdup (cp->filename1);
-			p = strtok_r (cc, seps, &reserve);
-			p = strtok_r (NULL, seps, &reserve);
-			strcpy (filename_base, cp->outdir);
-			strcat (filename_base, "final_");
-			strcat (filename_base, p);
-			free (cc);
+            /* Parse input file name to get the sample ID */
+            cc = strdup (cp->filename1);
+            p = strtok_r (cc, seps, &reserve);
+            p = strtok_r (NULL, seps, &reserve);
+            strcpy (filename_base, cp->outdir);
+            strcat (filename_base, "final_");
+            strcat (filename_base, p);
+            free (cc);
 
-			if ((pair_fastq_mates (reads)) < 0)
-				{
-					fprintf (stderr, "[trim_3prime:%s:%d] Error pairing "
-					         "mates in fastQ database.\n", __func__,
-					         __LINE__);
-					return PAIRING_FAILED;
-				}
+            if ((pair_fastq_mates (reads)) < 0)
+                {
+                    fprintf (stderr, "[trim_3prime:%s:%d] Error pairing "
+                             "mates in fastQ database.\n", __func__,
+                             __LINE__);
+                    return PAIRING_FAILED;
+                }
 
-			/* Trim 3' end of reverse reads that have adapter sequence */
-			for (x = fqdb_begin(reads); x != fqdb_end(reads); x++)
-				{
-					if (fqdb_exists(reads, x) &&
-					    fqdb_value(reads, x)->has_mate &&
-					    fqdb_value(reads, x)->read == 1)
-						{
-							ALIGN_QUERY *q[2] = {0, 0};
-							ALIGN_RESULT r;
-							unsigned int m = fqdb_value(reads, x)->mate;
-							char *target;
-							char *query;
-							target = strdup (fqdb_value(reads, x)->seq);
-							query = revcom (fqdb_value(reads, m)->seq);
-							size_t tlen = strlen (target);
-							size_t qlen = strlen (query);
+            /* Trim 3' end of reverse reads that have adapter sequence */
+            for (x = fqdb_begin(reads); x != fqdb_end(reads); x++)
+                {
+                    if (fqdb_exists(reads, x) &&
+                        fqdb_value(reads, x)->has_mate &&
+                        fqdb_value(reads, x)->read == 1)
+                        {
+                            ALIGN_QUERY *q[2] = {0, 0};
+                            ALIGN_RESULT r;
+                            unsigned int m = fqdb_value(reads, x)->mate;
+                            char *target;
+                            char *query;
+                            target = strdup (fqdb_value(reads, x)->seq);
+                            query = revcom (fqdb_value(reads, m)->seq);
+                            size_t tlen = strlen (target);
+                            size_t qlen = strlen (query);
 
-							/* Transform sequences */
-							for (i = 0; i < qlen; i++)
-								{
-									query[i] = seq_nt4_table[(int)query[i]];
-								}
+                            /* Transform sequences */
+                            for (i = 0; i < qlen; i++)
+                                {
+                                    query[i] = seq_nt4_table[(int)query[i]];
+                                }
 
-							for (i = 0; i < tlen; i++)
-								{
-									target[i] = seq_nt4_table[(int)target[i]];
-								}
+                            for (i = 0; i < tlen; i++)
+                                {
+                                    target[i] = seq_nt4_table[(int)target[i]];
+                                }
 
-							/* Do the alignment */
-							r = local_align ((int)qlen,
-							                 (unsigned char *)query,
-										     (int)tlen,
-										     (unsigned char *)target,
-										     5, mat, cp->gap_open,
-										     cp->gap_extend, xtra,
-										     &q[0]);
+                            /* Do the alignment */
+                            r = local_align ((int)qlen,
+                                             (unsigned char *)query,
+                                             (int)tlen,
+                                             (unsigned char *)target,
+                                             5, mat, cp->gap_open,
+                                             cp->gap_extend, xtra,
+                                             &q[0]);
 
-							if (r.score >= cp->min_score)
-								{
-									/* Test trimming criterion */
-									if ((r.target_begin == 0) &&
-									    (r.query_begin > 0))
-										{
-											int new_end_pos = qlen - r.query_begin;
-											char *seq = fqdb_value(reads, m)->seq;
-											char *qual = fqdb_value(reads, m)->qual;
-											seq[new_end_pos] = '\0';
-											qual[new_end_pos] = '\0';
-											seq = realloc (seq, (new_end_pos + 1) * sizeof (char));
-											qual = realloc (qual, (new_end_pos + 1) * sizeof (char));
-											count++;
-										}
-								}
+                            if (r.score >= cp->min_score)
+                                {
+                                    /* Test trimming criterion */
+                                    if ((r.target_begin == 0) &&
+                                        (r.query_begin > 0))
+                                        {
+                                            int new_end_pos = qlen - r.query_begin;
+                                            char *seq = fqdb_value(reads, m)->seq;
+                                            char *qual = fqdb_value(reads, m)->qual;
+                                            seq[new_end_pos] = '\0';
+                                            qual[new_end_pos] = '\0';
+                                            seq = realloc (seq, (new_end_pos + 1) * sizeof (char));
+                                            qual = realloc (qual, (new_end_pos + 1) * sizeof (char));
+                                            count++;
+                                        }
+                                }
 
-							free (q[0]);
-							free (q[1]);
-							free (target);
-							free (query);
-						}
-				}
-			write_fastq_paired (reads, filename_base);
-		}
+                            free (q[0]);
+                            free (q[1]);
+                            free (target);
+                            free (query);
+                        }
+                }
+            write_fastq_paired (reads, filename_base);
+        }
 
-	free (cp->filename1);
-	if (cp->is_paired)
-		{
-			free (cp->filename2);
-		}
-	if (!cp->default_dir)
-		{
-			free (cp->parentdir);
-		}
-	free (cp->outdir);
-	free (cp);
+    free (cp->filename1);
+    if (cp->is_paired)
+        {
+            free (cp->filename2);
+        }
+    if (!cp->default_dir)
+        {
+            free (cp->parentdir);
+        }
+    free (cp->outdir);
+    free (cp);
 
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
 
 struct cmdparam *
@@ -275,39 +275,39 @@ parse_cmdline (int argc, char *argv[])
     size_t size = 0;
     struct cmdparam *cp = NULL;
 
-	/* Allocate memory for command line option structure */
+    /* Allocate memory for command line option structure */
     if ((cp = malloc (sizeof (struct cmdparam))) == NULL)
-		{
-			fprintf (stderr, "[trim_3prime:%s:%d] Error allocating memory "
-					 "for command line structure.\n", __func__, __LINE__);
-			return NULL;
-		}
+        {
+            fprintf (stderr, "[trim_3prime:%s:%d] Error allocating memory "
+                     "for command line structure.\n", __func__, __LINE__);
+            return NULL;
+        }
 
-	/* Initialize default values in command line option structure */
-	cp->sa = 1;
-	cp->sb = 3;
-	cp->gap_open = 5;
-	cp->gap_extend = 2;
-	cp->min_score = 100;
-	cp->is_paired = 0;
-	cp->filename1 = NULL;
-	cp->filename2 = NULL;
-	cp->default_dir = 0;
-	cp->parentdir = NULL;
-	cp->outdir = NULL;
+    /* Initialize default values in command line option structure */
+    cp->sa = 1;
+    cp->sb = 3;
+    cp->gap_open = 5;
+    cp->gap_extend = 2;
+    cp->min_score = 100;
+    cp->is_paired = 0;
+    cp->filename1 = NULL;
+    cp->filename2 = NULL;
+    cp->default_dir = 0;
+    cp->parentdir = NULL;
+    cp->outdir = NULL;
 
-	/* parse command line */
-	while ((c = getopt (argc, argv, "a:b:q:o:hr:t:")) >= 0)
-		{
-			switch (c)
-				{
-					case 'a':
-						cp->sa = atoi (optarg);
-						break;
-					case 'b':
-						cp->sb = atoi (optarg);
-						break;
-					case 'o':
+    /* parse command line */
+    while ((c = getopt (argc, argv, "a:b:q:o:hr:t:")) >= 0)
+        {
+            switch (c)
+                {
+                    case 'a':
+                        cp->sa = atoi (optarg);
+                        break;
+                    case 'b':
+                        cp->sb = atoi (optarg);
+                        break;
+                    case 'o':
                         cp->parentdir = strdup (optarg);
                         size = strlen (cp->parentdir);
                         if (cp->parentdir[size - 1] == '/')
@@ -322,65 +322,65 @@ parse_cmdline (int argc, char *argv[])
                                 strcpy (cp->outdir, cp->parentdir);
                                 strcat (cp->outdir, "/final/");
                             }
-						break;
-					case 'q':
-						cp->gap_open = atoi (optarg);
-						break;
-					case 'r':
-						cp->gap_extend = atoi (optarg);
-						break;
-					case 't':
-						cp->min_score = atoi (optarg);
-						break;
-					case 'h':
-						return NULL;
-					case '?':
-						if (optopt == 'c')
-							{
-								fprintf (stderr, "Option -%c requires "
-								         "an argument.\n", optopt);
-							}
-						else if (isprint (optopt))
-							{
-								fprintf (stderr, "Unknown option `-%c'.\n",
-								         optopt);
-							}
-						else
-							{
-								fprintf (stderr, "Unknown option character "
-								         "`\\x%x'.\n", optopt);
-							}
-						return NULL;
-					default:
-						return NULL;
-				}
-		}
+                        break;
+                    case 'q':
+                        cp->gap_open = atoi (optarg);
+                        break;
+                    case 'r':
+                        cp->gap_extend = atoi (optarg);
+                        break;
+                    case 't':
+                        cp->min_score = atoi (optarg);
+                        break;
+                    case 'h':
+                        return NULL;
+                    case '?':
+                        if (optopt == 'c')
+                            {
+                                fprintf (stderr, "Option -%c requires "
+                                         "an argument.\n", optopt);
+                            }
+                        else if (isprint (optopt))
+                            {
+                                fprintf (stderr, "Unknown option `-%c'.\n",
+                                         optopt);
+                            }
+                        else
+                            {
+                                fprintf (stderr, "Unknown option character "
+                                         "`\\x%x'.\n", optopt);
+                            }
+                        return NULL;
+                    default:
+                        return NULL;
+                }
+        }
 
-	/* Get non-option arguments */
-	if ((optind + 1) > argc)
-		{
-			return NULL;
-		}
-	else
-		{
-			cp->filename1 = strdup (argv[optind]);
-			if ((optind + 2) <= argc)
-				{
-					cp->is_paired = 1;
-					cp->filename2 = strdup (argv[optind + 1]);
-				}
+    /* Get non-option arguments */
+    if ((optind + 1) > argc)
+        {
+            return NULL;
+        }
+    else
+        {
+            cp->filename1 = strdup (argv[optind]);
+            if ((optind + 2) <= argc)
+                {
+                    cp->is_paired = 1;
+                    cp->filename2 = strdup (argv[optind + 1]);
+                }
             if (cp->parentdir == NULL)
                 {
                     char *fullpath = strdup (argv[optind]);
                     cp->parentdir = dirname (fullpath);
                     size = strlen (cp->parentdir);
-					cp->outdir = malloc (size + 8);
-					strcpy (cp->outdir, cp->parentdir);
-					strcat (cp->outdir, "/final/");
-					cp->default_dir = 1;
+                    cp->outdir = malloc (size + 8);
+                    strcpy (cp->outdir, cp->parentdir);
+                    strcat (cp->outdir, "/final/");
+                    cp->default_dir = 1;
                 }
-			return cp;
-		}
+            return cp;
+        }
 }
 
 void

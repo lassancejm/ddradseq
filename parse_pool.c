@@ -32,7 +32,7 @@
 struct cmdparam
 {
     int default_dir;
-	int num_threads;
+    int num_threads;
     char *parentdir;
     char *outdir;
     char *filename;
@@ -71,42 +71,42 @@ main (int argc, char *argv[])
         }
     else
         {
-			/* Test if output directory already exists */
-			DIR *d = opendir (cp->outdir);
+            /* Test if output directory already exists */
+            DIR *d = opendir (cp->outdir);
 
-			/* If the directory doesn't already exist, create it */
-			if (d)
-				{
-					closedir (d);
-				}
-			else if (ENOENT == errno)
-				{
-					status = mkdir (cp->outdir, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
-					if (status < 0)
-						{
-							fprintf (stderr, "Error: failed to create output "
-									 "directory %s.\n", cp->outdir);
-							return CREATE_DIR_FAILED;
-						}
-				}
+            /* If the directory doesn't already exist, create it */
+            if (d)
+                {
+                    closedir (d);
+                }
+            else if (ENOENT == errno)
+                {
+                    status = mkdir (cp->outdir, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+                    if (status < 0)
+                        {
+                            fprintf (stderr, "Error: failed to create output "
+                                     "directory %s.\n", cp->outdir);
+                            return CREATE_DIR_FAILED;
+                        }
+                }
         }
 
     /* Read the fastQ input files */
     reads = read_fastq (1, cp->filename);
     if (reads == NULL)
-		{
-			fprintf (stderr, "Error: cannot read input file %s.\n",
-					 cp->filename);
-			return DATABASE_CREATION_FAILED;
-		}
+        {
+            fprintf (stderr, "Error: cannot read input file %s.\n",
+                     cp->filename);
+            return DATABASE_CREATION_FAILED;
+        }
 
     /* Read the adapter CSV input file and create database */
     adapt = create_adapter_database (cp->csvfile);
     if (adapt == NULL)
-		{
-			fprintf (stderr, "Error cannot read CSV file %s.\n", cp->csvfile);
-			return ADAPTER_DB_FAILED;
-		}
+        {
+            fprintf (stderr, "Error cannot read CSV file %s.\n", cp->csvfile);
+            return ADAPTER_DB_FAILED;
+        }
 
     /* Parse the reads by Illumina index and write to separate files */
     if ((parse_fastq_illumina (reads, adapt, cp->outdir, cp->num_threads)) < 0)
@@ -116,11 +116,11 @@ main (int argc, char *argv[])
         }
 
     /* Deallocate memory */
-	if (!cp->default_dir)
-		{
-			free (cp->parentdir);
-		}
-	free (cp->outdir);
+    if (!cp->default_dir)
+        {
+            free (cp->parentdir);
+        }
+    free (cp->outdir);
     free (cp->filename);
     free (cp->csvfile);
     free (cp);
@@ -143,9 +143,9 @@ parse_cmdline (int argc, char *argv[])
             exit (ALLOC_ERROR);
         }
 
-	/* Initialize default values on command line data structure */
-	cp->default_dir = 0;
-	cp->num_threads = 1;
+    /* Initialize default values on command line data structure */
+    cp->default_dir = 0;
+    cp->num_threads = 1;
     cp->parentdir = NULL;
     cp->outdir = NULL;
     cp->filename = NULL;
@@ -170,9 +170,9 @@ parse_cmdline (int argc, char *argv[])
                                 strcpy (cp->outdir, cp->parentdir);
                                 strcat (cp->outdir, "/pool/");
                             }
-						break;
-					case 't':
-						cp->num_threads = atoi (optarg);
+                        break;
+                    case 't':
+                        cp->num_threads = atoi (optarg);
                         break;
                     case 'h':
                         free (cp);
@@ -215,10 +215,10 @@ parse_cmdline (int argc, char *argv[])
                     char *fullpath = strdup (argv[optind]);
                     cp->parentdir = dirname (fullpath);
                     size = strlen (cp->parentdir);
-					cp->outdir = malloc (size + 7);
-					strcpy (cp->outdir, cp->parentdir);
-					strcat (cp->outdir, "/pool/");
-					cp->default_dir = 1;
+                    cp->outdir = malloc (size + 7);
+                    strcpy (cp->outdir, cp->parentdir);
+                    strcat (cp->outdir, "/pool/");
+                    cp->default_dir = 1;
                 }
             return cp;
         }
@@ -233,7 +233,7 @@ usage (char *program)
     fputs ("Available options\n", stderr);
     fputs ("  -o  DIR    Parent directory to write output files "
            "[default: same as input fastQ]\n", stderr);
-	fputs ("  -t  INT    Number of threads for concurrency [default: 1]\n", stderr);
+    fputs ("  -t  INT    Number of threads for concurrency [default: 1]\n", stderr);
     fputs ("  -h         Display this help message\n\n", stderr);
 }
 

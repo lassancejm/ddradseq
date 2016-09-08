@@ -34,7 +34,7 @@
 struct cmdparam
 {
     int dist;
-	int nthreads;
+    int nthreads;
     int is_paired;
     int default_dir;
     char *parentdir;
@@ -55,7 +55,7 @@ struct output_file
 
 struct thread_data
 {
-	FQDB *readdata;
+    FQDB *readdata;
     struct output_file *outinfo;;
     int start;
     int end;
@@ -153,7 +153,7 @@ main (int argc, char *argv[])
                 }
 
             /* Trim barcode sequence from 5' end of forward reads */
-            trim_adapter_seq (reads, adapt, 1, cp->dist);
+            trim_adapter_seq (reads, adapt, 1, cp->dist, cp->nthreads);
 
             unsigned int adapt_size = hash_size(adapt);
             struct output_file *of = malloc (adapt_size * sizeof (struct output_file));
@@ -187,28 +187,28 @@ main (int argc, char *argv[])
                             q++;
                         }
                 }
-			int tasks_per_thread = (q + cp->nthreads - 1) / cp->nthreads;
-			int x = 0;
-			struct thread_data *data;
-			pthread_t *threads;
-			data = calloc (cp->nthreads, sizeof (struct thread_data));
-			threads = malloc (cp->nthreads * sizeof (pthread_t));
-			for (x = 0; x < cp->nthreads; x++)
-				{
-					data[x].readdata = reads;
-					data[x].outinfo = &of[0];
-					data[x].start = x * tasks_per_thread;
-					data[x].end = (x + 1) * tasks_per_thread;
-				}
-			data[cp->nthreads - 1].end = q;
-			for (x = 0; x < cp->nthreads; x++)
-				{
-					pthread_create (threads+x, NULL, pair_reads, (void*)(&data[x]));
-				}
-			for (x = 0; x < cp->nthreads; x++)
-				{
-					pthread_join (threads[x], NULL);
-				}
+            int tasks_per_thread = (q + cp->nthreads - 1) / cp->nthreads;
+            int x = 0;
+            struct thread_data *data;
+            pthread_t *threads;
+            data = calloc (cp->nthreads, sizeof (struct thread_data));
+            threads = malloc (cp->nthreads * sizeof (pthread_t));
+            for (x = 0; x < cp->nthreads; x++)
+                {
+                    data[x].readdata = reads;
+                    data[x].outinfo = &of[0];
+                    data[x].start = x * tasks_per_thread;
+                    data[x].end = (x + 1) * tasks_per_thread;
+                }
+            data[cp->nthreads - 1].end = q;
+            for (x = 0; x < cp->nthreads; x++)
+                {
+                    pthread_create (threads+x, NULL, pair_reads, (void*)(&data[x]));
+                }
+            for (x = 0; x < cp->nthreads; x++)
+                {
+                    pthread_join (threads[x], NULL);
+                }
             free (of);
         }
 
@@ -228,28 +228,28 @@ main (int argc, char *argv[])
 
 void *pair_reads(void *data)
 {
-	int k;
-	unsigned int j, m;
-	struct thread_data *d = (struct thread_data*)data;
-	int start = d->start;
-	int end = d->end;
-	FQDB *h = d->readdata;
-	struct output_file *f = d->outinfo;
+    int k;
+    unsigned int j, m;
+    struct thread_data *d = (struct thread_data*)data;
+    int start = d->start;
+    int end = d->end;
+    FQDB *h = d->readdata;
+    struct output_file *f = d->outinfo;
 
-	for (k = start; k < end; k++)
-   		{
-        	/* Iterate through fastQ database */
+    for (k = start; k < end; k++)
+        {
+            /* Iterate through fastQ database */
             for (j = fqdb_begin(h); j != fqdb_end(h); j++)
-            	{
-                	if (fqdb_exists(h, j) &&
+                {
+                    if (fqdb_exists(h, j) &&
                         (fqdb_value(h, j)->indiv_id != NULL) &&
                         (fqdb_value(h, j)->has_mate))
-                    	{
-                        	m = fqdb_value(h, j)->mate;
+                        {
+                            m = fqdb_value(h, j)->mate;
                             if ((strcmp (fqdb_value(h, j)->indiv_id, f[k].seq) == 0) &&
                                 fqdb_exists(h, m))
-                            	{
-                                	append_fastq_file (fqdb_value(h, j), fqdb_key(h, j), &f[k].ffp);
+                                {
+                                    append_fastq_file (fqdb_value(h, j), fqdb_key(h, j), &f[k].ffp);
                                     append_fastq_file (fqdb_value(h, m), fqdb_key(h, m), &f[k].rfp);
                                 }
                         }
@@ -283,7 +283,7 @@ parse_cmdline (int argc, char *argv[])
      cp->filename1 = NULL;
      cp->filename2 = NULL;
      cp->csvfile = NULL;
-	 cp->nthreads = 1;
+     cp->nthreads = 1;
      cp->is_paired = 0;
      cp->dist = 1;
 
@@ -308,9 +308,9 @@ parse_cmdline (int argc, char *argv[])
                                 strcat (cp->outdir, "/trim/");
                             }
                         break;
-					case 't':
-						cp->nthreads = atoi (optarg);
-						break;
+                    case 't':
+                        cp->nthreads = atoi (optarg);
+                        break;
                     case 'd':
                         cp->dist = atoi (optarg);
                         break;
@@ -363,7 +363,7 @@ parse_cmdline (int argc, char *argv[])
                     cp->default_dir = 1;
                 }
             return cp;
-		}
+        }
 }
 
 void
@@ -374,6 +374,6 @@ usage (char *program)
     fputs ("Available options\n", stderr);
     fputs ("  -d  INT    Edit distance [default: 1]\n", stderr);
     fputs ("  -o  DIR    Parent directory to write output files [default: same as input fastQ]\n", stderr);
-	fputs ("  -t  INT    Number of threads to run [default: 1]\n", stderr);
+    fputs ("  -t  INT    Number of threads to run [default: 1]\n", stderr);
     fputs ("  -h         Display this help message\n\n", stderr);
 }
