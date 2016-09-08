@@ -550,7 +550,7 @@ def checkRefIndex(params):
         logger.warn("bwa index file {} not found.".format(saFile))
         makeIndex = True
     indexDir = os.path.dirname(params.referenceFile)
-    checkPermissions(indexDir)
+    checkPermissions(params)
     if makeIndex:
         logger.info("Making bwa index files from reference {}.".format(referenceFile))
         # Get the stage start time
