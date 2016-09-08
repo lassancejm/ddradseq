@@ -755,10 +755,6 @@ def getFastqFilenames(inputDir, pattern):
     for root, directs, filenames in os.walk(inputDir):
         searchPattern = os.path.join(root, pattern)
         fileList.extend(glob.glob(searchPattern))
-        for direct in directs:
-            dirPath = os.path.join(root, direct)
-            searchPattern = os.path.join(dirPath, pattern)
-            fileList.extend(glob.glob(searchPattern))
     if not fileList:
         logger.error("No input fastQ files found in {}".format(inputDir))
         sys.exit('FATAL ERROR: no input fastQ files found')
