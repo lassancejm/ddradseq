@@ -2,7 +2,7 @@
  * description: Worker program for the ddRadSeq pipeline to trim custom
  * barcodes from 5' end of fastQ sequences
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: August 2016
+ * updated: September 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */
@@ -29,6 +29,12 @@
 #define ADAPTER_DB_FAILED 6
 #define PAIRING_FAILED 7
 #define ALLOC_ERROR 8
+
+#define FORWARD 1
+#define REVERSE 2
+
+#define FALSE 0
+#define TRUE 1
 
 /* Define data structures */
 struct cmdparam
@@ -117,7 +123,7 @@ main (int argc, char *argv[])
                 }
         }
 
-    /* Read fastQ sequences from input file */
+    /* Read all fastQ sequences from input file into single database */
     if (cp->is_paired)
         {
             reads = read_fastq (2, cp->filename1, cp->filename2);
@@ -142,7 +148,7 @@ main (int argc, char *argv[])
             return ADAPTER_DB_FAILED;
         }
 
-    /* Pair the mates in the database */
+    /* Pair all of the mates in the reads database */
     if (cp->is_paired)
         {
             if ((pair_fastq_mates (reads)) < 0)
@@ -153,7 +159,7 @@ main (int argc, char *argv[])
                 }
 
             /* Trim barcode sequence from 5' end of forward reads */
-            trim_adapter_seq (reads, adapt, 1, cp->dist, cp->nthreads);
+            trim_adapter_seq (reads, adapt, FORWARD, cp->dist, cp->nthreads);
 
             unsigned int adapt_size = hash_size(adapt);
             struct output_file *of = malloc (adapt_size * sizeof (struct output_file));
@@ -165,8 +171,6 @@ main (int argc, char *argv[])
                     if (hash_exists(adapt, k) && (hash_value(adapt, k) != NULL))
                         {
                             /* Assign outfile names */
-                            /* char *outfile_for;*/
-                            /*char *outfile_rev;*/
                             of[q].seq = hash_value(adapt, k);
                             if ((of[q].forname = malloc (strlen (cp->outdir) + strlen (of[q].seq) + 16)) == NULL)
                                 {
@@ -187,6 +191,8 @@ main (int argc, char *argv[])
                             q++;
                         }
                 }
+
+            /* Do multithreaded pairing of reads */
             int tasks_per_thread = (q + cp->nthreads - 1) / cp->nthreads;
             int x = 0;
             struct thread_data *data;
@@ -210,7 +216,7 @@ main (int argc, char *argv[])
                     pthread_join (threads[x], NULL);
                 }
             free (of);
-        }
+        }   /* Done pairing mates in database */
 
     /* Deallocate memory */
     free (cp->filename1);
@@ -277,14 +283,14 @@ parse_cmdline (int argc, char *argv[])
         }
 
      /* Initialize to default values */
-     cp->default_dir = 0;
+     cp->default_dir = FALSE;
      cp->parentdir = NULL;
      cp->outdir = NULL;
      cp->filename1 = NULL;
      cp->filename2 = NULL;
      cp->csvfile = NULL;
      cp->nthreads = 1;
-     cp->is_paired = 0;
+     cp->is_paired = FALSE;
      cp->dist = 1;
 
     /* Parse command line arguments */
@@ -348,7 +354,7 @@ parse_cmdline (int argc, char *argv[])
         }
     else
         {
-            cp->is_paired = 1;
+            cp->is_paired = TRUE;
             cp->filename1 = strdup (argv[optind]);
             cp->filename2 = strdup (argv[optind + 1]);
             cp->csvfile = strdup (argv[optind + 2]);
@@ -360,7 +366,7 @@ parse_cmdline (int argc, char *argv[])
                     cp->outdir = malloc (size + 7);
                     strcpy (cp->outdir, cp->parentdir);
                     strcat (cp->outdir, "/trim/");
-                    cp->default_dir = 1;
+                    cp->default_dir = TRUE;
                 }
             return cp;
         }

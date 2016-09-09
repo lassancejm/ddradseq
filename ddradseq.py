@@ -366,6 +366,7 @@ def runTrimBarcode(params):
         if exitCode:
             logger.error("trim_barcode command encountered run-time error")
             logger.error(stderr)
+            sys.exit('FATAL ERROR: the trim_barcode program encountered a fatal run-time error')
         else:
             logger.info("trim_barcode command executed successfully")
 
@@ -422,6 +423,7 @@ def runParsePool(params):
         if exitCode:
             logger.error("parse_pool command encountered run-time error")
             logger.error(stderr)
+            sys.exit('FATAL ERROR: the parse_pool program encountered a fatal run-time error')
         else:
             logger.info("parse_pool command executed successfully")
 
@@ -552,10 +554,10 @@ def checkRefIndex(params):
     indexDir = os.path.dirname(params.referenceFile)
     checkPermissions(params)
     if makeIndex:
-        logger.info("Making bwa index files from reference {}.".format(referenceFile))
+        logger.info("Making bwa index files from reference {}.".format(params.referenceFile))
         # Get the stage start time
         startTime = time.time()
-        cmdIndexBWA = "bwa index {}".format(referenceFile)
+        cmdIndexBWA = "bwa index {}".format(params.referenceFile)
         logger.info("Running command: {}".format(cmdIndexBWA))
         proc = subprocess.Popen(
             cmdIndexBWA,
@@ -863,7 +865,7 @@ def checkResources(params):
             fileSize.append(os.path.getsize(f))
         sortedFileSizes = sorted(fileSize, key=float, reverse=True)
         maxPairSize = sortedFileSizes[0] + sortedFileSizes[1]
-        fileSizeGigs = maxPairSize / (1024**3)
+        fileSizeGigs = 5* maxPairSize / (1024**3)
         logger.info("Maximum pair of fastQ files totals {:.3f} Gb".format(fileSizeGigs))
         if maxPairSize > perThreadRAM:
             logger.error("Estimated maximum RAM usage exceeds that available")
@@ -961,7 +963,7 @@ Start pipeline at a particular stage
                         )
     parser.add_argument('-v', '--version',
                         action='version',
-                        version='%(prog)s 1.0'
+                        version='%(prog)s 1.1'
                         )
 
     parameters = parser.parse_args(args)

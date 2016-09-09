@@ -2,7 +2,7 @@
  * description: Worker program for the ddRadSeq pipeline to trim adapter
  * sequence from 3' end of reverse reads
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: August 2016
+ * updated: September 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */
