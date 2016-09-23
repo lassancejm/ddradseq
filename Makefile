@@ -1,19 +1,31 @@
-CC=gcc
-CFLAGS=-O2
-LDFLAGS=-lfasta
-BARCODE_LDFLAGS=-lfasta -lz -lpthread
-all: parse_pool trim_barcode trim_3prime
+# Makefile for the ddradseq worker program
+# Lummei Analytics LLC September 2016
+CC = gcc
+CFLAGS = -O2 -DNDEBUG
+DEBUG_CFLAGS = -g -Wall
+LDFLAGS = -lz
+TARGET = ddradseq
+SRCS = $(wildcard *.c)
+DEPS = $(wildcard *.h)
+OBJS = $(SRCS:.c=.o)
+INSTALL_DIR = $(HOME)/bin
 
-trim_barcode: trim_barcode.o
-	$(CC) $(CFLAGS) -o $@ $^ $(BARCODE_LDFLAGS)
+all: $(TARGET)
 
-parse_pool: parse_pool.o
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+debug: CFLAGS = $(DEBUG_CFLAGS)
+debug: $(TARGET)
 
-trim_3prime: trim_3prime.o
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS) $(LDFLAGS)
+	@echo "Done"
 
-.PHONY: clean
+%.o: %.c $(DEPS)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+.PHONY: clean install
+
+install:
+	cp $(TARGET) $(INSTALL_DIR)
 
 clean:
-	rm -f parse_pool trim_barcode trim_3prime *.o
+	rm -f $(TARGET) $(OBJS)
