@@ -42,7 +42,7 @@ typedef struct _barcode_
 	char *smplID;
 	char *outfile;
 	char *buffer;
-	size_t currnl;
+	size_t curr_bytes;
 } BARCODE;
 
 /* Third-level hash */
@@ -81,6 +81,8 @@ extern char* clean_buffer(char *buff, size_t *nl);
 extern size_t reset_buffer(char *buff, const char *r);
 
 extern size_t count_lines(const char *buff);
+
+extern int flush_buffer(BARCODE *bc);
 
 extern int print_buffer(char *buff, const size_t nl);
 

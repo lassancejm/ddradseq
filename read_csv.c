@@ -159,9 +159,10 @@ read_csv (char *filename, char *outpath)
 			kh_key(b, k) = tmp;
 			bc = malloc(sizeof(BARCODE));
 			assert(bc != NULL);
-			bc->buffer = malloc(sizeof(BUFLEN));
+			bc->buffer = malloc(BUFLEN);
 			assert(bc->buffer != NULL);
-			bc->currnl = 0;
+			bc->buffer[0] = '\0';
+			bc->curr_bytes = 0;
 			kh_value(b, k) = bc;
 		}
 		else

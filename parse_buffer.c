@@ -30,7 +30,9 @@ parse_buffer(char *buff, const size_t nl, khash_t(pool_hash) *h)
     char *dna_sequence = NULL;
     char *qual_sequence = NULL;
     int read = 0;
+	int ret = 0;
     int z = 0;
+	size_t add_bytes = 0;
     size_t strl = 0;
 	size_t l = 0;
 	size_t ll = 0;
@@ -124,10 +126,7 @@ parse_buffer(char *buff, const size_t nl, khash_t(pool_hash) *h)
 					barcode_sequence[BARCODE_LENGTH] = '\0';
 					k = kh_get(barcode, b, barcode_sequence);
 					if (k != kh_end(b))
-					{
 						bc = kh_value(b, k);
-						printf ("%s\n%s\n%s\n", idline, dna_sequence, bc->outfile);
-					}
 					else
 					{
 						/* Iterate through all barcode hash keys and */
@@ -156,10 +155,23 @@ parse_buffer(char *buff, const size_t nl, khash_t(pool_hash) *h)
 				assert(qual_sequence != NULL);
 				strcpy(qual_sequence, q);
 
-				/* TODO : Write to specific buffer */
-				printf ("%s\n%s\n+\n%s\n%s\n", idline, dna_sequence, qual_sequence, bc->outfile);
+				add_bytes = strlen(idline) + strlen(dna_sequence) +
+				            strlen(qual_sequence) + 5u;
+				if ((bc->curr_bytes + add_bytes) >= BUFLEN)
+				{
+					if ((ret = flush_buffer(bc)) != 0)
+					{
+						fputs("Problem writing buffer to file.\n", stderr);
+						abort();
+					}
+				}
+				bc->curr_bytes += add_bytes;
+				char *t = malloc(add_bytes + 1u);
+				sprintf (t, "%s\n%s\n+\n%s\n", idline, dna_sequence, qual_sequence);
+				strcat(bc->buffer, t);
 
 				/* Free alloc'd memory for fastQ entry */
+				free(t);
 				free(idline);
 				free(dna_sequence);
 				free(qual_sequence);

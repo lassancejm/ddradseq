@@ -17,11 +17,19 @@ int
 parse_fastq (char *filename, khash_t(pool_hash) *h)
 {
 	char *r = NULL;
-	char *p = NULL;
+	char *q = NULL;
 	char buffer[BUFLEN];
+	int ret = 0;
 	size_t numlines = 0;
 	size_t bytes_read = 0;
 	size_t buff_rem = 0;
+	khint_t i = 0;
+	khint_t j = 0;
+	khint_t k = 0;
+	khash_t(barcode) *b = NULL;
+	khash_t(pool) *p = NULL;
+	BARCODE *bc = NULL;
+	POOL *pl = NULL;
 	gzFile fin;
 
 	/* Open input file */
@@ -46,14 +54,46 @@ parse_fastq (char *filename, khash_t(pool_hash) *h)
 		buffer[bytes_read + buff_rem] = '\0';
 
 		/* Count lines in input buffer */
-		p = &buffer[0];
-		numlines = count_lines(p);
-		r = clean_buffer(p, &numlines);
-		parse_buffer(p, numlines, h);
-		buff_rem = reset_buffer(p, r);
+		q = &buffer[0];
+		numlines = count_lines(q);
+		r = clean_buffer(q, &numlines);
+		parse_buffer(q, numlines, h);
+		buff_rem = reset_buffer(q, r);
 
 		/* Check if we are at the end of file */
 		if (gzeof(fin)) break;
+	}
+
+	/* Flush remaining data in buffers */
+	for (i = kh_begin(h); i != kh_end(h); i++)
+	{
+		if (kh_exist(h, i))
+		{
+			p = kh_value(h, i);
+			for (j = kh_begin(p); j != kh_end(p); j++)
+			{
+				if (kh_exist(p, j))
+				{
+					pl = kh_value(p, j);
+					b = pl->b;
+					for (k = kh_begin(b); k != kh_end(b); k++)
+					{
+						if (kh_exist(b, k))
+						{
+							bc = kh_value(b, k);
+							if (bc->curr_bytes > 0)
+							{
+								if ((ret = flush_buffer(bc)) != 0)
+								{
+									fputs("Problem writing buffer to file.\n", stderr);
+									abort();
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
 	/* Close input file */
