@@ -31,10 +31,8 @@ parse_main(int argc, char *argv[])
         h = read_csv(cp->csvfile, cp->outdir);
 
 	/* Check for write permissions on parent of output directory */
-	#ifdef NDEBUG
 	if ((ret == 0) && (h != NULL))
 		ret = check_directories(cp, h);
-	#endif
 
 	/* Read the fastQ input files */
 	if ((ret == 0) && (h != NULL))
