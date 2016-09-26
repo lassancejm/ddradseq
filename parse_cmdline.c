@@ -9,16 +9,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include <unistd.h>
 #include <ctype.h>
 #include <libgen.h>
 #include "ddradseq.h"
 
 CMD *
-parse_cmdline(int argc, char *argv[], char *mode)
+parse_cmdline(int argc, char *argv[], char *runmode)
 {
 	int c = 0;
-	mode_t ret;
+	runmode_t ret;
 	size_t size = 0;
 	CMD *cp = NULL;
 
@@ -33,14 +34,15 @@ parse_cmdline(int argc, char *argv[], char *mode)
 
 
 	/* Initialize default values on command line data structure */
-	cp->default_dir = 0;
+	cp->default_dir = false;
+	cp->is_reverse = false;
 	cp->num_threads = 1;
 	cp->parentdir = NULL;
 	cp->outdir = NULL;
 	cp->filename = NULL;
 	cp->csvfile = NULL;
 
-	while ((c = getopt (argc, argv, "o:t:i:h")) != -1)
+	while ((c = getopt (argc, argv, "o:t:i:rh")) != -1)
 	{
 		switch (c)
 		{
@@ -51,7 +53,7 @@ parse_cmdline(int argc, char *argv[], char *mode)
 				{
 					cp->outdir = malloc(size + 9u);
 					strcpy(cp->outdir, cp->parentdir);
-                    ret = find_mode(mode);
+                    ret = find_mode(runmode);
 					switch (ret)
                     {
                         case PARSE:
@@ -71,7 +73,7 @@ parse_cmdline(int argc, char *argv[], char *mode)
 				{
 					cp->outdir = malloc(size + 10u);
 					strcpy(cp->outdir, cp->parentdir);
-                    ret = find_mode(mode);
+                    ret = find_mode(runmode);
 					switch (ret)
                     {
                         case PARSE:
@@ -87,6 +89,9 @@ parse_cmdline(int argc, char *argv[], char *mode)
                             return NULL;
                     }
 				}
+				break;
+			case 'r':
+				cp->is_reverse = true;
 				break;
 			case 'i':
 				cp->csvfile = strdup(optarg);
@@ -127,7 +132,7 @@ parse_cmdline(int argc, char *argv[], char *mode)
 			size = strlen(cp->parentdir);
 			cp->outdir = malloc(size + 10u);
 			strcpy(cp->outdir, cp->parentdir);
-            ret = find_mode(mode);
+            ret = find_mode(runmode);
             switch (ret)
             {
                 case PARSE:
@@ -142,7 +147,7 @@ parse_cmdline(int argc, char *argv[], char *mode)
                 case ERROR:
                     return NULL;
             }
-			cp->default_dir = 1;
+			cp->default_dir = true;
 		}
 		return cp;
 	}

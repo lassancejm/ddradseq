@@ -31,7 +31,7 @@ int flush_buffer(BARCODE *bc)
 
 	/* Dump buffer to file */
 	ret = gzwrite(out, buffer, len);
-	if (ret != len)
+	if (ret != (int)len)
 	{
 		fprintf(stderr, "Error writing to output file \'%s\'.\n", filename);
 		return 1;

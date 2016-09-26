@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include <assert.h>
 #include <zlib.h>
 #include "khash.h"
@@ -19,13 +20,13 @@
 khash_t(pool_hash) *
 read_csv (char *filename, char *outpath)
 {
+	bool trail = false;           /* Boolean indicator of trailing slash */
 	char buf[MAX_LINE];           /* File input buffer */
 	char seps[] = ",";            /* CSV entry separator character */
 	char *tok = NULL;             /* Holds parsed CSV tokens */
 	char *r = NULL;               /* Residual pointer for strtok_r */
 	char *tmp = NULL;             /* Temporary pointer */
 	int a = 0;                    /* Return value for database entry */
-	int trail = 0;                /* Boolean indicator of trailing slash */
 	size_t strl = 0;              /* Generic string length holder */
 	size_t pathl = 0;             /* Length of path string */
 	gzFile in;                    /* Input file stream */
@@ -42,7 +43,7 @@ read_csv (char *filename, char *outpath)
 	/* Check for trailing slash on outpath */
 	pathl = strlen(outpath);
 	if (outpath[pathl - 1u] == '/')
-		trail = 1;
+		trail = true;
 
 	/* Open input database text file stream */
 	if ((in = gzopen(filename, "rb")) == NULL)
@@ -184,16 +185,16 @@ read_csv (char *filename, char *outpath)
 		bc = kh_value(b, k);
 		bc->smplID = tmp;
 		if (trail)
-			pathl += 11u;
+			pathl += 14u;
 		else
-			pathl += 12u;
+			pathl += 15u;
 		tmp = malloc(pathl + 1u);
 		assert(tmp != NULL);
 		if (trail)
-			sprintf(tmp, "%s%s/%s/smpl_%s.fq.gz", outpath, kh_key(h, i),
+			sprintf(tmp, "%s%s/%s/smpl_%s.R1.fq.gz", outpath, kh_key(h, i),
 			        pl->poolID, bc->smplID);
 		else
-			sprintf(tmp, "%s/%s/%s/smpl_%s.fq.gz", outpath, kh_key(h, i),
+			sprintf(tmp, "%s/%s/%s/smpl_%s.R1.fq.gz", outpath, kh_key(h, i),
 			        pl->poolID, bc->smplID);
         bc->outfile = tmp;
 	}

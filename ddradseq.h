@@ -9,31 +9,38 @@
 #ifndef DDRADSEQ_H
 #define DDRADEQ_H
 
+#if defined __GNUC__ && !defined __GNUC_STDC_INLINE__ && !defined __GNUC_GNU_INLINE__
+#define __GNUC_GNU_INLINE__ 1
+#endif
+
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include "khash.h"
 
 /* Set buffer size */
-#define BUFLEN 0x4000
+#define BUFLEN 0x20000
 
 /* Define for forward and reverse reads */
 #define FORWARD 1
 #define REVERSE 2
 
 /* Define operating modes */
-enum mode_t { PARSE, TRIMEND, PAIR, ERROR };
+enum _runmode_t { PARSE, TRIMEND, PAIR, ERROR };
+typedef enum _runmode_t runmode_t;
 
 /* Define data structures */
 
 /* Define command line parameter data structure */
 typedef struct cmdparam
 {
-	int default_dir;
-	int num_threads;
+	bool is_reverse;
+	bool default_dir;
 	char *parentdir;
 	char *outdir;
 	char *filename;
 	char *csvfile;
+	int num_threads;
 } CMD;
 
 /* Barcode-level data structure */
@@ -90,7 +97,7 @@ extern int free_cmdline(CMD *cp);
 
 extern int levenshtein(char *s1, char *s2);
 
-static inline mode_t find_mode(const char *m)
+static inline runmode_t find_mode(const char *m)
 {
 	int ret;
 	if ((ret = strcmp(m, "parse")) == 0)

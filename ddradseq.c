@@ -17,41 +17,42 @@ extern int pair_main(int argc, char *argv[]);
 
 void main_usage(void);
 
+typedef int (*func_t)( int x, char *y[]);
+
 int
 main(int argc, char *argv[])
 {
-	char *mode = NULL;
+	char *runmode = NULL;
 	int val = 0;
-	mode_t ret;
+	runmode_t ret;
+	func_t f[3];
+
+	f[0] = parse_main;
+	f[1] = trimend_main;
+	f[2] = pair_main;
 
 	if (argc < 2)
 		main_usage();
 	else
 	{
-		mode = strdup(argv[1]);
-		ret = find_mode(mode);
-		argc--;
-		argv++;
-		switch (ret)
+		runmode = strdup(argv[1]);
+		ret = find_mode(runmode);
+		if (ret == ERROR)
 		{
-			case PARSE:
-				val = parse_main(argc, argv);
-				break;
-			case TRIMEND:
-				val = trimend_main(argc, argv);
-				break;
-			case PAIR:
-				val = pair_main(argc, argv);
-				break;
-			case ERROR:
-				val = 1;
-				fprintf(stderr, "Mode \'%s\' not recognized.\n\n", mode);
-				main_usage();
+			val = 1;
+			fprintf(stderr, "Mode \'%s\' not recognized.\n\n", runmode);
+			main_usage();			
+		}
+		else
+		{
+			argc--;
+			argv++;
+			val = f[ret](argc, argv);
 		}
 	}
 
 	/* Free allocated memory */
-	free(mode);
+	free(runmode);
 
 	return val;
 }

@@ -32,6 +32,7 @@ parse_buffer(char *buff, const size_t nl, khash_t(pool_hash) *h)
     int read = 0;
 	int ret = 0;
     int z = 0;
+    int orient = 0;
 	size_t add_bytes = 0;
     size_t strl = 0;
 	size_t l = 0;
@@ -89,6 +90,20 @@ parse_buffer(char *buff, const size_t nl, khash_t(pool_hash) *h)
 				tok = strtok_r(NULL, seps, &r);
 				assert(tok != NULL);
 				read = atoi(tok);
+				/* Determine orientation of reads in file */
+				/* Ideally this approach is wrong and the */
+				/* program should be able to handle fastQs */
+				/* with mixed read orientations */
+				if (read == FORWARD)
+				{
+					if (orient == 0) orient = FORWARD;
+					else if (orient == REVERSE) orient = -1;
+				}
+				if (read == REVERSE)
+				{
+					if (orient == 0) orient = REVERSE;
+					else if (orient == FORWARD) orient = -1;
+				}
 
 				/* Get filtered flag and control number */
 				for (z = 0; z < 2; z++)
@@ -180,5 +195,5 @@ parse_buffer(char *buff, const size_t nl, khash_t(pool_hash) *h)
 		}
 		q += ll + 1u;
 	}
-	return 0;
+	return orient;
 }
