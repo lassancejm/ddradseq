@@ -80,7 +80,6 @@ read_csv (CMD *cp)
 		/* initialize a second-level hash and add to value */
 		if (a)
 		{
-			kh_key(h, i) = tmp;
 			p = kh_init(pool);
 			kh_value(h, i) = p;
 		}
@@ -106,7 +105,6 @@ read_csv (CMD *cp)
 		/* Add the new hash to POOL and add POOL to second-level hash */
 		if (a)
 		{
-			kh_key(p, j) = tmp;
 			pl = malloc(sizeof(POOL));
 			assert(pl != NULL);
 			b = kh_init(barcode);
@@ -158,7 +156,6 @@ read_csv (CMD *cp)
 		/* initialize a fourth-level hash and add to value */
 		if (a)
 		{
-			kh_key(b, k) = tmp;
 			bc = malloc(sizeof(BARCODE));
 			assert(bc != NULL);
 			bc->buffer = malloc(BUFLEN);

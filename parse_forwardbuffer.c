@@ -19,6 +19,7 @@
 int
 parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(mates) *m)
 {
+	bool *skip;
 	char *q = buff;
 	char *r = NULL;
 	char *copy = NULL;
@@ -52,9 +53,13 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(
 	BARCODE *bc = NULL;
 	POOL *pl = NULL;
 
+	skip = malloc(nl * sizeof(bool));
+	for (l = 0; l < nl; l++) skip[l] = false;
+
 	for (l = 0; l < nl; l++)
 	{
 		ll = strlen(q);
+		if (!skip[l]) {
 		switch (l % 4)
 		{
 			case 0:
@@ -158,7 +163,7 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(
 					}
 				}
 				/* If barcode still not found */
-				if (bc == NULL) abort();
+				if (bc == NULL) {skip[l+1] = true; skip[l+2] = true;}
 				/* Need to find a way to skip sequences */
 
 				/* Constrcut key for mate pair hash */
@@ -205,5 +210,7 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(
 		}
 		q += ll + 1u;
 	}
+	}
+	free(skip);
 	return 0;
 }
