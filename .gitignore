@@ -1,0 +1,7 @@
+ddradseq
+*.o
+.cproject
+.project
+/parse/*
+/trimend/*
+/pair/*
