@@ -59,7 +59,10 @@ KHASH_MAP_INIT_STR(barcode, BARCODE*)
 typedef struct _pool_
 {
 	char *poolID;
-	char *dirpath;
+	char *poolpath;
+	char *poutfile;
+	char *pbuffer;
+	size_t pcurr_bytes;
 	khash_t(barcode) *b;
 } POOL;
 
@@ -75,13 +78,13 @@ extern CMD* parse_cmdline(int argc, char *argv[], char *mode);
 
 extern int check_directories(CMD *cp, khash_t(pool_hash) *h);
 
-extern khash_t(pool_hash)* read_csv(char *filename, char *outpath);
+extern khash_t(pool_hash)* read_csv(CMD *cp);
 
-extern void free_db(khash_t(pool_hash) *h);
+extern void free_db(CMD *cp, khash_t(pool_hash) *h);
 
-extern int parse_fastq(char *filename, khash_t(pool_hash) *h);
+extern int parse_fastq(CMD *cp, khash_t(pool_hash) *h);
 
-extern int parse_buffer(char *buff, const size_t nl, khash_t(pool_hash) *h);
+extern int parse_buffer(CMD *cp, char *buff, const size_t nl, khash_t(pool_hash) *h);
 
 extern char* clean_buffer(char *buff, size_t *nl);
 
@@ -90,6 +93,8 @@ extern size_t reset_buffer(char *buff, const char *r);
 extern size_t count_lines(const char *buff);
 
 extern int flush_buffer(BARCODE *bc);
+
+extern int flush_pbuffer(POOL *pl);
 
 extern int print_buffer(char *buff, const size_t nl);
 

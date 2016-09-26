@@ -16,7 +16,7 @@
 #define BARCODE_LENGTH 5
 
 int
-parse_buffer(char *buff, const size_t nl, khash_t(pool_hash) *h)
+parse_buffer(CMD *cp, char *buff, const size_t nl, khash_t(pool_hash) *h)
 {
 	char *q = buff;
 	char *r = NULL;
@@ -32,7 +32,6 @@ parse_buffer(char *buff, const size_t nl, khash_t(pool_hash) *h)
     int read = 0;
 	int ret = 0;
     int z = 0;
-    int orient = 0;
 	size_t add_bytes = 0;
     size_t strl = 0;
 	size_t l = 0;
@@ -90,20 +89,6 @@ parse_buffer(char *buff, const size_t nl, khash_t(pool_hash) *h)
 				tok = strtok_r(NULL, seps, &r);
 				assert(tok != NULL);
 				read = atoi(tok);
-				/* Determine orientation of reads in file */
-				/* Ideally this approach is wrong and the */
-				/* program should be able to handle fastQs */
-				/* with mixed read orientations */
-				if (read == FORWARD)
-				{
-					if (orient == 0) orient = FORWARD;
-					else if (orient == REVERSE) orient = -1;
-				}
-				if (read == REVERSE)
-				{
-					if (orient == 0) orient = REVERSE;
-					else if (orient == FORWARD) orient = -1;
-				}
 
 				/* Get filtered flag and control number */
 				for (z = 0; z < 2; z++)
@@ -133,7 +118,7 @@ parse_buffer(char *buff, const size_t nl, khash_t(pool_hash) *h)
 				dna_sequence = malloc(ll + 1u);
 				assert(dna_sequence != NULL);
 				strcpy(dna_sequence, q);
-				if (read == FORWARD)
+				if ((read == FORWARD) && (!cp->is_reverse))
 				{
 					barcode_sequence = malloc(BARCODE_LENGTH + 1u);
 					assert(barcode_sequence != NULL);
@@ -172,18 +157,37 @@ parse_buffer(char *buff, const size_t nl, khash_t(pool_hash) *h)
 
 				add_bytes = strlen(idline) + strlen(dna_sequence) +
 				            strlen(qual_sequence) + 5u;
-				if ((bc->curr_bytes + add_bytes) >= BUFLEN)
+				char *t = NULL;
+				if (cp->is_reverse)
 				{
-					if ((ret = flush_buffer(bc)) != 0)
+					if ((pl->pcurr_bytes + add_bytes) >= BUFLEN)
 					{
-						fputs("Problem writing buffer to file.\n", stderr);
-						abort();
+						if ((ret = flush_pbuffer(pl)) != 0)
+						{
+							fputs("Problem writing buffer to file.\n", stderr);
+							abort();
+						}
 					}
+					pl->pcurr_bytes += add_bytes;
+					t = malloc(add_bytes + 1u);
+					sprintf (t, "%s\n%s\n+\n%s\n", idline, dna_sequence, qual_sequence);
+					strcat(pl->pbuffer, t);
 				}
-				bc->curr_bytes += add_bytes;
-				char *t = malloc(add_bytes + 1u);
-				sprintf (t, "%s\n%s\n+\n%s\n", idline, dna_sequence, qual_sequence);
-				strcat(bc->buffer, t);
+				else
+				{
+					if ((bc->curr_bytes + add_bytes) >= BUFLEN)
+					{
+						if ((ret = flush_buffer(bc)) != 0)
+						{
+							fputs("Problem writing buffer to file.\n", stderr);
+							abort();
+						}
+					}
+					bc->curr_bytes += add_bytes;
+					t = malloc(add_bytes + 1u);
+					sprintf (t, "%s\n%s\n+\n%s\n", idline, dna_sequence, qual_sequence);
+					strcat(bc->buffer, t);
+				}
 
 				/* Free alloc'd memory for fastQ entry */
 				free(t);
@@ -195,5 +199,5 @@ parse_buffer(char *buff, const size_t nl, khash_t(pool_hash) *h)
 		}
 		q += ll + 1u;
 	}
-	return orient;
+	return 0;
 }

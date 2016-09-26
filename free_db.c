@@ -11,7 +11,7 @@
 #include "ddradseq.h"
 
 void
-free_db (khash_t(pool_hash) *h)
+free_db (CMD *cp, khash_t(pool_hash) *h)
 {
 	khint_t i = 0;
 	khint_t j = 0;
@@ -32,19 +32,27 @@ free_db (khash_t(pool_hash) *h)
 				{
 					pl = kh_value(p, j);
 					free(pl->poolID);
-					free(pl->dirpath);
-					b = pl->b;
-					for (k = kh_begin(b); k != kh_end(b); k++)
+					free(pl->poolpath);
+					if (cp->is_reverse)
 					{
-						if (kh_exist(b, k))
-						{
-							bc = kh_value(b, k);
-							free(bc->smplID);
-							free(bc->outfile);
-							free(bc->buffer);
-						}
+						free(pl->poutfile);
+						free(pl->pbuffer);
 					}
-					kh_destroy(barcode, b);
+					else
+					{
+						b = pl->b;
+						for (k = kh_begin(b); k != kh_end(b); k++)
+						{
+							if (kh_exist(b, k))
+							{
+								bc = kh_value(b, k);
+								free(bc->smplID);
+								free(bc->outfile);
+								free(bc->buffer);
+							}
+						}
+						kh_destroy(barcode, b);
+					}
 				}
 			}
 			kh_destroy(pool, p);

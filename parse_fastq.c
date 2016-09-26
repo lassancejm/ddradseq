@@ -14,8 +14,9 @@
 #include "ddradseq.h"
 
 int
-parse_fastq (char *filename, khash_t(pool_hash) *h)
+parse_fastq (CMD *cp, khash_t(pool_hash) *h)
 {
+	char *filename = cp->filename;
 	char *r = NULL;
 	char *q = NULL;
 	char buffer[BUFLEN];
@@ -57,7 +58,7 @@ parse_fastq (char *filename, khash_t(pool_hash) *h)
 		q = &buffer[0];
 		numlines = count_lines(q);
 		r = clean_buffer(q, &numlines);
-		parse_buffer(q, numlines, h);
+		parse_buffer(cp, q, numlines, h);
 		buff_rem = reset_buffer(q, r);
 
 		/* Check if we are at the end of file */
@@ -75,18 +76,32 @@ parse_fastq (char *filename, khash_t(pool_hash) *h)
 				if (kh_exist(p, j))
 				{
 					pl = kh_value(p, j);
-					b = pl->b;
-					for (k = kh_begin(b); k != kh_end(b); k++)
+					if (cp->is_reverse)
 					{
-						if (kh_exist(b, k))
+						if (pl->pcurr_bytes > 0)
 						{
-							bc = kh_value(b, k);
-							if (bc->curr_bytes > 0)
+							if ((ret = flush_pbuffer(pl)) != 0)
 							{
-								if ((ret = flush_buffer(bc)) != 0)
+								fputs("Problem writing buffer to file.\n", stderr);
+								abort();
+							}
+						}
+					}
+					else
+					{
+						b = pl->b;
+						for (k = kh_begin(b); k != kh_end(b); k++)
+						{
+							if (kh_exist(b, k))
+							{
+								bc = kh_value(b, k);
+								if (bc->curr_bytes > 0)
 								{
-									fputs("Problem writing buffer to file.\n", stderr);
-									abort();
+									if ((ret = flush_buffer(bc)) != 0)
+									{
+										fputs("Problem writing buffer to file.\n", stderr);
+										abort();
+									}
 								}
 							}
 						}

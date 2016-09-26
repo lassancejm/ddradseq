@@ -28,7 +28,7 @@ parse_main(int argc, char *argv[])
 
 	/* Read CSV database into memory */
     if (ret == 0)
-        h = read_csv(cp->csvfile, cp->outdir);
+        h = read_csv(cp);
 
 	/* Check for write permissions on parent of output directory */
 	if ((ret == 0) && (h != NULL))
@@ -36,12 +36,12 @@ parse_main(int argc, char *argv[])
 
 	/* Read the fastQ input files */
 	if ((ret == 0) && (h != NULL))
-		ret = parse_fastq(cp->filename, h);
+		ret = parse_fastq(cp, h);
 
 	/* Deallocate memory */
+    free_db(cp, h);
 	if (cp)
 		free_cmdline(cp);
-    free_db(h);
 
 	return ret;
 }

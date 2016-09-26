@@ -89,7 +89,7 @@ check_directories(CMD *cp, khash_t(pool_hash) *h)
 					if (kh_exist(p, j))
 					{
 						pl = kh_value(p, j);
-						pooldir = pl->dirpath;
+						pooldir = pl->poolpath;
 						d = opendir(pooldir);
 
 						/* If the subsubdirectory doesn't already exist */

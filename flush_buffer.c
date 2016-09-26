@@ -48,3 +48,37 @@ int flush_buffer(BARCODE *bc)
 	return 0;
 }
 
+int flush_pbuffer(POOL *pl)
+{
+	char *filename = pl->poutfile;
+	char *buffer = pl->pbuffer;
+	int ret = 0;
+	size_t len = pl->pcurr_bytes;
+	gzFile out;
+
+	/* Open input database text file stream */
+	if ((out = gzopen(filename, "ab")) == NULL)
+	{
+		fprintf(stderr, "Error opening output file \'%s\'.\n", filename);
+		return 1;
+	}
+
+	/* Dump buffer to file */
+	ret = gzwrite(out, buffer, len);
+	if (ret != (int)len)
+	{
+		fprintf(stderr, "Error writing to output file \'%s\'.\n", filename);
+		return 1;
+	}
+
+	/* Reset buffer */
+	pl->pcurr_bytes = 0;
+	memset(pl->pbuffer, 0, BUFLEN);
+	pl->pbuffer[0] = '\0';
+
+	/* Close output file */
+	gzclose(out);
+
+	return 0;
+}
+
