@@ -208,8 +208,8 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(
 				free(barcode_sequence);
 				break;
 		}
+		}
 		q += ll + 1u;
-	}
 	}
 	free(skip);
 	return 0;
