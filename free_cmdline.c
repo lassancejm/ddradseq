@@ -16,7 +16,8 @@ free_cmdline(CMD *cp)
 	if (cp->default_dir == false)
 		free(cp->parentdir);
 	free(cp->outdir);
-	free(cp->filename);
+	free(cp->forfastq);
+	free(cp->revfastq);
 	free(cp->csvfile);
 	free(cp);
 	return 0;

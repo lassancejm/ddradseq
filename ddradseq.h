@@ -34,11 +34,11 @@ typedef enum _runmode_t runmode_t;
 /* Define command line parameter data structure */
 typedef struct cmdparam
 {
-	bool is_reverse;
 	bool default_dir;
 	char *parentdir;
 	char *outdir;
-	char *filename;
+	char *forfastq;
+	char *revfastq;
 	char *csvfile;
 	int num_threads;
 } CMD;
@@ -60,9 +60,6 @@ typedef struct _pool_
 {
 	char *poolID;
 	char *poolpath;
-	char *poutfile;
-	char *pbuffer;
-	size_t pcurr_bytes;
 	khash_t(barcode) *b;
 } POOL;
 
@@ -72,6 +69,9 @@ KHASH_MAP_INIT_STR(pool, POOL*)
 /* Top-level hash */
 KHASH_MAP_INIT_STR(pool_hash, khash_t(pool)*)
 
+/* Hash to hold mate information */
+KHASH_MAP_INIT_STR(mates, char*)
+
 /* Function prototypes */
 
 extern CMD* parse_cmdline(int argc, char *argv[], char *mode);
@@ -80,11 +80,13 @@ extern int check_directories(CMD *cp, khash_t(pool_hash) *h);
 
 extern khash_t(pool_hash)* read_csv(CMD *cp);
 
-extern void free_db(CMD *cp, khash_t(pool_hash) *h);
+extern void free_db(khash_t(pool_hash) *h);
 
-extern int parse_fastq(CMD *cp, khash_t(pool_hash) *h);
+extern int parse_fastq(int orient, char *filename, khash_t(pool_hash) *h, khash_t(mates) *m);
 
-extern int parse_buffer(CMD *cp, char *buff, const size_t nl, khash_t(pool_hash) *h);
+extern int parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(mates) *m);
+
+extern int parse_reversebuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(mates) *m);
 
 extern char* clean_buffer(char *buff, size_t *nl);
 
@@ -92,11 +94,7 @@ extern size_t reset_buffer(char *buff, const char *r);
 
 extern size_t count_lines(const char *buff);
 
-extern int flush_buffer(BARCODE *bc);
-
-extern int flush_pbuffer(POOL *pl);
-
-extern int print_buffer(char *buff, const size_t nl);
+extern int flush_buffer(int orient, BARCODE *bc);
 
 extern int free_cmdline(CMD *cp);
 

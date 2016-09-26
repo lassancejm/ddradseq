@@ -18,7 +18,8 @@ parse_main(int argc, char *argv[])
 	int ret = 0;
 	CMD *cp = NULL;
 	khash_t(pool_hash) *h = NULL;
-
+	khash_t(mates) *m = NULL;
+	
 	/* Parse the command line options */
 	if ((cp = parse_cmdline(argc, argv, "parse")) == NULL)
 	{
@@ -34,12 +35,19 @@ parse_main(int argc, char *argv[])
 	if ((ret == 0) && (h != NULL))
 		ret = check_directories(cp, h);
 
+	/* Initialize hash for mate pair information */
+	m = kh_init(mates);
+
 	/* Read the fastQ input files */
 	if ((ret == 0) && (h != NULL))
-		ret = parse_fastq(cp, h);
+	{
+		parse_fastq(FORWARD, cp->forfastq, h, m);
+		parse_fastq(REVERSE, cp->revfastq, h, m);
+	}
 
 	/* Deallocate memory */
-    free_db(cp, h);
+    free_db(h);
+    kh_destroy(mates, m);
 	if (cp)
 		free_cmdline(cp);
 
@@ -49,7 +57,7 @@ parse_main(int argc, char *argv[])
 void
 parse_usage(void)
 {
-	fputs("Usage : ddradseq parse [OPTIONS] [FASTQ]\n\n", stderr);
+	fputs("Usage : ddradseq parse [OPTIONS] [FASTQ.R1] [FASTQ.R2]\n\n", stderr);
 	fputs("Parse fastQ file into separate files by flowcell, barcode and/or index\n", stderr);
 	fputs("If a custom barcode is used it is automatically trimmed from the 5\' end of the forward sequence.\n\n", stderr);
 	fputs("Available options\n", stderr);

@@ -45,4 +45,3 @@ pair_usage(void)
 	fputs("  -t  INT    Number of threads for concurrency [default: 1]\n", stderr);
 	fputs("  -h         Display this help message\n\n", stderr);
 }
-

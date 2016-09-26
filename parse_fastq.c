@@ -1,5 +1,5 @@
-/* file: parse_fastq.c
- * description: Main code to parse a fastQ file according to index sequence
+/* file: parse_forfastq.c
+ * description: Main code to parse a forward fastQ file according to index sequence
  * author: Daniel Garrigan Lummei Analytics LLC
  * updated: September 2016
  * email: dgarriga@lummei.net
@@ -14,9 +14,8 @@
 #include "ddradseq.h"
 
 int
-parse_fastq (CMD *cp, khash_t(pool_hash) *h)
+parse_fastq(int orient, char *filename, khash_t(pool_hash) *h, khash_t(mates) *m)
 {
-	char *filename = cp->filename;
 	char *r = NULL;
 	char *q = NULL;
 	char buffer[BUFLEN];
@@ -58,7 +57,10 @@ parse_fastq (CMD *cp, khash_t(pool_hash) *h)
 		q = &buffer[0];
 		numlines = count_lines(q);
 		r = clean_buffer(q, &numlines);
-		parse_buffer(cp, q, numlines, h);
+		if (orient == FORWARD)
+			parse_forwardbuffer(q, numlines, h, m);
+		else
+			parse_reversebuffer(q, numlines, h, m);
 		buff_rem = reset_buffer(q, r);
 
 		/* Check if we are at the end of file */
@@ -76,32 +78,18 @@ parse_fastq (CMD *cp, khash_t(pool_hash) *h)
 				if (kh_exist(p, j))
 				{
 					pl = kh_value(p, j);
-					if (cp->is_reverse)
+					b = pl->b;
+					for (k = kh_begin(b); k != kh_end(b); k++)
 					{
-						if (pl->pcurr_bytes > 0)
+						if (kh_exist(b, k))
 						{
-							if ((ret = flush_pbuffer(pl)) != 0)
+							bc = kh_value(b, k);
+							if (bc->curr_bytes > 0)
 							{
-								fputs("Problem writing buffer to file.\n", stderr);
-								abort();
-							}
-						}
-					}
-					else
-					{
-						b = pl->b;
-						for (k = kh_begin(b); k != kh_end(b); k++)
-						{
-							if (kh_exist(b, k))
-							{
-								bc = kh_value(b, k);
-								if (bc->curr_bytes > 0)
+								if ((ret = flush_buffer(orient, bc)) != 0)
 								{
-									if ((ret = flush_buffer(bc)) != 0)
-									{
-										fputs("Problem writing buffer to file.\n", stderr);
-										abort();
-									}
+									fputs("Problem writing buffer to file.\n", stderr);
+									abort();
 								}
 							}
 						}

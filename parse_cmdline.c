@@ -35,14 +35,14 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 
 	/* Initialize default values on command line data structure */
 	cp->default_dir = false;
-	cp->is_reverse = false;
 	cp->num_threads = 1;
 	cp->parentdir = NULL;
 	cp->outdir = NULL;
-	cp->filename = NULL;
+	cp->forfastq = NULL;
+	cp->revfastq = NULL;
 	cp->csvfile = NULL;
 
-	while ((c = getopt (argc, argv, "o:t:i:rh")) != -1)
+	while ((c = getopt (argc, argv, "o:t:i:h")) != -1)
 	{
 		switch (c)
 		{
@@ -90,9 +90,6 @@ parse_cmdline(int argc, char *argv[], char *runmode)
                     }
 				}
 				break;
-			case 'r':
-				cp->is_reverse = true;
-				break;
 			case 'i':
 				cp->csvfile = strdup(optarg);
 				break;
@@ -117,14 +114,15 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 		}
 	}
 
-	if ((optind + 1) > argc)
+	if ((optind + 2) > argc)
 	{
 		free(cp);
 		return NULL;
 	}
 	else
 	{
-		cp->filename = strdup(argv[optind]);;
+		cp->forfastq = strdup(argv[optind]);
+		cp->revfastq = strdup(argv[optind + 1]);
 		if (cp->parentdir == NULL)
 		{
 			char *fullpath = strdup(argv[optind]);

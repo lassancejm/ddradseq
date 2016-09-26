@@ -21,8 +21,8 @@ khash_t(pool_hash) *
 read_csv (CMD *cp)
 {
 	bool trail = false;           /* Boolean indicator of trailing slash */
-	char *csvfile = cp->csvfile;
-	char *outpath = cp->outdir;
+	char *csvfile = cp->csvfile;  /* Pointer to CSV database file name */
+	char *outpath = cp->outdir;   /* Pointer to parent of output directories */
 	char buf[MAX_LINE];           /* File input buffer */
 	char seps[] = ",";            /* CSV entry separator character */
 	char *tok = NULL;             /* Holds parsed CSV tokens */
@@ -40,7 +40,6 @@ read_csv (CMD *cp)
 	khash_t(pool_hash) *h = NULL;
 	BARCODE *bc = NULL;
 	POOL *pl = NULL;
-
 
 	/* Check for trailing slash on outpath */
 	pathl = strlen(outpath);
@@ -110,11 +109,8 @@ read_csv (CMD *cp)
 			kh_key(p, j) = tmp;
 			pl = malloc(sizeof(POOL));
 			assert(pl != NULL);
-			if (!cp->is_reverse)
-			{
-				b = kh_init(barcode);
-				pl->b = b;
-			}
+			b = kh_init(barcode);
+			pl->b = b;
 			kh_value(p, j) = pl;
 		}
 		else
@@ -142,71 +138,58 @@ read_csv (CMD *cp)
 		else
 			sprintf(tmp, "%s/%s/%s", outpath, kh_key(h, i), pl->poolID);
         pl->poolpath = tmp;
-        if (cp->is_reverse)
-        {
-        	pl->pbuffer = malloc(BUFLEN);
-        	assert(pl->pbuffer != NULL);
-        	pl->pcurr_bytes = 0;
-        	pathl += strlen(pl->poolID) + 15u;
-        	tmp = malloc(pathl + 1u);
-        	assert(tmp != NULL);
-			sprintf(tmp, "%s/pool_%s.R2.fq.gz", pl->poolpath, pl->poolID);        	
-        	pl->poutfile = tmp;
-        }
-		else
+
+    	/* Get barcode sequence */
+		tok = strtok_r(NULL, seps, &r);
+		assert(tok != NULL);
+
+		/* Alloc memory for barcode sequence string */
+		strl = strlen(tok);
+		tmp = malloc(strl + 1u);
+		assert(tmp != NULL);
+		strcpy(tmp, tok);
+
+		/* Put barcode sequence in third-level hash */
+		pl = kh_value(p, j);
+		b = pl->b;
+		k = kh_put(barcode, b, tmp, &a);
+
+		/* If this barcode is a new entry-- */
+		/* initialize a fourth-level hash and add to value */
+		if (a)
 		{
-			/* Continue reading-- get barcode sequence */
-			tok = strtok_r(NULL, seps, &r);
-			assert(tok != NULL);
-	
-			/* Alloc memory for barcode sequence string */
-			strl = strlen(tok);
-			tmp = malloc(strl + 1u);
-			assert(tmp != NULL);
-			strcpy(tmp, tok);
-	
-			/* Put barcode sequence in third-level hash */
-			pl = kh_value(p, j);
-			b = pl->b;
-			k = kh_put(barcode, b, tmp, &a);
-	
-			/* If this barcode is a new entry-- */
-			/* initialize a fourth-level hash and add to value */
-			if (a)
-			{
-				kh_key(b, k) = tmp;
-				bc = malloc(sizeof(BARCODE));
-				assert(bc != NULL);
-				bc->buffer = malloc(BUFLEN);
-				assert(bc->buffer != NULL);
-				bc->buffer[0] = '\0';
-				bc->curr_bytes = 0;
-				kh_value(b, k) = bc;
-			}
-			else
-				free(tmp);
-	
-			/* Get barcode value */
-			tok = strtok_r (NULL, seps, &r);
-			assert (tok != NULL);
-	
-			/* Alloc memory for barcode value */
-			strl = strcspn(tok, " \n");
-			tmp = malloc(strl + 1u);
-			pathl += strl + 1u;
-			assert(tmp != NULL);
-			strncpy(tmp, tok, strl);
-			tmp[strl] = '\0';
-	
-			/* Add barcode value to BARCODE data structure */
-			bc = kh_value(b, k);
-			bc->smplID = tmp;
-			pathl += 15u;
-			tmp = malloc(pathl + 1u);
-			assert(tmp != NULL);
-			sprintf(tmp, "%s/smpl_%s.R1.fq.gz", pl->poolpath, bc->smplID);
-        	bc->outfile = tmp;
+			kh_key(b, k) = tmp;
+			bc = malloc(sizeof(BARCODE));
+			assert(bc != NULL);
+			bc->buffer = malloc(BUFLEN);
+			assert(bc->buffer != NULL);
+			bc->buffer[0] = '\0';
+			bc->curr_bytes = 0;
+			kh_value(b, k) = bc;
 		}
+		else
+			free(tmp);
+
+		/* Get barcode value */
+		tok = strtok_r (NULL, seps, &r);
+		assert (tok != NULL);
+
+		/* Alloc memory for barcode value */
+		strl = strcspn(tok, " \n");
+		tmp = malloc(strl + 1u);
+		pathl += strl + 1u;
+		assert(tmp != NULL);
+		strncpy(tmp, tok, strl);
+		tmp[strl] = '\0';
+
+		/* Add barcode value to BARCODE data structure */
+		bc = kh_value(b, k);
+		bc->smplID = tmp;
+		pathl += 15u;
+		tmp = malloc(pathl + 1u);
+		assert(tmp != NULL);
+		sprintf(tmp, "%s/smpl_%s.R1.fq.gz", pl->poolpath, bc->smplID);
+    	bc->outfile = tmp;
 	}
 
 	/* Close input CSV file stream */

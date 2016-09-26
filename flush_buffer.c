@@ -14,15 +14,23 @@
 #include "khash.h"
 #include "ddradseq.h"
 
-int flush_buffer(BARCODE *bc)
+int flush_buffer(int orient, BARCODE *bc)
 {
-	char *filename = bc->outfile;
+	char *filename = strdup(bc->outfile);
 	char *buffer = bc->buffer;
+	char *pch = NULL;
 	int ret = 0;
 	size_t len = bc->curr_bytes;
 	gzFile out;
 
-	/* Open input database text file stream */
+	/* Convert forward output file name to reverse */
+	if (orient == REVERSE)
+	{
+		pch = strstr(filename, ".R1.fq.gz");
+		strncpy(pch, ".R2", 3);
+	}
+
+	/* Open output fastQ file stream */
 	if ((out = gzopen(filename, "ab")) == NULL)
 	{
 		fprintf(stderr, "Error opening output file \'%s\'.\n", filename);
@@ -44,41 +52,9 @@ int flush_buffer(BARCODE *bc)
 
 	/* Close output file */
 	gzclose(out);
+	
+	/* Free allocated memory */
+	free(filename);
 
 	return 0;
 }
-
-int flush_pbuffer(POOL *pl)
-{
-	char *filename = pl->poutfile;
-	char *buffer = pl->pbuffer;
-	int ret = 0;
-	size_t len = pl->pcurr_bytes;
-	gzFile out;
-
-	/* Open input database text file stream */
-	if ((out = gzopen(filename, "ab")) == NULL)
-	{
-		fprintf(stderr, "Error opening output file \'%s\'.\n", filename);
-		return 1;
-	}
-
-	/* Dump buffer to file */
-	ret = gzwrite(out, buffer, len);
-	if (ret != (int)len)
-	{
-		fprintf(stderr, "Error writing to output file \'%s\'.\n", filename);
-		return 1;
-	}
-
-	/* Reset buffer */
-	pl->pcurr_bytes = 0;
-	memset(pl->pbuffer, 0, BUFLEN);
-	pl->pbuffer[0] = '\0';
-
-	/* Close output file */
-	gzclose(out);
-
-	return 0;
-}
-
