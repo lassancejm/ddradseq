@@ -163,7 +163,7 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(
 					}
 				}
 				/* If barcode still not found */
-				if (bc == NULL) {skip[l+1] = true; skip[l+2] = true;}
+				if (bc == NULL) {skip[l+1] = true; skip[l+2] = true; break;}
 				/* Need to find a way to skip sequences */
 
 				/* Constrcut key for mate pair hash */
