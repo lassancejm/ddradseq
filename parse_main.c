@@ -32,14 +32,14 @@ parse_main(int argc, char *argv[])
         h = read_csv(cp);
 
 	/* Check for write permissions on parent of output directory */
-	if ((ret == 0) && (h != NULL))
+	if (ret == 0 && h != NULL)
 		ret = check_directories(cp, h);
 
 	/* Initialize hash for mate pair information */
 	m = kh_init(mates);
 
 	/* Read the fastQ input files */
-	if ((ret == 0) && (h != NULL))
+	if (ret == 0 && h != NULL)
 	{
 		parse_fastq(FORWARD, cp->forfastq, h, m, cp->trim_barcode);
 		parse_fastq(REVERSE, cp->revfastq, h, m, cp->trim_barcode);
@@ -58,12 +58,13 @@ void
 parse_usage(void)
 {
 	fputs("Usage : ddradseq parse [OPTIONS] [FASTQ.R1] [FASTQ.R2]\n\n", stderr);
-	fputs("Parse fastQ file into separate files by flowcell, barcode and/or index\n", stderr);
-	fputs("If a custom barcode is used it is automatically trimmed from the 5\' end of the forward sequence.\n\n", stderr);
-	fputs("Available options\n", stderr);
-	fputs("  -i  FILE   CSV file with index and barcode labels\n", stderr);
-	fputs("  -o  DIR    Parent directory to write output files [default: same as input fastQ]\n", stderr);
-	fputs("  -n  INT    Number of threads for concurrency [default: 1]\n", stderr);
-	fputs("  -t         Trim barcodes from sequences\n", stderr);
-	fputs("  -h         Display this help message\n\n", stderr);
+	fputs("Parse fastQ file into separate files by flowcell, barcode and/or index\n\n", stderr);
+	fputs("Mandatory arguments to long options are mandatory for short options too.\n", stderr);
+	fputs(" -c, --csv=FILE       CSV file with index and barcode labels\n", stderr);
+	fputs(" -o, --out=DIR        Parent directory to write output files    [default: same as input fastQ]\n", stderr);
+	fputs(" -n, --threads=INT    Number of threads for concurrency         [default: 1]\n", stderr);
+	fputs(" -t, --trim           Trim barcodes from sequences              [default: retain barcode sequence]\n", stderr);
+	fputs(" -h, --help           Display this help message\n\n", stderr);
+	fputs("For development information, see https://github.com/dgarriga/ddradseq\n", stderr);
+	fputs("Contact dgarriga@lummei.net for support.\n\n", stderr);
 }

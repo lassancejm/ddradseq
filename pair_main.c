@@ -40,8 +40,10 @@ pair_usage(void)
 {
 	fputs("Usage : ddradseq pair [OPTIONS] [FASTQ.R1] [FASTQ.R2]\n\n", stderr);
 	fputs("Aligns mated pairs in two fastQ files.\n\n", stderr);
-	fputs("Available options\n", stderr);
-	fputs("  -o  DIR    Parent directory to write output files [default: same as input fastQ]\n", stderr);
-	fputs("  -t  INT    Number of threads for concurrency [default: 1]\n", stderr);
-	fputs("  -h         Display this help message\n\n", stderr);
+	fputs("Mandatory arguments to long options are mandatory for short options too.\n", stderr);
+	fputs(" -o, --out=DIR        Parent directory to write output files    [default: same as input fastQ]\n", stderr);
+	fputs(" -n, --threads=INT    Number of threads for concurrency         [default: 1]\n", stderr);
+	fputs(" -h, --help           Display this help message\n\n", stderr);
+	fputs("For development information, see https://github.com/dgarriga/ddradseq\n", stderr);
+	fputs("Contact dgarriga@lummei.net for support.\n\n", stderr);
 }

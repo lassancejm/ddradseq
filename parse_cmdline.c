@@ -10,10 +10,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include <unistd.h>
+#include <getopt.h>
 #include <ctype.h>
 #include <libgen.h>
 #include "ddradseq.h"
+
 
 CMD *
 parse_cmdline(int argc, char *argv[], char *runmode)
@@ -22,8 +23,6 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 	runmode_t ret;
 	size_t size = 0;
 	CMD *cp = NULL;
-
-	opterr = 0;
 
 	/* Allocate memory for command line option structure */
 	if ((cp = malloc(sizeof (CMD))) == NULL)
@@ -42,10 +41,33 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 	cp->revfastq = NULL;
 	cp->csvfile = NULL;
 
-	while ((c = getopt (argc, argv, "o:n:i:th")) != -1)
+	while (1)
 	{
+		static struct option long_options[] =
+		{
+			{"trim",    no_argument,       0, 't'},
+			{"help",    no_argument,       0, 'h'},
+			{"out",     required_argument, 0, 'o'},
+			{"csv",     required_argument, 0, 'c'},
+			{"threads", required_argument, 0, 'n'},
+			{0, 0, 0, 0}
+		};
+		
+		int option_index = 0;
+
+		c = getopt_long(argc, argv, "o:n:c:th", long_options, &option_index);
+		if (c == -1) break;
+
 		switch (c)
 		{
+			case 0:
+				if (long_options[option_index].flag != 0)
+					break;
+				printf("option %s", long_options[option_index].name);
+				if (optarg)
+					printf(" with arg %s", optarg);
+				printf("\n");
+				break;
 			case 'o':
 				cp->parentdir = strdup(optarg);
 				size = strlen(cp->parentdir);
@@ -90,7 +112,7 @@ parse_cmdline(int argc, char *argv[], char *runmode)
                     }
 				}
 				break;
-			case 'i':
+			case 'c':
 				cp->csvfile = strdup(optarg);
 				break;
 			case 'n':
@@ -103,12 +125,6 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 				free(cp);
 				return NULL;
 			case '?':
-				if (optopt == 'c')
-					fprintf(stderr, "Option -%c requires an argument.\n", optopt);
-				else if (isprint(optopt))
-					fprintf(stderr, "Unknown option `-%c'.\n", optopt);
-				else
-					fprintf(stderr, "Unknown option character `\\x%x'.\n", optopt);
 				free(cp);
 				return NULL;
 			default:
@@ -119,8 +135,15 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 
 	if ((optind + 2) > argc)
 	{
+		fputs("ERROR: two paired fastQ files are required as input\n\n", stderr);
 		free(cp);
 		return NULL;
+	}
+	else if ((ret = find_mode(runmode)) == PARSE && cp->csvfile == NULL)
+	{
+		fputs("ERROR: \'--csv\' switch is mandatory in parse mode\n\n", stderr);
+		free(cp);
+		return NULL;		
 	}
 	else
 	{
@@ -133,7 +156,7 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 			size = strlen(cp->parentdir);
 			cp->outdir = malloc(size + 10u);
 			strcpy(cp->outdir, cp->parentdir);
-            ret = find_mode(runmode);
+            /*ret = find_mode(runmode);*/
             switch (ret)
             {
                 case PARSE:
