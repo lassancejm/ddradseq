@@ -44,6 +44,13 @@ typedef struct cmdparam
 	int num_threads;
 } CMD;
 
+typedef struct _fastq_
+{
+	char *id;
+	char *seq;
+	char *qual;
+} FASTQ;
+
 /* Barcode-level data structure */
 typedef struct _barcode_
 {
@@ -71,6 +78,9 @@ KHASH_MAP_INIT_STR(pool, POOL*)
 /* Top-level hash */
 KHASH_MAP_INIT_STR(pool_hash, khash_t(pool)*)
 
+/* Hash to hold fastQ entries */
+KHASH_MAP_INIT_STR(fastq, FASTQ*)
+
 /* Hash to hold mate information */
 KHASH_MAP_INIT_STR(mates, char*)
 
@@ -83,6 +93,8 @@ extern int check_directories(CMD *cp, khash_t(pool_hash) *h);
 extern khash_t(pool_hash)* read_csv(CMD *cp);
 
 extern void free_db(khash_t(pool_hash) *h);
+
+extern void free_pairdb (khash_t(fastq) *h);
 
 extern int parse_fastq(int orient, char *filename, khash_t(pool_hash) *h, khash_t(mates) *m, bool trim_barcode);
 
@@ -103,6 +115,10 @@ extern int flush_buffer(int orient, BARCODE *bc);
 extern int free_cmdline(CMD *cp);
 
 extern int levenshtein(char *s1, char *s2);
+
+extern khash_t(fastq)* fastq_to_db(char *filename);
+
+extern int pair_mates(char *filename, khash_t(fastq) *h);
 
 static inline runmode_t find_mode(const char *m)
 {

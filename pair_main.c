@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "ddradseq.h"
+#include "khash.h"
 
 void pair_usage(void);
 
@@ -17,6 +18,7 @@ pair_main(int argc, char *argv[])
 {
 	int ret = 0;
 	CMD *cp = NULL;
+	khash_t(fastq) *h = NULL;
 
 	/* Parse the command line options */
 	if ((cp = parse_cmdline(argc, argv, "pair")) == NULL)
@@ -28,7 +30,14 @@ pair_main(int argc, char *argv[])
 	if (ret == 0)
 		pair_usage();
 
+	/* Read forward fastQ file into hash table */
+	h = fastq_to_db(cp->forfastq);
+
+	/* Align mated pairs and write to output file*/
+	pair_mates(cp->revfastq, h);
+
 	/* Deallocate memory */
+	free_pairdb(h);
 	if (cp)
 		free_cmdline(cp);
 
