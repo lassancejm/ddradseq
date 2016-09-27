@@ -16,7 +16,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <emmintrin.h>
 #include "khash.h"
+
+#ifdef __GNUC__
+#define LIKELY(x) __builtin_expect((x),1)
+#define UNLIKELY(x) __builtin_expect((x),0)
+#else
+#define LIKELY(x) (x)
+#define UNLIKELY(x) (x)
+#endif
 
 /* Set buffer size */
 #define BUFLEN 0x20000
@@ -50,6 +59,31 @@ typedef struct _fastq_
 	char *seq;
 	char *qual;
 } FASTQ;
+
+typedef struct _ksqr_t {
+	int score;
+	int target_begin;
+	int target_end;
+	int query_begin;
+	int query_end;
+	int score2;
+	int target_end2;
+} ALIGN_RESULT;
+
+typedef struct _kswq_t
+{
+    int qlen;
+    int slen;
+    unsigned char shift;
+    unsigned char mdiff;
+    unsigned char max;
+    unsigned char size;
+    __m128i *qp;
+    __m128i *H0;
+    __m128i *H1;
+    __m128i *E;
+    __m128i *Hmax;
+} ALIGN_QUERY;
 
 /* Barcode-level data structure */
 typedef struct _barcode_
@@ -118,7 +152,12 @@ extern int levenshtein(char *s1, char *s2);
 
 extern khash_t(fastq)* fastq_to_db(char *filename);
 
+extern char* revcom(char *input_string);
+
 extern int pair_mates(char *filename, khash_t(fastq) *h);
+
+extern ALIGN_RESULT local_align(int qlen, unsigned char *query, int tlen, unsigned char *target, int m, const char *mat, int gapo,
+             int gape, int xtra, ALIGN_QUERY **qry);
 
 static inline runmode_t find_mode(const char *m)
 {

@@ -27,14 +27,13 @@ pair_main(int argc, char *argv[])
 		ret = 1;
 	}
 
-	if (ret == 0)
-		pair_usage();
-
 	/* Read forward fastQ file into hash table */
-	h = fastq_to_db(cp->forfastq);
+	if (ret == 0)
+		h = fastq_to_db(cp->forfastq);
 
 	/* Align mated pairs and write to output file*/
-	pair_mates(cp->revfastq, h);
+	if (ret == 0 && h != NULL)
+		pair_mates(cp->revfastq, h);
 
 	/* Deallocate memory */
 	free_pairdb(h);
