@@ -41,8 +41,8 @@ parse_main(int argc, char *argv[])
 	/* Read the fastQ input files */
 	if ((ret == 0) && (h != NULL))
 	{
-		parse_fastq(FORWARD, cp->forfastq, h, m);
-		parse_fastq(REVERSE, cp->revfastq, h, m);
+		parse_fastq(FORWARD, cp->forfastq, h, m, cp->trim_barcode);
+		parse_fastq(REVERSE, cp->revfastq, h, m, cp->trim_barcode);
 	}
 
 	/* Deallocate memory */
@@ -63,6 +63,7 @@ parse_usage(void)
 	fputs("Available options\n", stderr);
 	fputs("  -i  FILE   CSV file with index and barcode labels\n", stderr);
 	fputs("  -o  DIR    Parent directory to write output files [default: same as input fastQ]\n", stderr);
-	fputs("  -t  INT    Number of threads for concurrency [default: 1]\n", stderr);
+	fputs("  -n  INT    Number of threads for concurrency [default: 1]\n", stderr);
+	fputs("  -t         Trim barcodes from sequences\n", stderr);
 	fputs("  -h         Display this help message\n\n", stderr);
 }

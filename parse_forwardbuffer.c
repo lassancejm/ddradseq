@@ -14,15 +14,15 @@
 #include "khash.h"
 #include "ddradseq.h"
 
-#define BARCODE_LENGTH 5
 #define KEYLEN 31
 
 int
 parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
-                    khash_t(mates) *m)
+                    khash_t(mates) *m, bool trim_barcode)
 {
 	bool *skip;
 	char *q = buff;
+	char *s = NULL;
 	char *r = NULL;
 	char *copy = NULL;
 	char *idline = NULL;
@@ -45,6 +45,7 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
     size_t strl = 0;
 	size_t l = 0;
 	size_t ll = 0;
+	size_t sl = 0;
 	khint_t i = 0;
 	khint_t j = 0;
 	khint_t k = 0;
@@ -140,13 +141,25 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
 					break;
 				case 1:
 					/* Sequence line */
-					dna_sequence = malloc(ll + 1u);
-					assert(dna_sequence != NULL);
-					strcpy(dna_sequence, q);
-					barcode_sequence = malloc(BARCODE_LENGTH + 1u);
+					/* Grab the barcode before trimming */
+					barcode_sequence = malloc(pl->barcode_length + 1u);
 					assert(barcode_sequence != NULL);
-					strncpy(barcode_sequence, dna_sequence, BARCODE_LENGTH);
-					barcode_sequence[BARCODE_LENGTH] = '\0';
+					strncpy(barcode_sequence, q, pl->barcode_length);
+					barcode_sequence[pl->barcode_length] = '\0';
+					
+					/* Trim barcode if necessary */
+					if (trim_barcode)
+						sl = ll - pl->barcode_length;
+					else
+						sl = ll;
+					dna_sequence = malloc(sl + 1u);
+					assert(dna_sequence != NULL);
+					s = q;
+					if (trim_barcode)
+						s += pl->barcode_length;
+					strcpy(dna_sequence, s);
+					
+					/* Find the barcode in the database */
 					k = kh_get(barcode, b, barcode_sequence);
 					if (k != kh_end(b))
 						bc = kh_value(b, k);
@@ -193,9 +206,16 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
 					break;
 				case 3:
 					/* Quality sequence line */
-					qual_sequence = malloc(ll + 1u);
+					if (trim_barcode)
+						sl = ll - pl->barcode_length;
+					else
+						sl = ll;
+					qual_sequence = malloc(sl + 1u);
 					assert(qual_sequence != NULL);
-					strcpy(qual_sequence, q);
+					s = q;
+					if (trim_barcode)
+						 s += pl->barcode_length;
+					strcpy(qual_sequence, s);
 					add_bytes = strlen(idline) + strlen(dna_sequence) +
 					            strlen(qual_sequence) + 5u;
 					char *t = NULL;

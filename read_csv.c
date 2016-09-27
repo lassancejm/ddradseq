@@ -151,7 +151,15 @@ read_csv (CMD *cp)
 		pl = kh_value(p, j);
 		b = pl->b;
 		k = kh_put(barcode, b, tmp, &a);
-
+		if (b->size == 1) pl->barcode_length = strl;
+		else
+		{
+			if (pl->barcode_length != strl)
+			{
+				fputs("Error: unequal barcode lengths\n", stderr);
+				abort();
+			}
+		}
 		/* If this barcode is a new entry-- */
 		/* initialize a fourth-level hash and add to value */
 		if (a)

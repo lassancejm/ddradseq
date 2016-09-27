@@ -35,6 +35,7 @@ typedef enum _runmode_t runmode_t;
 typedef struct cmdparam
 {
 	bool default_dir;
+	bool trim_barcode;
 	char *parentdir;
 	char *outdir;
 	char *forfastq;
@@ -60,6 +61,7 @@ typedef struct _pool_
 {
 	char *poolID;
 	char *poolpath;
+	size_t barcode_length;
 	khash_t(barcode) *b;
 } POOL;
 
@@ -82,9 +84,9 @@ extern khash_t(pool_hash)* read_csv(CMD *cp);
 
 extern void free_db(khash_t(pool_hash) *h);
 
-extern int parse_fastq(int orient, char *filename, khash_t(pool_hash) *h, khash_t(mates) *m);
+extern int parse_fastq(int orient, char *filename, khash_t(pool_hash) *h, khash_t(mates) *m, bool trim_barcode);
 
-extern int parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(mates) *m);
+extern int parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(mates) *m, bool trim_barcode);
 
 extern int parse_reversebuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(mates) *m);
 
@@ -93,6 +95,8 @@ extern char* clean_buffer(char *buff, size_t *nl);
 extern size_t reset_buffer(char *buff, const char *r);
 
 extern size_t count_lines(const char *buff);
+
+extern int traverse_dirtree(const char *pdirect);
 
 extern int flush_buffer(int orient, BARCODE *bc);
 

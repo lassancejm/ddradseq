@@ -65,5 +65,5 @@ main_usage(void)
 	fputs("  parse	   Parses input fastQ by standard Illumina or custom adapter\n", stderr);
 	fputs("  trimend  Trims the 3\' end of fastQ sequences\n", stderr);
 	fputs("  pair	   Aligns mated pairs in two fastQ input files\n\n", stderr);
-	fputs("Contact dgarriga@bioinformed.org for support.\n\n", stderr);
+	fputs("Contact dgarriga@lummei.net for support.\n\n", stderr);
 }

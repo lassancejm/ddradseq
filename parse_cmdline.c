@@ -34,6 +34,7 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 
 	/* Initialize default values on command line data structure */
 	cp->default_dir = false;
+	cp->trim_barcode = false;
 	cp->num_threads = 1;
 	cp->parentdir = NULL;
 	cp->outdir = NULL;
@@ -41,7 +42,7 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 	cp->revfastq = NULL;
 	cp->csvfile = NULL;
 
-	while ((c = getopt (argc, argv, "o:t:i:h")) != -1)
+	while ((c = getopt (argc, argv, "o:n:i:th")) != -1)
 	{
 		switch (c)
 		{
@@ -92,8 +93,11 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 			case 'i':
 				cp->csvfile = strdup(optarg);
 				break;
-			case 't':
+			case 'n':
 				cp->num_threads = atoi(optarg);
+				break;
+			case 't':
+				cp->trim_barcode = true;
 				break;
 			case 'h':
 				free(cp);

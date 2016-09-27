@@ -14,7 +14,7 @@
 #include "ddradseq.h"
 
 int
-parse_fastq(int orient, char *filename, khash_t(pool_hash) *h, khash_t(mates) *m)
+parse_fastq(int orient, char *filename, khash_t(pool_hash) *h, khash_t(mates) *m, bool trim_barcode)
 {
 	char *r = NULL;
 	char *q = NULL;
@@ -58,7 +58,7 @@ parse_fastq(int orient, char *filename, khash_t(pool_hash) *h, khash_t(mates) *m
 		numlines = count_lines(q);
 		r = clean_buffer(q, &numlines);
 		if (orient == FORWARD)
-			parse_forwardbuffer(q, numlines, h, m);
+			parse_forwardbuffer(q, numlines, h, m, trim_barcode);
 		else
 			parse_reversebuffer(q, numlines, h, m);
 		buff_rem = reset_buffer(q, r);
