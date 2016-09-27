@@ -75,15 +75,15 @@ parse_reversebuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
 					assert(idline != NULL);
 					strcpy(idline, q);
 					strcpy(copy, q);
-	
+
 					/* Get instrument name */
 					tok = strtok_r(copy, seps, &r);
 					assert(tok != NULL);
-	
+
 					/* Get run number */
 					tok = strtok_r(NULL, seps, &r);
 					assert(tok != NULL);
-	
+
 					/* Get flow cell ID */
 					tok = strtok_r(NULL, seps, &r);
 					assert(tok != NULL);
@@ -98,11 +98,11 @@ parse_reversebuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
 						abort();
 					}
 					p = kh_value(h, i);
-	
+
 					/* Get lane number */
 					tok = strtok_r(NULL, seps, &r);
 					assert(tok != NULL);
-	
+
 					/* Get tile number, x, and y coordinate */
 					tok = strtok_r(NULL, seps, &r);
 					assert(tok != NULL);
@@ -113,7 +113,7 @@ parse_reversebuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
 					tok = strtok_r(NULL, seps, &r);
 					assert(tok != NULL);
 					ypos = atoi(tok);
-	
+
 					/* Retrieve barcode sequence of mate */
 					mkey = malloc(KEYLEN);
 					assert(mkey != NULL);
@@ -122,23 +122,23 @@ parse_reversebuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
 					if (mk == kh_end(m))
 					{
 						fputs("Hash lookup failure.\n", stderr);
-						abort();					
+						abort();
 					}
 					barcode_sequence = kh_value(m, mk);
 					free(mkey);
-	
+
 					/* Get read number */
 					tok = strtok_r(NULL, seps, &r);
 					assert(tok != NULL);
 					read = atoi(tok);
-	
+
 					/* Get filtered flag and control number */
 					for (z = 0; z < 2; z++)
 					{
 						tok = strtok_r(NULL, seps, &r);
 						assert(tok != NULL);
 					}
-	
+
 					/* Get the index sequence */
 					tok = strtok_r(NULL, seps, &r);
 					assert(tok != NULL);
@@ -149,7 +149,7 @@ parse_reversebuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
 					j = kh_get(pool, p, index_sequence);
 					pl = kh_value(p, j);
 					b = pl->b;
-	
+
 					/* Get the barcode entry of read's mate */
 					k = kh_get(barcode, b, barcode_sequence);
 					if (k != kh_end(b))
@@ -162,7 +162,7 @@ parse_reversebuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
 						free(idline);
 						free(barcode_sequence);
 					}
-	
+
 					/* Free memory */
 					free(flowcell_ID);
 					free(index_sequence);
@@ -182,7 +182,6 @@ parse_reversebuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
 					qual_sequence = malloc(ll + 1u);
 					assert(qual_sequence != NULL);
 					strcpy(qual_sequence, q);
-	
 					add_bytes = strlen(idline) + strlen(dna_sequence) +
 					            strlen(qual_sequence) + 5u;
 					char *t = NULL;
@@ -199,7 +198,7 @@ parse_reversebuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
 					sprintf (t, "%s\n%s\n+\n%s\n", idline, dna_sequence,
 					         qual_sequence);
 					strcat(bc->buffer, t);
-	
+
 					/* Free alloc'd memory for fastQ entry */
 					free(t);
 					free(idline);

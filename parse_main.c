@@ -19,7 +19,7 @@ parse_main(int argc, char *argv[])
 	CMD *cp = NULL;
 	khash_t(pool_hash) *h = NULL;
 	khash_t(mates) *m = NULL;
-	
+
 	/* Parse the command line options */
 	if ((cp = parse_cmdline(argc, argv, "parse")) == NULL)
 	{

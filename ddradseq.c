@@ -41,7 +41,7 @@ main(int argc, char *argv[])
 		{
 			val = 1;
 			fprintf(stderr, "Mode \'%s\' not recognized.\n\n", runmode);
-			main_usage();			
+			main_usage();
 		}
 		else
 		{

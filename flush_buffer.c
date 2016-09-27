@@ -52,7 +52,7 @@ int flush_buffer(int orient, BARCODE *bc)
 
 	/* Close output file */
 	gzclose(out);
-	
+
 	/* Free allocated memory */
 	free(filename);
 

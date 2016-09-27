@@ -20,7 +20,7 @@ free_db (khash_t(pool_hash) *h)
 	khash_t(barcode) *b = NULL;
 	POOL *pl = NULL;
 	BARCODE *bc = NULL;
-	
+
 	if (h == NULL) return;
 
 	for (i = kh_begin(h); i != kh_end(h); i++)
