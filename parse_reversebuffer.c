@@ -94,8 +94,15 @@ parse_reversebuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
 					i = kh_get(pool_hash, h, flowcell_ID);
 					if (i == kh_end(h))
 					{
-						fputs("Hash lookup failure.\n", stderr);
-						abort();
+						fprintf(stderr, "Hash lookup failure using key %s.\n", flowcell_ID);
+						fprintf(stderr, "Skipping sequence: %s\n", idline);
+						skip[l + 1] = true;
+						skip[l + 2] = true;
+						skip[l + 3] = true;
+						free(idline);
+						free(copy);
+						free(flowcell_ID);
+						break;
 					}
 					p = kh_value(h, i);
 	
@@ -121,8 +128,16 @@ parse_reversebuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
 					mk = kh_get(mates, m, mkey);
 					if (mk == kh_end(m))
 					{
-						fputs("Hash lookup failure.\n", stderr);
-						abort();					
+						fprintf(stderr, "Hash lookup failure using key %s.\n", mkey);
+						fprintf(stderr, "Skipping sequence: %s\n", idline);
+						skip[l + 1] = true;
+						skip[l + 2] = true;
+						skip[l + 3] = true;
+						free(mkey);
+						free(idline);
+						free(copy);
+						free(flowcell_ID);
+						break;
 					}
 					barcode_sequence = kh_value(m, mk);
 					free(mkey);
@@ -160,7 +175,6 @@ parse_reversebuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
 						skip[l + 2] = true;
 						skip[l + 3] = true;
 						free(idline);
-						free(barcode_sequence);
 					}
 	
 					/* Free memory */
