@@ -32,7 +32,6 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 		return NULL;
 	}
 
-
 	/* Initialize default values on command line data structure */
 	cp->default_dir = false;
 	cp->num_threads = 1;
