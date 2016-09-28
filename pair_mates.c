@@ -1,5 +1,5 @@
-/*! \file pair_mates.c
- *  \brief Pair mates in two fastQ files
+/* file pair_mates.c
+ * brief Pair mates in two fastQ files
  * author: Daniel Garrigan Lummei Analytics LLC
  * updated: September 2016
  * email: dgarriga@lummei.net
@@ -131,8 +131,8 @@ pair_mates(char *filename, khash_t(fastq) *h, char *ffor, char *frev)
                     buf[l][pos] = '\0';
 
                     /* Need to construct output file streams */
-                    gzprintf(fout, "%s\n%s\n+\n%s\n", e->id, e->seq, e->qual);
-                    gzprintf(rout, "%s\n%s\n+\n%s\n", &buf[l - 3][1], &buf[l - 2][0], &buf[l][0]);
+                    gzprintf(fout, "@%s\n%s\n+\n%s\n", e->id, e->seq, e->qual);
+                    gzprintf(rout, "@%s\n%s\n+\n%s\n", &buf[l - 3][1], &buf[l - 2][0], &buf[l][0]);
                 }
             }
         }

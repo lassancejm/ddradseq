@@ -12,12 +12,6 @@
 #include <emmintrin.h>
 #include "ddradseq.h"
 
-#define KSW_XBYTE  0x10000
-#define KSW_XSTOP  0x20000
-#define KSW_XSUBO  0x40000
-#define KSW_XSTART 0x80000
-#define MINUS_INF -0x40000000
-
 const ALIGN_RESULT g_defr = { 0, -1, -1, -1, -1, -1, -1 };
 
 /* Function prototypes */

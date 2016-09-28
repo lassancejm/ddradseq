@@ -23,13 +23,18 @@ char *
 revcom(char *input_string)
 {
     char *str = NULL;
+    char *pch = NULL;
+    size_t strl = 0;
     size_t i = 0;
 
     /* Create local copy of DNA string */
     str = strdup(input_string);
+    pch = strchr(str,'\n');
+    if (pch) *pch = '\0';
+    strl = strlen(str);
 
     /* Convert to upper-case characters */
-    for (i = 0; i < strlen(str); i++)
+    for (i = 0; i < strl; i++)
     {
         /* Check that characters are either alphabetical or gaps */
         if (isalpha(str[i]))

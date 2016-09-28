@@ -36,6 +36,13 @@
 
 #define DATELEN 11
 
+/* Define quantities needed for alignment */
+#define KSW_XBYTE  0x10000
+#define KSW_XSTOP  0x20000
+#define KSW_XSUBO  0x40000
+#define KSW_XSTART 0x80000
+#define MINUS_INF -0x40000000
+
 /* Define operating modes */
 enum _runmode_t { PARSE, TRIMEND, PAIR, ERROR };
 typedef enum _runmode_t runmode_t;
@@ -148,7 +155,7 @@ extern size_t reset_buffer(char *buff, const char *r);
 
 extern size_t count_lines(const char *buff);
 
-extern char** traverse_dirtree(const char *dirpath, int *x);
+extern char** traverse_dirtree(const char *dirpath, char *pattern, int *x);
 
 extern int flush_buffer(int orient, BARCODE *bc);
 
@@ -159,6 +166,8 @@ extern int levenshtein(char *s1, char *s2);
 extern khash_t(fastq)* fastq_to_db(char *filename);
 
 extern char* revcom(char *input_string);
+
+extern int align_mates(char *fin, char *rin, char *fout, char *rout);
 
 extern int pair_mates(char *filename, khash_t(fastq) *h, char *ffor, char *frev);
 
