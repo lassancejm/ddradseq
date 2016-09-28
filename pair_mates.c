@@ -19,7 +19,7 @@
 #define KEYLEN 31
 
 int
-pair_mates(char *filename, khash_t(fastq) *h)
+pair_mates(char *filename, khash_t(fastq) *h, char *ffor, char *frev)
 {
     char buf[BSIZE][MAX_LINE_LENGTH];
 	char *idline = NULL;
@@ -37,12 +37,27 @@ pair_mates(char *filename, khash_t(fastq) *h)
     size_t strl = 0;
     khint_t k = 0;
     gzFile in;
+    gzFile fout;
+    gzFile rout;
     FASTQ *e = NULL;
 
     /* Open the fastQ input stream */
     if ((in = gzopen(filename, "rb")) == Z_NULL)
     {
         fprintf(stderr, "Error: cannot open input fastQ file %s.\n", filename);
+        return 1;
+    }
+
+    /* Open the output fastQ file streams */
+     if ((fout = gzopen(ffor, "wb")) == Z_NULL)
+    {
+        fprintf(stderr, "Error: cannot open input fastQ file %s.\n", ffor);
+        return 1;
+    }
+
+    if ((rout = gzopen(frev, "wb")) == Z_NULL)
+    {
+        fprintf(stderr, "Error: cannot open input fastQ file %s.\n", frev);
         return 1;
     }
 
@@ -114,9 +129,10 @@ pair_mates(char *filename, khash_t(fastq) *h)
                     /* Parse quality sequence */
                     pos = strcspn(buf[l], "\n");
                     buf[l][pos] = '\0';
+
                     /* Need to construct output file streams */
-                    printf("%s\t%s\n", e->id, &buf[l - 3][1]);
-                    /* id: &buf[j - 3][1]  seq: &buf[j - 2][0]  qual:  &buf[j][0]);*/
+                    gzprintf(fout, "%s\n%s\n+\n%s\n", e->id, e->seq, e->qual);
+                    gzprintf(rout, "%s\n%s\n+\n%s\n", &buf[l - 3][1], &buf[l - 2][0], &buf[l][0]);
                 }
             }
         }
@@ -127,6 +143,8 @@ pair_mates(char *filename, khash_t(fastq) *h)
 
     /* Close input stream */
     gzclose(in);
+    gzclose(fout);
+    gzclose(rout);
 
     return 0;
 }

@@ -10,6 +10,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <time.h>
+#include <assert.h>
 #include <getopt.h>
 #include <ctype.h>
 #include <libgen.h>
@@ -19,9 +21,12 @@
 CMD *
 parse_cmdline(int argc, char *argv[], char *runmode)
 {
+	char *datec = NULL;
 	int c = 0;
 	runmode_t ret;
 	size_t size = 0;
+	time_t rawtime;
+	struct tm * timeinfo;
 	CMD *cp = NULL;
 
 	/* Allocate memory for command line option structure */
@@ -40,6 +45,13 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 	cp->forfastq = NULL;
 	cp->revfastq = NULL;
 	cp->csvfile = NULL;
+
+	/* Construct the date string for output directory */
+	time(&rawtime);
+	timeinfo = localtime(&rawtime);
+	datec = malloc(DATELEN + 2u);
+	assert(datec != NULL);
+	strftime(datec, DATELEN + 2u, "/%F/", timeinfo);
 
 	while (1)
 	{
@@ -73,43 +85,17 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 				size = strlen(cp->parentdir);
 				if (cp->parentdir[size - 1] == '/')
 				{
-					cp->outdir = malloc(size + 9u);
+					size += 12u;
+					cp->outdir = malloc(size);
 					strcpy(cp->outdir, cp->parentdir);
-                    ret = find_mode(runmode);
-					switch (ret)
-                    {
-                        case PARSE:
-                            strcat(cp->outdir, "parse/");
-                            break;
-                        case TRIMEND:
-                            strcat(cp->outdir, "trimend/");
-                            break;
-                        case PAIR:
-                            strcat(cp->outdir, "pair/");
-                            break;
-                        case ERROR:
-                            return NULL;
-                    }
+					strcat(cp->outdir, datec+1);
 				}
 				else
 				{
-					cp->outdir = malloc(size + 10u);
+					size += 13u;
+					cp->outdir = malloc(size);
 					strcpy(cp->outdir, cp->parentdir);
-                    ret = find_mode(runmode);
-					switch (ret)
-                    {
-                        case PARSE:
-                            strcat(cp->outdir, "/parse/");
-                            break;
-                        case TRIMEND:
-                            strcat(cp->outdir, "/trimend/");
-                            break;
-                        case PAIR:
-                            strcat(cp->outdir, "/pair/");
-                            break;
-                        case ERROR:
-                            return NULL;
-                    }
+                	strcat(cp->outdir, datec);
 				}
 				break;
 			case 'c':
@@ -133,46 +119,57 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 		}
 	}
 
-	if ((optind + 2) > argc)
+	/* Get run mode */
+	ret = find_mode(runmode);
+
+	/* Parse non-optioned arguments */
+	if (ret == PARSE)
 	{
-		fputs("ERROR: two paired fastQ files are required as input\n\n", stderr);
-		free(cp);
-		return NULL;
-	}
-	else if ((ret = find_mode(runmode)) == PARSE && cp->csvfile == NULL)
-	{
-		fputs("ERROR: \'--csv\' switch is mandatory in parse mode\n\n", stderr);
-		free(cp);
-		return NULL;		
+		if ((optind + 2) > argc)
+		{
+			fputs("ERROR: two paired fastQ files are required as input\n\n",
+			      stderr);
+			free(cp);
+			return NULL;
+		}
+		else if (cp->csvfile == NULL)
+		{
+			fputs("ERROR: \'--csv\' switch is mandatory in parse mode\n\n",
+			      stderr);
+			free(cp);
+			return NULL;		
+		}
+		else
+		{
+			cp->forfastq = strdup(argv[optind]);
+			cp->revfastq = strdup(argv[optind + 1]);
+			if (cp->parentdir == NULL)
+			{
+				char *fullpath = strdup(argv[optind]);
+				cp->parentdir = dirname(fullpath);
+				size = strlen(cp->parentdir);
+				cp->outdir = malloc(size + 13u);
+				strcpy(cp->outdir, cp->parentdir);
+				strcat(cp->outdir, datec);
+				cp->default_dir = true;
+				free(fullpath);
+			}
+			return cp;
+		}
 	}
 	else
 	{
-		cp->forfastq = strdup(argv[optind]);
-		cp->revfastq = strdup(argv[optind + 1]);
-		if (cp->parentdir == NULL)
+		if ((optind + 1) > argc)
 		{
-			char *fullpath = strdup(argv[optind]);
-			cp->parentdir = dirname(fullpath);
-			size = strlen(cp->parentdir);
-			cp->outdir = malloc(size + 10u);
-			strcpy(cp->outdir, cp->parentdir);
-            /*ret = find_mode(runmode);*/
-            switch (ret)
-            {
-                case PARSE:
-                    strcat(cp->outdir, "/parse/");
-                    break;
-                case TRIMEND:
-                    strcat(cp->outdir, "/trimend/");
-                    break;
-                case PAIR:
-                    strcat(cp->outdir, "/pair/");
-                    break;
-                case ERROR:
-                    return NULL;
-            }
-			cp->default_dir = true;
+			fputs("ERROR: need the parent output directory as input\n\n",
+			      stderr);
+			free(cp);
+			return NULL;
 		}
-		return cp;
+		else
+		{
+			cp->outdir = strdup(argv[optind]);
+			return cp;
+		}
 	}
 }

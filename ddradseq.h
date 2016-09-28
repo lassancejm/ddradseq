@@ -34,6 +34,8 @@
 #define FORWARD 1
 #define REVERSE 2
 
+#define DATELEN 11
+
 /* Define operating modes */
 enum _runmode_t { PARSE, TRIMEND, PAIR, ERROR };
 typedef enum _runmode_t runmode_t;
@@ -158,7 +160,7 @@ extern khash_t(fastq)* fastq_to_db(char *filename);
 
 extern char* revcom(char *input_string);
 
-extern int pair_mates(char *filename, khash_t(fastq) *h);
+extern int pair_mates(char *filename, khash_t(fastq) *h, char *ffor, char *frev);
 
 extern ALIGN_RESULT local_align(int qlen, unsigned char *query, int tlen,
                                 unsigned char *target, int m, const char *mat,

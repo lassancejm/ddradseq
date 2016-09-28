@@ -8,6 +8,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <assert.h>
 #include "ddradseq.h"
 #include "khash.h"
 
@@ -17,6 +19,7 @@ static int compare(const void * a, const void * b);
 int
 pair_main(int argc, char *argv[])
 {
+	char *pch = NULL;
 	char **f = NULL;
 	unsigned int i = 0;
 	unsigned int nfiles = 0;
@@ -38,12 +41,30 @@ pair_main(int argc, char *argv[])
 	for (i = 0; i < nfiles; i += 2)
 	{
 		khash_t(fastq) *h = NULL;
+		char *ffor = NULL;
+		char *frev = NULL;
+
+		/* Construct output file names */
+		ffor = malloc(strlen(f[i]) + 1u);
+		assert(ffor != NULL);
+		frev = malloc(strlen(f[i + 1]) + 1u);
+		assert(frev != NULL);
+		strcpy(ffor, f[i]);
+		strcpy(frev, f[i + 1]);
+		pch = strstr(ffor, "parse");
+		strncpy(pch, "pairs", 5);
+		pch = strstr(frev, "parse");
+		strncpy(pch, "pairs", 5);
 
 		/* Read forward fastQ file into hash table */
 		h = fastq_to_db(f[i]);
 	
 		/* Align mated pairs and write to output file*/
-		pair_mates(f[i+1], h);
+		pair_mates(f[i+1], h, ffor, frev);
+
+		/* Free allocated memory */
+		free(ffor);
+		free(frev);
 		free_pairdb(h);
 	}
 

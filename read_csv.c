@@ -190,10 +190,10 @@ read_csv (CMD *cp)
 		/* Add barcode value to BARCODE data structure */
 		bc = kh_value(b, k);
 		bc->smplID = tmp;
-		pathl += 15u;
+		pathl += 21u;
 		tmp = malloc(pathl + 1u);
 		assert(tmp != NULL);
-		sprintf(tmp, "%s/smpl_%s.R1.fq.gz", pl->poolpath, bc->smplID);
+		sprintf(tmp, "%s/parse/smpl_%s.R1.fq.gz", pl->poolpath, bc->smplID);
     	bc->outfile = tmp;
 	}
 

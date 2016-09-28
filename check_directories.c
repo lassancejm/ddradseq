@@ -22,6 +22,9 @@ check_directories(CMD *cp, khash_t(pool_hash) *h)
 {
 	char *pooldir = NULL;
 	char *flowdir = NULL;
+	char *parsedir = NULL;
+	char *pairdir = NULL;
+	char *trimdir = NULL;
 	int writable = 0;
 	int status = 0;
 	size_t strl = 0;
@@ -107,6 +110,69 @@ check_directories(CMD *cp, khash_t(pool_hash) *h)
 								return 1;
 				 			}
 				 		}
+				 		strl = strlen(pooldir);
+				 		parsedir = malloc(strl + 7u);
+				 		strcpy(parsedir, pooldir);
+				 		strcat(parsedir, "/parse");
+				 		d = opendir(parsedir);
+						/* If the subsubdirectory doesn't already exist */
+						/* create it */
+						if (d)
+							closedir(d);
+						else if (ENOENT == errno)
+						{
+							status = mkdir(parsedir, S_IRWXU | S_IRGRP |
+							                         S_IXGRP | S_IROTH | S_IXOTH);
+							if (status < 0)
+							{
+								fprintf(stderr, "Error: failed to create "
+								        "output directory \'%s\'.\n", parsedir);
+								return 1;
+				 			}
+				 		}
+				 		free(parsedir);
+				 		strl = strlen(pooldir);
+				 		pairdir = malloc(strl + 7u);
+				 		strcpy(pairdir, pooldir);
+				 		strcat(pairdir, "/pairs");
+				 		d = opendir(pairdir);
+						/* If the subsubdirectory doesn't already exist */
+						/* create it */
+						if (d)
+							closedir(d);
+						else if (ENOENT == errno)
+						{
+							status = mkdir(pairdir, S_IRWXU | S_IRGRP |
+							                        S_IXGRP | S_IROTH | S_IXOTH);
+							if (status < 0)
+							{
+								fprintf(stderr, "Error: failed to create "
+								        "output directory \'%s\'.\n", pairdir);
+								return 1;
+				 			}
+				 		}
+				 		free(pairdir);
+				 		strl = strlen(pooldir);
+				 		trimdir = malloc(strl + 7u);
+				 		strcpy(trimdir, pooldir);
+				 		strcat(trimdir, "/trime");
+				 		d = opendir(trimdir);
+						/* If the subsubdirectory doesn't already exist */
+						/* create it */
+						if (d)
+							closedir(d);
+						else if (ENOENT == errno)
+						{
+							status = mkdir(trimdir, S_IRWXU | S_IRGRP |
+							                        S_IXGRP | S_IROTH | S_IXOTH);
+							if (status < 0)
+							{
+								fprintf(stderr, "Error: failed to create "
+								        "output directory \'%s\'.\n", trimdir);
+								return 1;
+				 			}
+				 		}
+				 		free(trimdir);
 					}
 				}
 			}
