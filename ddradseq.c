@@ -23,7 +23,7 @@ int
 main(int argc, char *argv[])
 {
 	char *runmode = NULL;
-	char version_str[] = "ddradseq version 0.9a";
+	char version_str[] = "ddradseq v0.9-alpha";
 	int val = 0;
 	runmode_t ret;
 	func_t f[3];
