@@ -23,6 +23,7 @@ int
 main(int argc, char *argv[])
 {
 	char *runmode = NULL;
+	char version_str[] = "ddradseq version 0.9a";
 	int val = 0;
 	runmode_t ret;
 	func_t f[3];
@@ -35,6 +36,12 @@ main(int argc, char *argv[])
 		main_usage();
 	else
 	{
+		if (strcmp(argv[1], "--version") == 0 ||
+		    strcmp(argv[1], "-v") == 0)
+		{
+			fprintf(stdout, "%s\n", version_str);
+			return 0;
+		}
 		runmode = strdup(argv[1]);
 		ret = find_mode(runmode);
 		if (ret == ERROR)
