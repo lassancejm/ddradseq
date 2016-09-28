@@ -60,7 +60,8 @@ typedef struct _fastq_
 	char *qual;
 } FASTQ;
 
-typedef struct _ksqr_t {
+typedef struct _ksqr_t
+{
 	int score;
 	int target_begin;
 	int target_end;
@@ -130,11 +131,14 @@ extern void free_db(khash_t(pool_hash) *h);
 
 extern void free_pairdb (khash_t(fastq) *h);
 
-extern int parse_fastq(int orient, char *filename, khash_t(pool_hash) *h, khash_t(mates) *m, bool trim_barcode);
+extern int parse_fastq(int orient, char *filename, khash_t(pool_hash) *h,
+                       khash_t(mates) *m, bool trim_barcode);
 
-extern int parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(mates) *m, bool trim_barcode);
+extern int parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
+                               khash_t(mates) *m, bool trim_barcode);
 
-extern int parse_reversebuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(mates) *m);
+extern int parse_reversebuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
+                               khash_t(mates) *m);
 
 extern char* clean_buffer(char *buff, size_t *nl);
 
@@ -142,7 +146,7 @@ extern size_t reset_buffer(char *buff, const char *r);
 
 extern size_t count_lines(const char *buff);
 
-extern int traverse_dirtree(const char *pdirect);
+extern char** traverse_dirtree(const char *dirpath, int *x);
 
 extern int flush_buffer(int orient, BARCODE *bc);
 
@@ -156,8 +160,9 @@ extern char* revcom(char *input_string);
 
 extern int pair_mates(char *filename, khash_t(fastq) *h);
 
-extern ALIGN_RESULT local_align(int qlen, unsigned char *query, int tlen, unsigned char *target, int m, const char *mat, int gapo,
-             int gape, int xtra, ALIGN_QUERY **qry);
+extern ALIGN_RESULT local_align(int qlen, unsigned char *query, int tlen,
+                                unsigned char *target, int m, const char *mat,
+                                int gapo, int gape, int xtra, ALIGN_QUERY **qry);
 
 static inline runmode_t find_mode(const char *m)
 {

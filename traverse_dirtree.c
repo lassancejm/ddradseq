@@ -5,106 +5,75 @@
 #include <unistd.h>
 #include <errno.h>
 #include <ftw.h>
-#include <time.h>
 
 #ifndef USE_FDS
 #define USE_FDS 15
 #endif
 
-int print_entry(const char *filepath, const struct stat *info,
+unsigned int n;
+char **f;
+
+int count_files(const char *filepath, const struct stat *info,
+                const int typeflag, struct FTW *pathinfo);
+int get_files(const char *filepath, const struct stat *info,
+              const int typeflag, struct FTW *pathinfo);
+
+char**
+traverse_dirtree(const char *dirpath, unsigned int *x)
+{
+    int r = 0;
+    unsigned int i = 0;
+
+    /* Check validity of directory path */
+    if (dirpath == NULL || *dirpath == '\0')
+        return NULL;
+
+    /* Count number of files in directory tree */
+    n = 0;
+    r = nftw(dirpath, count_files, USE_FDS, FTW_PHYS);
+    if (r >= 0)
+        errno = r;
+    if (errno)
+    {
+        fprintf(stderr, "%s.\n", strerror(errno));
+        return NULL;
+    }
+
+    /* Get list of filenames */
+    f = malloc(n * sizeof(char*));
+    n = 0;
+    r = nftw(dirpath, get_files, USE_FDS, FTW_PHYS);
+    if (r >= 0)
+        errno = r;
+    if (errno)
+    {
+        fprintf(stderr, "%s.\n", strerror(errno));
+        return NULL;
+    }
+    *x = n;
+
+    return f;
+}
+
+int count_files(const char *filepath, const struct stat *info,
                 const int typeflag, struct FTW *pathinfo)
 {
-    /* const char *const filename = filepath + pathinfo->base; */
-    const double bytes = (double)info->st_size; /* Not exact if large! */
-    struct tm mtime;
-
-    localtime_r(&(info->st_mtime), &mtime);
-
-    printf("%04d-%02d-%02d %02d:%02d:%02d",
-           mtime.tm_year+1900, mtime.tm_mon+1, mtime.tm_mday,
-           mtime.tm_hour, mtime.tm_min, mtime.tm_sec);
-
-    if (bytes >= 1099511627776.0)
-        printf(" %9.3f TiB", bytes / 1099511627776.0);
-    else
-    if (bytes >= 1073741824.0)
-        printf(" %9.3f GiB", bytes / 1073741824.0);
-    else
-    if (bytes >= 1048576.0)
-        printf(" %9.3f MiB", bytes / 1048576.0);
-    else
-    if (bytes >= 1024.0)
-        printf(" %9.3f KiB", bytes / 1024.0);
-    else
-        printf(" %9.0f B  ", bytes);
-
-    if (typeflag == FTW_SL)
-    {
-        char *target = NULL;
-        size_t  maxlen = 1023;
-        ssize_t len;
-
-        while (1)
-        {
-            target = malloc(maxlen + 1);
-            if (target == NULL)
-                return ENOMEM;
-            len = readlink(filepath, target, maxlen);
-            if (len == (ssize_t) - 1)
-            {
-                const int saved_errno = errno;
-                free(target);
-                return saved_errno;
-            }
-            if (len >= (ssize_t)maxlen)
-            {
-                free(target);
-                maxlen += 1024;
-                continue;
-            }
-            target[len] = '\0';
-            break;
-        }
-        printf(" %s -> %s\n", filepath, target);
-        free(target);
-    }
-    else if (typeflag == FTW_SLN)
-        printf(" %s (dangling symlink)\n", filepath);
-    else if (typeflag == FTW_F)
-        printf(" %s\n", filepath);
-    else if (typeflag == FTW_D || typeflag == FTW_DP)
-        printf(" %s/\n", filepath);
-    else if (typeflag == FTW_DNR)
-        printf(" %s/ (unreadable)\n", filepath);
-    else
-        printf(" %s (unknown)\n", filepath);
+    if (typeflag == FTW_F) n++;
 
     return 0;
 }
 
-
-int print_directory_tree(const char *const dirpath)
+int get_files(const char *filepath, const struct stat *info,
+                const int typeflag, struct FTW *pathinfo)
 {
-    int result = 0;
+    size_t l = 0;
 
-    /* Invalid directory path? */
-    if (dirpath == NULL || *dirpath == '\0')
-        return errno = EINVAL;
-
-    result = nftw(dirpath, print_entry, USE_FDS, FTW_PHYS);
-    if (result >= 0)
-        errno = result;
-
-    return errno;
-}
-
-int traverse_dirtree(const char *pdirect)
-{
-
-    if (print_directory_tree(pdirect))
+    if (typeflag == FTW_F)
     {
-        fprintf(stderr, "%s.\n", strerror(errno));
-        return EXIT_FAILURE;
+        l = strlen(filepath);
+        f[n] = malloc(l + 1u);
+        strcpy(f[n], filepath);
+        n++;
     }
-    return EXIT_SUCCESS;
+    return 0;
 }

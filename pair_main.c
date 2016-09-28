@@ -12,35 +12,58 @@
 #include "khash.h"
 
 void pair_usage(void);
+static int compare(const void * a, const void * b);
 
 int
 pair_main(int argc, char *argv[])
 {
-	int ret = 0;
+	char **f = NULL;
+	unsigned int i = 0;
+	unsigned int nfiles = 0;
 	CMD *cp = NULL;
-	khash_t(fastq) *h = NULL;
 
 	/* Parse the command line options */
 	if ((cp = parse_cmdline(argc, argv, "pair")) == NULL)
 	{
 		pair_usage();
-		ret = 1;
+		return 1;
 	}
 
-	/* Read forward fastQ file into hash table */
-	if (ret == 0)
-		h = fastq_to_db(cp->forfastq);
+	/* Get list of all files */	
+	f = traverse_dirtree(cp->outdir, &nfiles);
 
-	/* Align mated pairs and write to output file*/
-	if (ret == 0 && h != NULL)
-		pair_mates(cp->revfastq, h);
+	/* Sort file list */
+	qsort (f, nfiles, sizeof(const char *), compare);
+
+	for (i = 0; i < nfiles; i += 2)
+	{
+		khash_t(fastq) *h = NULL;
+
+		/* Read forward fastQ file into hash table */
+		h = fastq_to_db(f[i]);
+	
+		/* Align mated pairs and write to output file*/
+		pair_mates(f[i+1], h);
+		free_pairdb(h);
+	}
 
 	/* Deallocate memory */
-	free_pairdb(h);
+	for (i = 0; i < nfiles; i++)
+		free(f[i]);
+	free(f);
 	if (cp)
 		free_cmdline(cp);
 
-	return ret;
+	return 0;
+}
+
+static int
+compare(const void * a, const void * b)
+{
+    /* The pointers point to offsets into "array", so we need to
+       dereference them to get at the strings. */
+
+    return strcmp(*(const char **) a, *(const char **) b);
 }
 
 void
