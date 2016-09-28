@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include "ddradseq.h"
 
+/* Function prototypes */
 void parse_usage(void);
 
 int
@@ -28,8 +29,8 @@ parse_main(int argc, char *argv[])
 	}
 
 	/* Read CSV database into memory */
-    if (ret == 0)
-        h = read_csv(cp);
+	if (ret == 0)
+		h = read_csv(cp);
 
 	/* Check for write permissions on parent of output directory */
 	if (ret == 0 && h != NULL)
@@ -46,8 +47,8 @@ parse_main(int argc, char *argv[])
 	}
 
 	/* Deallocate memory */
-    free_db(h);
-    kh_destroy(mates, m);
+	free_db(h);
+	kh_destroy(mates, m);
 	if (cp)
 		free_cmdline(cp);
 
@@ -60,11 +61,10 @@ parse_usage(void)
 	fputs("Usage : ddradseq parse [OPTIONS] [FASTQ.R1] [FASTQ.R2]\n\n", stderr);
 	fputs("Parse fastQ file into separate files by flowcell, barcode and/or index\n\n", stderr);
 	fputs("Mandatory arguments to long options are mandatory for short options too.\n", stderr);
-	fputs(" -c, --csv=FILE       CSV file with index and barcode labels\n", stderr);
-	fputs(" -o, --out=DIR        Parent directory to write output files    [default: same as input fastQ]\n", stderr);
-	fputs(" -n, --threads=INT    Number of threads for concurrency         [default: 1]\n", stderr);
-	fputs(" -t, --trim           Trim barcodes from sequences              [default: retain barcode sequence]\n", stderr);
-	fputs(" -h, --help           Display this help message\n\n", stderr);
+	fputs(" -c, --csv=FILE		 CSV file with index and barcode labels\n", stderr);
+	fputs(" -o, --out=DIR		 Parent directory to write output files	   [default: same as input fastQ]\n", stderr);
+	fputs(" -t, --trim			 Trim barcodes from sequences			   [default: retain barcode sequence]\n", stderr);
+	fputs(" -h, --help			 Display this help message\n\n", stderr);
 	fputs("For development information, see https://github.com/dgarriga/ddradseq\n", stderr);
 	fputs("Contact dgarriga@lummei.net for support.\n\n", stderr);
 }

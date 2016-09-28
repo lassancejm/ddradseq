@@ -14,7 +14,7 @@ void
 free_pairdb (khash_t(fastq) *h)
 {
 	khint_t i = 0;
-    FASTQ *e = NULL;
+	FASTQ *e = NULL;
 
 	if (h == NULL) return;
 

@@ -1,5 +1,5 @@
 /* file: ddradseq.c
- * description: Entry point for the ddradseq pipeline worker program
+ * description: Entry point for the ddradseq program
  * author: Daniel Garrigan Lummei Analytics LLC
  * updated: September 2016
  * email: dgarriga@lummei.net
@@ -11,12 +11,13 @@
 #include <string.h>
 #include "ddradseq.h"
 
+/* Function prototypes */
 extern int parse_main(int argc, char *argv[]);
 extern int trimend_main(int argc, char *argv[]);
 extern int pair_main(int argc, char *argv[]);
-
 void main_usage(void);
 
+/* Function pointer */
 typedef int (*func_t)( int x, char *y[]);
 
 int
@@ -37,7 +38,7 @@ main(int argc, char *argv[])
 	else
 	{
 		if (strcmp(argv[1], "--version") == 0 ||
-		    strcmp(argv[1], "-v") == 0)
+			strcmp(argv[1], "-v") == 0)
 		{
 			fprintf(stdout, "%s\n", version_str);
 			return 0;
@@ -69,9 +70,9 @@ main_usage(void)
 {
 	fputs("Usage: ddradseq [MODE] [OPTIONS] [INPUT FILES/DIRECTORY]\n\n", stderr);
 	fputs("Valid modes are:\n", stderr);
-	fputs("  parse	   Parses input fastQ by standard Illumina and custom adapter\n", stderr);
-	fputs("  trimend   Trims the 3\' end of fastQ reverse sequences\n", stderr);
-	fputs("  pair	   Aligns mated pairs in two fastQ input files\n\n", stderr);
+	fputs("	 parse	   Parses input fastQ by standard Illumina and custom adapter\n", stderr);
+	fputs("	 trimend   Trims the 3\' end of fastQ reverse sequences\n", stderr);
+	fputs("	 pair	   Aligns mated pairs in two fastQ input files\n\n", stderr);
 	fputs("Use \'ddradseq -v\' or \'ddradseq --version\' to see software version\n", stderr);
 	fputs("For development information, see https://github.com/dgarriga/ddradseq\n", stderr);
 	fputs("Contact dgarriga@lummei.net for support.\n\n", stderr);

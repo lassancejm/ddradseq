@@ -18,154 +18,153 @@
 #define USE_FDS 15
 #endif
 
+/* Globally scoped variables */
 unsigned int n;
 char **f;
 
+/* Function prototypes */
 int count_parsefiles(const char *filepath, const struct stat *info,
-                     const int typeflag, struct FTW *pathinfo);
+					 const int typeflag, struct FTW *pathinfo);
 int get_parsefiles(const char *filepath, const struct stat *info,
-                   const int typeflag, struct FTW *pathinfo);
+				   const int typeflag, struct FTW *pathinfo);
 int count_pairfiles(const char *filepath, const struct stat *info,
-                    const int typeflag, struct FTW *pathinfo);
+					const int typeflag, struct FTW *pathinfo);
 int get_pairfiles(const char *filepath, const struct stat *info,
-                  const int typeflag, struct FTW *pathinfo);
+				  const int typeflag, struct FTW *pathinfo);
 static int compare(const void * a, const void * b);
 
 char**
 traverse_dirtree(const char *dirpath, char *pattern, unsigned int *x)
 {
-    int r = 0;
-    unsigned int i = 0;
+	int r = 0;
+	unsigned int i = 0;
 
-    /* Check validity of directory path */
-    if (dirpath == NULL || *dirpath == '\0')
-        return NULL;
+	/* Check validity of directory path */
+	if (dirpath == NULL || *dirpath == '\0')
+		return NULL;
 
-    /* Count number of files in directory tree */
-    n = 0;
-    if (strcmp(pattern, "parse") == 0)
-        r = nftw(dirpath, count_parsefiles, USE_FDS, FTW_PHYS);
-    else if (strcmp(pattern, "pairs") == 0)
-        r = nftw(dirpath, count_pairfiles, USE_FDS, FTW_PHYS);
+	/* Count number of files in directory tree */
+	n = 0;
+	if (strcmp(pattern, "parse") == 0)
+		r = nftw(dirpath, count_parsefiles, USE_FDS, FTW_PHYS);
+	else if (strcmp(pattern, "pairs") == 0)
+		r = nftw(dirpath, count_pairfiles, USE_FDS, FTW_PHYS);
 
-    /* Check for errors */
-    if (r >= 0)
-        errno = r;
-    if (errno)
-    {
-        fprintf(stderr, "%s.\n", strerror(errno));
-        return NULL;
-    }
+	/* Check for errors */
+	if (r >= 0)
+		errno = r;
+	if (errno)
+	{
+		fprintf(stderr, "%s.\n", strerror(errno));
+		return NULL;
+	}
 
-    /* Get list of filenames */
-    f = malloc(n * sizeof(char*));
-    n = 0;
-    if (strcmp(pattern, "parse") == 0)
-        r = nftw(dirpath, get_parsefiles, USE_FDS, FTW_PHYS);
-    else if (strcmp(pattern, "pairs") == 0)
-        r = nftw(dirpath, get_pairfiles, USE_FDS, FTW_PHYS);
+	/* Get list of filenames */
+	f = malloc(n * sizeof(char*));
+	n = 0;
+	if (strcmp(pattern, "parse") == 0)
+		r = nftw(dirpath, get_parsefiles, USE_FDS, FTW_PHYS);
+	else if (strcmp(pattern, "pairs") == 0)
+		r = nftw(dirpath, get_pairfiles, USE_FDS, FTW_PHYS);
 
-    /* Check for errors */
-    if (r >= 0)
-        errno = r;
-    if (errno)
-    {
-        fprintf(stderr, "%s.\n", strerror(errno));
-        return NULL;
-    }
+	/* Check for errors */
+	if (r >= 0)
+		errno = r;
+	if (errno)
+	{
+		fprintf(stderr, "%s.\n", strerror(errno));
+		return NULL;
+	}
 
-    /* Assign number of files */
-    *x = n;
+	/* Assign number of files */
+	*x = n;
 
 	/* Sort file list */
 	qsort(f, n, sizeof(const char *), compare);
 
-    return f;
+	return f;
 }
 
 int
 count_parsefiles(const char *filepath, const struct stat *info, const int typeflag,
-                 struct FTW *pathinfo)
+				 struct FTW *pathinfo)
 {
-    char *p = NULL;
-    char *q = NULL;
+	char *p = NULL;
+	char *q = NULL;
 
-    if (typeflag == FTW_F)
-    {
-        p = strstr(filepath, ".fq.gz");
-        q = strstr(filepath, "parse");
-        if (p != NULL && q != NULL) n++;
-    }
-    return 0;
+	if (typeflag == FTW_F)
+	{
+		p = strstr(filepath, ".fq.gz");
+		q = strstr(filepath, "parse");
+		if (p != NULL && q != NULL) n++;
+	}
+	return 0;
 }
 
 int
 get_parsefiles(const char *filepath, const struct stat *info, const int typeflag,
-               struct FTW *pathinfo)
+			   struct FTW *pathinfo)
 {
-    char *p = NULL;
-    char *q = NULL;
-    size_t l = 0;
+	char *p = NULL;
+	char *q = NULL;
+	size_t l = 0;
 
-    if (typeflag == FTW_F)
-    {
-        p = strstr(filepath, ".fq.gz");
-        q = strstr(filepath, "parse");
-        if (p != NULL && q != NULL)
-        {
-            l = strlen(filepath);
-            f[n] = malloc(l + 1u);
-            strcpy(f[n], filepath);
-            n++;
-        }
-    }
-    return 0;
+	if (typeflag == FTW_F)
+	{
+		p = strstr(filepath, ".fq.gz");
+		q = strstr(filepath, "parse");
+		if (p != NULL && q != NULL)
+		{
+			l = strlen(filepath);
+			f[n] = malloc(l + 1u);
+			strcpy(f[n], filepath);
+			n++;
+		}
+	}
+	return 0;
 }
 
 int
 count_pairfiles(const char *filepath, const struct stat *info, const int typeflag,
-                struct FTW *pathinfo)
+				struct FTW *pathinfo)
 {
-    char *p = NULL;
-    char *q = NULL;
+	char *p = NULL;
+	char *q = NULL;
 
-    if (typeflag == FTW_F)
-    {
-        p = strstr(filepath, ".fq.gz");
-        q = strstr(filepath, "pairs");
-        if (p != NULL && q != NULL) n++;
-    }
-    return 0;
+	if (typeflag == FTW_F)
+	{
+		p = strstr(filepath, ".fq.gz");
+		q = strstr(filepath, "pairs");
+		if (p != NULL && q != NULL) n++;
+	}
+	return 0;
 }
 
 int
 get_pairfiles(const char *filepath, const struct stat *info, const int typeflag,
-              struct FTW *pathinfo)
+			  struct FTW *pathinfo)
 {
-    char *p = NULL;
-    char *q = NULL;
-    size_t l = 0;
+	char *p = NULL;
+	char *q = NULL;
+	size_t l = 0;
 
-    if (typeflag == FTW_F)
-    {
-        p = strstr(filepath, ".fq.gz");
-        q = strstr(filepath, "pairs");
-        if (p != NULL && q != NULL)
-        {
-            l = strlen(filepath);
-            f[n] = malloc(l + 1u);
-            strcpy(f[n], filepath);
-            n++;
-        }
-    }
-    return 0;
+	if (typeflag == FTW_F)
+	{
+		p = strstr(filepath, ".fq.gz");
+		q = strstr(filepath, "pairs");
+		if (p != NULL && q != NULL)
+		{
+			l = strlen(filepath);
+			f[n] = malloc(l + 1u);
+			strcpy(f[n], filepath);
+			n++;
+		}
+	}
+	return 0;
 }
 
 static int
 compare(const void * a, const void * b)
 {
-    /* The pointers point to offsets into "array", so we need to
-       dereference them to get at the strings. */
-
-    return strcmp(*(const char **) a, *(const char **) b);
+	return strcmp(*(const char **) a, *(const char **) b);
 }

@@ -1,9 +1,9 @@
 /*! \file levenshtein.c
- *  \brief Calculates the Levenshtein distance between two strings
- *  \author Daniel Garrigan
- *  \date September 2016
- *  \copyright MIT license
- *  \note Code is from https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#C
+ *	\brief Calculates the Levenshtein distance between two strings
+ *	\author Daniel Garrigan
+ *	\date September 2016
+ *	\copyright MIT license
+ *	\note Code is from https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#C
 */
 
 #include <stdio.h>
@@ -33,7 +33,7 @@ levenshtein (char *s1, char *s2)
 	for (x = 1; x <= s2len; x++)
 		for (y = 1; y <= s1len; y++)
 			matrix[x][y] = MIN3(matrix[x - 1][y] + 1, matrix[x][y - 1] + 1,
-			               matrix[x - 1][y - 1] + (s1[y - 1] == s2[x - 1] ? 0 : 1));
+						   matrix[x - 1][y - 1] + (s1[y - 1] == s2[x - 1] ? 0 : 1));
 
 	return matrix[s2len][s1len];
 }

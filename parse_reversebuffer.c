@@ -18,30 +18,30 @@
 
 int
 parse_reversebuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
-                    khash_t(mates) *m)
+					khash_t(mates) *m)
 {
 	bool *skip;
 	char *q = buff;
 	char *r = NULL;
 	char *copy = NULL;
 	char *idline = NULL;
-    char seps[] = ": ";
-    char *tok = NULL;
-    char *mkey = NULL;
-    char *flowcell_ID = NULL;
-    char *barcode_sequence = NULL;
-    char *index_sequence = NULL;
-    char *dna_sequence = NULL;
-    char *qual_sequence = NULL;
-    int a = 0;
-    int read = 0;
+	char seps[] = ": ";
+	char *tok = NULL;
+	char *mkey = NULL;
+	char *flowcell_ID = NULL;
+	char *barcode_sequence = NULL;
+	char *index_sequence = NULL;
+	char *dna_sequence = NULL;
+	char *qual_sequence = NULL;
+	int a = 0;
+	int read = 0;
 	int ret = 0;
-    int z = 0;
-    int tile = 0;
-    int xpos = 0;
-    int ypos = 0;
+	int z = 0;
+	int tile = 0;
+	int xpos = 0;
+	int ypos = 0;
 	size_t add_bytes = 0;
-    size_t strl = 0;
+	size_t strl = 0;
 	size_t l = 0;
 	size_t ll = 0;
 	khint_t i = 0;
@@ -95,7 +95,7 @@ parse_reversebuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
 					if (i == kh_end(h))
 					{
 						fprintf(stderr, "Hash lookup failure using key %s.\n",
-						        flowcell_ID);
+								flowcell_ID);
 						fprintf(stderr, "Skipping sequence: %s\n", idline);
 						skip[l + 1] = true;
 						skip[l + 2] = true;
@@ -130,7 +130,7 @@ parse_reversebuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
 					if (mk == kh_end(m))
 					{
 						fprintf(stderr, "Hash lookup failure using key %s.\n",
-						        mkey);
+								mkey);
 						fprintf(stderr, "Skipping sequence: %s\n", idline);
 						skip[l + 1] = true;
 						skip[l + 2] = true;
@@ -199,7 +199,7 @@ parse_reversebuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
 					assert(qual_sequence != NULL);
 					strcpy(qual_sequence, q);
 					add_bytes = strlen(idline) + strlen(dna_sequence) +
-					            strlen(qual_sequence) + 5u;
+								strlen(qual_sequence) + 5u;
 					char *t = NULL;
 					if ((bc->curr_bytes + add_bytes) >= BUFLEN)
 					{
@@ -212,7 +212,7 @@ parse_reversebuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
 					bc->curr_bytes += add_bytes;
 					t = malloc(add_bytes + 1u);
 					sprintf (t, "%s\n%s\n+\n%s\n", idline, dna_sequence,
-					         qual_sequence);
+							 qual_sequence);
 					strcat(bc->buffer, t);
 
 					/* Free alloc'd memory for fastQ entry */

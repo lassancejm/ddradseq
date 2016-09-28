@@ -13,6 +13,7 @@
 #include "ddradseq.h"
 #include "khash.h"
 
+/* Function prototypes */
 void trimend_usage (void);
 
 int
@@ -31,7 +32,7 @@ trimend_main(int argc, char *argv[])
 		return 1;
 	}
 
-	/* Get list of all files */	
+	/* Get list of all files */
 	f = traverse_dirtree(cp->outdir, "pairs", &nfiles);
 
 	for (i = 0; i < nfiles; i += 2)
@@ -77,7 +78,7 @@ trimend_usage(void)
 	fputs("in the specified directory tree. Mated pairs are aligned and any\n", stderr);
 	fputs(" overhand is trimmed.\n\n", stderr);
 	fputs("Mandatory arguments to long options are mandatory for short options too.\n", stderr);
-	fputs(" -h, --help           Display this help message\n\n", stderr);
+	fputs(" -h, --help			 Display this help message\n\n", stderr);
 	fputs("For development information, see https://github.com/dgarriga/ddradseq\n", stderr);
 	fputs("Contact dgarriga@lummei.net for support.\n\n", stderr);
 }

@@ -15,7 +15,7 @@
 
 int
 parse_fastq(int orient, char *filename, khash_t(pool_hash) *h, khash_t(mates) *m,
-            bool trim_barcode)
+			bool trim_barcode)
 {
 	char *r = NULL;
 	char *q = NULL;
@@ -90,7 +90,7 @@ parse_fastq(int orient, char *filename, khash_t(pool_hash) *h, khash_t(mates) *m
 								if ((ret = flush_buffer(orient, bc)) != 0)
 								{
 									fputs("Problem writing buffer to file.\n",
-									      stderr);
+										  stderr);
 									abort();
 								}
 							}

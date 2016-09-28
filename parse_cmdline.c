@@ -57,14 +57,14 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 	{
 		static struct option long_options[] =
 		{
-			{"trim",    no_argument,       0, 't'},
-			{"help",    no_argument,       0, 'h'},
-			{"out",     required_argument, 0, 'o'},
-			{"csv",     required_argument, 0, 'c'},
+			{"trim",	no_argument,	   0, 't'},
+			{"help",	no_argument,	   0, 'h'},
+			{"out",		required_argument, 0, 'o'},
+			{"csv",		required_argument, 0, 'c'},
 			{"threads", required_argument, 0, 'n'},
 			{0, 0, 0, 0}
 		};
-		
+
 		int option_index = 0;
 
 		c = getopt_long(argc, argv, "o:n:c:th", long_options, &option_index);
@@ -95,7 +95,7 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 					size += 13u;
 					cp->outdir = malloc(size);
 					strcpy(cp->outdir, cp->parentdir);
-                	strcat(cp->outdir, datec);
+					strcat(cp->outdir, datec);
 				}
 				break;
 			case 'c':
@@ -128,16 +128,16 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 		if ((optind + 2) > argc)
 		{
 			fputs("ERROR: two paired fastQ files are required as input\n\n",
-			      stderr);
+				  stderr);
 			free(cp);
 			return NULL;
 		}
 		else if (cp->csvfile == NULL)
 		{
 			fputs("ERROR: \'--csv\' switch is mandatory in parse mode\n\n",
-			      stderr);
+				  stderr);
 			free(cp);
-			return NULL;		
+			return NULL;
 		}
 		else
 		{
@@ -162,7 +162,7 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 		if ((optind + 1) > argc)
 		{
 			fputs("ERROR: need the parent output directory as input\n\n",
-			      stderr);
+				  stderr);
 			free(cp);
 			return NULL;
 		}

@@ -39,7 +39,7 @@ check_directories(CMD *cp, khash_t(pool_hash) *h)
 	if (writable != 0)
 	{
 		fprintf(stderr, "Error: cannot write to directory "
-		        "\'%s\'.\n", cp->parentdir);
+				"\'%s\'.\n", cp->parentdir);
 		return 1;
 	}
 	else
@@ -53,14 +53,14 @@ check_directories(CMD *cp, khash_t(pool_hash) *h)
 		else if (ENOENT == errno)
 		{
 			status = mkdir(cp->outdir, S_IRWXU | S_IRGRP | S_IXGRP |
-			                           S_IROTH | S_IXOTH);
+									   S_IROTH | S_IXOTH);
 			if (status < 0)
 			{
 				fprintf(stderr, "Error: failed to create output "
-				        "directory \'%s\'.\n", cp->outdir);
+						"directory \'%s\'.\n", cp->outdir);
 				return 1;
- 			}
- 		}
+			}
+		}
 
 		/* Check and create pool subdirectories */
 		for (i = kh_begin(h); i != kh_end(h); i++)
@@ -76,12 +76,12 @@ check_directories(CMD *cp, khash_t(pool_hash) *h)
 					closedir(d);
 				else if (ENOENT == errno)
 				{
-					status = mkdir(flowdir,  S_IRWXU | S_IRGRP | S_IXGRP |
-			                                 S_IROTH | S_IXOTH);
+					status = mkdir(flowdir,	 S_IRWXU | S_IRGRP | S_IXGRP |
+											 S_IROTH | S_IXOTH);
 					if (status < 0)
 					{
 						fprintf(stderr, "Error: failed to create output "
-						        "directory \'%s\'.\n", flowdir);
+								"directory \'%s\'.\n", flowdir);
 						return 1;
 					}
 				}
@@ -102,19 +102,19 @@ check_directories(CMD *cp, khash_t(pool_hash) *h)
 						else if (ENOENT == errno)
 						{
 							status = mkdir(pooldir, S_IRWXU | S_IRGRP |
-							                        S_IXGRP | S_IROTH | S_IXOTH);
+													S_IXGRP | S_IROTH | S_IXOTH);
 							if (status < 0)
 							{
 								fprintf(stderr, "Error: failed to create "
-								        "output directory \'%s\'.\n", pooldir);
+										"output directory \'%s\'.\n", pooldir);
 								return 1;
-				 			}
-				 		}
-				 		strl = strlen(pooldir);
-				 		parsedir = malloc(strl + 7u);
-				 		strcpy(parsedir, pooldir);
-				 		strcat(parsedir, "/parse");
-				 		d = opendir(parsedir);
+							}
+						}
+						strl = strlen(pooldir);
+						parsedir = malloc(strl + 7u);
+						strcpy(parsedir, pooldir);
+						strcat(parsedir, "/parse");
+						d = opendir(parsedir);
 						/* If the subsubdirectory doesn't already exist */
 						/* create it */
 						if (d)
@@ -122,20 +122,20 @@ check_directories(CMD *cp, khash_t(pool_hash) *h)
 						else if (ENOENT == errno)
 						{
 							status = mkdir(parsedir, S_IRWXU | S_IRGRP |
-							                         S_IXGRP | S_IROTH | S_IXOTH);
+													 S_IXGRP | S_IROTH | S_IXOTH);
 							if (status < 0)
 							{
 								fprintf(stderr, "Error: failed to create "
-								        "output directory \'%s\'.\n", parsedir);
+										"output directory \'%s\'.\n", parsedir);
 								return 1;
-				 			}
-				 		}
-				 		free(parsedir);
-				 		strl = strlen(pooldir);
-				 		pairdir = malloc(strl + 7u);
-				 		strcpy(pairdir, pooldir);
-				 		strcat(pairdir, "/pairs");
-				 		d = opendir(pairdir);
+							}
+						}
+						free(parsedir);
+						strl = strlen(pooldir);
+						pairdir = malloc(strl + 7u);
+						strcpy(pairdir, pooldir);
+						strcat(pairdir, "/pairs");
+						d = opendir(pairdir);
 						/* If the subsubdirectory doesn't already exist */
 						/* create it */
 						if (d)
@@ -143,20 +143,20 @@ check_directories(CMD *cp, khash_t(pool_hash) *h)
 						else if (ENOENT == errno)
 						{
 							status = mkdir(pairdir, S_IRWXU | S_IRGRP |
-							                        S_IXGRP | S_IROTH | S_IXOTH);
+													S_IXGRP | S_IROTH | S_IXOTH);
 							if (status < 0)
 							{
 								fprintf(stderr, "Error: failed to create "
-								        "output directory \'%s\'.\n", pairdir);
+										"output directory \'%s\'.\n", pairdir);
 								return 1;
-				 			}
-				 		}
-				 		free(pairdir);
-				 		strl = strlen(pooldir);
-				 		trimdir = malloc(strl + 7u);
-				 		strcpy(trimdir, pooldir);
-				 		strcat(trimdir, "/trime");
-				 		d = opendir(trimdir);
+							}
+						}
+						free(pairdir);
+						strl = strlen(pooldir);
+						trimdir = malloc(strl + 7u);
+						strcpy(trimdir, pooldir);
+						strcat(trimdir, "/trime");
+						d = opendir(trimdir);
 						/* If the subsubdirectory doesn't already exist */
 						/* create it */
 						if (d)
@@ -164,19 +164,19 @@ check_directories(CMD *cp, khash_t(pool_hash) *h)
 						else if (ENOENT == errno)
 						{
 							status = mkdir(trimdir, S_IRWXU | S_IRGRP |
-							                        S_IXGRP | S_IROTH | S_IXOTH);
+													S_IXGRP | S_IROTH | S_IXOTH);
 							if (status < 0)
 							{
 								fprintf(stderr, "Error: failed to create "
-								        "output directory \'%s\'.\n", trimdir);
+										"output directory \'%s\'.\n", trimdir);
 								return 1;
-				 			}
-				 		}
-				 		free(trimdir);
+							}
+						}
+						free(trimdir);
 					}
 				}
 			}
 		}
- 	}
+	}
 	return 0;
 }

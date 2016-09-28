@@ -31,7 +31,7 @@ pair_main(int argc, char *argv[])
 		return 1;
 	}
 
-	/* Get list of all files */	
+	/* Get list of all files */
 	f = traverse_dirtree(cp->outdir, "parse", &nfiles);
 
 	for (i = 0; i < nfiles; i += 2)
@@ -54,7 +54,7 @@ pair_main(int argc, char *argv[])
 
 		/* Read forward fastQ file into hash table */
 		h = fastq_to_db(f[i]);
-	
+
 		/* Align mated pairs and write to output file*/
 		pair_mates(f[i+1], h, ffor, frev);
 
@@ -80,7 +80,7 @@ pair_usage(void)
 	fputs("Usage : ddradseq pair [OPTIONS] [PARENTDIR]\n\n", stderr);
 	fputs("Aligns mated pairs in all fastQ files existing in a directory tree.\n\n", stderr);
 	fputs("Mandatory arguments to long options are mandatory for short options too.\n", stderr);
-	fputs(" -h, --help           Display this help message\n\n", stderr);
+	fputs(" -h, --help			 Display this help message\n\n", stderr);
 	fputs("For development information, see https://github.com/dgarriga/ddradseq\n", stderr);
 	fputs("Contact dgarriga@lummei.net for support.\n\n", stderr);
 }

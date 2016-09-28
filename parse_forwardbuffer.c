@@ -18,7 +18,7 @@
 
 int
 parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
-                    khash_t(mates) *m, bool trim_barcode)
+					khash_t(mates) *m, bool trim_barcode)
 {
 	bool *skip;
 	char *q = buff;
@@ -26,23 +26,23 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
 	char *r = NULL;
 	char *copy = NULL;
 	char *idline = NULL;
-    char seps[] = ": ";
-    char *tok = NULL;
-    char *mkey = NULL;
-    char *flowcell_ID = NULL;
-    char *index_sequence = NULL;
-    char *barcode_sequence = NULL;
-    char *dna_sequence = NULL;
-    char *qual_sequence = NULL;
-    int a = 0;
-    int read = 0;
+	char seps[] = ": ";
+	char *tok = NULL;
+	char *mkey = NULL;
+	char *flowcell_ID = NULL;
+	char *index_sequence = NULL;
+	char *barcode_sequence = NULL;
+	char *dna_sequence = NULL;
+	char *qual_sequence = NULL;
+	int a = 0;
+	int read = 0;
 	int ret = 0;
-    int z = 0;
-    int tile = 0;
-    int xpos = 0;
-    int ypos = 0;
+	int z = 0;
+	int tile = 0;
+	int xpos = 0;
+	int ypos = 0;
 	size_t add_bytes = 0;
-    size_t strl = 0;
+	size_t strl = 0;
 	size_t l = 0;
 	size_t ll = 0;
 	size_t sl = 0;
@@ -146,7 +146,7 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
 					assert(barcode_sequence != NULL);
 					strncpy(barcode_sequence, q, pl->barcode_length);
 					barcode_sequence[pl->barcode_length] = '\0';
-					
+
 					/* Trim barcode if necessary */
 					if (trim_barcode)
 						sl = ll - pl->barcode_length;
@@ -158,7 +158,7 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
 					if (trim_barcode)
 						s += pl->barcode_length;
 					strcpy(dna_sequence, s);
-					
+
 					/* Find the barcode in the database */
 					k = kh_get(barcode, b, barcode_sequence);
 					if (k != kh_end(b))
@@ -173,7 +173,7 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
 							{
 								int d = 0;
 								if ((d = levenshtein((char*)kh_key(b, kk),
-								                     barcode_sequence)) < 2)
+													 barcode_sequence)) < 2)
 								{
 									bc = kh_value(b, kk);
 									break;
@@ -217,7 +217,7 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
 						 s += pl->barcode_length;
 					strcpy(qual_sequence, s);
 					add_bytes = strlen(idline) + strlen(dna_sequence) +
-					            strlen(qual_sequence) + 5u;
+								strlen(qual_sequence) + 5u;
 					char *t = NULL;
 					if ((bc->curr_bytes + add_bytes) >= BUFLEN)
 					{
@@ -230,7 +230,7 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
 					bc->curr_bytes += add_bytes;
 					t = malloc(add_bytes + 1u);
 					sprintf (t, "%s\n%s\n+\n%s\n", idline, dna_sequence,
-					         qual_sequence);
+							 qual_sequence);
 					strcat(bc->buffer, t);
 
 					/* Free alloc'd memory for fastQ entry */

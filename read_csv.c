@@ -20,18 +20,18 @@
 khash_t(pool_hash) *
 read_csv (CMD *cp)
 {
-	bool trail = false;           /* Boolean indicator of trailing slash */
+	bool trail = false;			  /* Boolean indicator of trailing slash */
 	char *csvfile = cp->csvfile;  /* Pointer to CSV database file name */
-	char *outpath = cp->outdir;   /* Pointer to parent of output directories */
-	char buf[MAX_LINE];           /* File input buffer */
-	char seps[] = ",";            /* CSV entry separator character */
-	char *tok = NULL;             /* Holds parsed CSV tokens */
-	char *r = NULL;               /* Residual pointer for strtok_r */
-	char *tmp = NULL;             /* Temporary pointer */
-	int a = 0;                    /* Return value for database entry */
-	size_t strl = 0;              /* Generic string length holder */
-	size_t pathl = 0;             /* Length of path string */
-	gzFile in;                    /* Input file stream */
+	char *outpath = cp->outdir;	  /* Pointer to parent of output directories */
+	char buf[MAX_LINE];			  /* File input buffer */
+	char seps[] = ",";			  /* CSV entry separator character */
+	char *tok = NULL;			  /* Holds parsed CSV tokens */
+	char *r = NULL;				  /* Residual pointer for strtok_r */
+	char *tmp = NULL;			  /* Temporary pointer */
+	int a = 0;					  /* Return value for database entry */
+	size_t strl = 0;			  /* Generic string length holder */
+	size_t pathl = 0;			  /* Length of path string */
+	gzFile in;					  /* Input file stream */
 	khint_t i = 0;
 	khint_t j = 0;
 	khint_t k = 0;
@@ -135,9 +135,9 @@ read_csv (CMD *cp)
 			sprintf(tmp, "%s%s/%s", outpath, kh_key(h, i), pl->poolID);
 		else
 			sprintf(tmp, "%s/%s/%s", outpath, kh_key(h, i), pl->poolID);
-        pl->poolpath = tmp;
+		pl->poolpath = tmp;
 
-    	/* Get barcode sequence */
+		/* Get barcode sequence */
 		tok = strtok_r(NULL, seps, &r);
 		assert(tok != NULL);
 
@@ -194,7 +194,7 @@ read_csv (CMD *cp)
 		tmp = malloc(pathl + 1u);
 		assert(tmp != NULL);
 		sprintf(tmp, "%s/parse/smpl_%s.R1.fq.gz", pl->poolpath, bc->smplID);
-    	bc->outfile = tmp;
+		bc->outfile = tmp;
 	}
 
 	/* Close input CSV file stream */
