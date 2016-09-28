@@ -72,6 +72,7 @@ main_usage(void)
 	fputs("  parse	   Parses input fastQ by standard Illumina and custom adapter\n", stderr);
 	fputs("  trimend   Trims the 3\' end of fastQ reverse sequences\n", stderr);
 	fputs("  pair	   Aligns mated pairs in two fastQ input files\n\n", stderr);
+	fputs("Use \'ddradseq -v\' or \'ddradseq --version\' to see software version\n", stderr);
 	fputs("For development information, see https://github.com/dgarriga/ddradseq\n", stderr);
 	fputs("Contact dgarriga@lummei.net for support.\n\n", stderr);
 }
