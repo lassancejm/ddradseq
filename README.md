@@ -96,7 +96,7 @@ In **parse** mode, the program only operates on pairs of input fastQ files. Both
 must be specified at the command line. The `ddradseq` program is able to read gzipped fastQ input files and the program
 will write all output fastQ files in gzipped format.
 
-# The CSV database file
+### The CSV database file
 
 Below is an example of the comma-separated database text file:
 ```
@@ -118,7 +118,7 @@ with the multiplex index in the previous column (the "pool ID"). The fourth fiel
 that appears on the 5' end of the forward reads. The final field/column is the sample identifier that is associated with the
 custom barcode sequence in the previous column (the "sample ID").
 
-# Example
+### Example
 ```
 ./ddradseq parse -c out.csv.gz -o /home/dgarriga/src/ddradseq test.R1.fq.gz test.R2.fq.gz
 ```
@@ -142,7 +142,7 @@ Contact dgarriga@lummei.net for support.
 The program will search for all output fastQ files in the directory and child subdirectories and it will perform the
 mate-pairing function on all such files that it finds.
 
-# Example
+### Example
 ```
 ./ddradseq pair /home/dgarriga/src/ddradseq/2016-09-28
 ```
@@ -166,7 +166,7 @@ For development information, see https://github.com/dgarriga/ddradseq
 Contact dgarriga@lummei.net for support.
 ```
 
-# Example
+### Example
 ```
 ./ddradseq trimend /home/dgarriga/src/ddradseq/2016-09-28
 ```
