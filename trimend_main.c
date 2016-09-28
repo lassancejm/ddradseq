@@ -77,7 +77,6 @@ trimend_usage(void)
 	fputs("in the specified directory tree. Mated pairs are aligned and any\n", stderr);
 	fputs(" overhand is trimmed.\n\n", stderr);
 	fputs("Mandatory arguments to long options are mandatory for short options too.\n", stderr);
-	fputs(" -n, --threads=INT    Number of threads for concurrency         [default: 1]\n", stderr);
 	fputs(" -h, --help           Display this help message\n\n", stderr);
 	fputs("For development information, see https://github.com/dgarriga/ddradseq\n", stderr);
 	fputs("Contact dgarriga@lummei.net for support.\n\n", stderr);

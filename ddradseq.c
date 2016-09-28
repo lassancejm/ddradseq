@@ -60,10 +60,10 @@ main(int argc, char *argv[])
 void
 main_usage(void)
 {
-	fputs("Usage: ddradseq [MODE] [OPTIONS] [FASTQ.R1] [FASTQ.R2]\n\n", stderr);
+	fputs("Usage: ddradseq [MODE] [OPTIONS] [INPUT FILES/DIRECTORY]\n\n", stderr);
 	fputs("Valid modes are:\n", stderr);
-	fputs("  parse	   Parses input fastQ by standard Illumina or custom adapter\n", stderr);
-	fputs("  trimend   Trims the 3\' end of fastQ sequences\n", stderr);
+	fputs("  parse	   Parses input fastQ by standard Illumina and custom adapter\n", stderr);
+	fputs("  trimend   Trims the 3\' end of fastQ reverse sequences\n", stderr);
 	fputs("  pair	   Aligns mated pairs in two fastQ input files\n\n", stderr);
 	fputs("For development information, see https://github.com/dgarriga/ddradseq\n", stderr);
 	fputs("Contact dgarriga@lummei.net for support.\n\n", stderr);
