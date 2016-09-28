@@ -28,7 +28,7 @@ The following graphic illustrates the structure of the ddRADseq library.
 Running the base `ddradseq` program with no other arguments produces the following informational message:
 
 ```
-./ddradseq
+> ./ddradseq
 Usage: ddradseq [MODE] [OPTIONS] [INPUT FILES/DIRECTORY]
 
 Valid modes are:
@@ -77,7 +77,7 @@ will be found in the `trime/` folders.
 
 The **parse** mode of the `ddradseq` program can be invoked by following the program name with the name of the mode at the command line. If the program is invoked with the additional `--help` option, the program will produce the following output,
 ```
-./ddradseq parse --help
+> ./ddradseq parse --help
 Usage : ddradseq parse [OPTIONS] [FASTQ.R1] [FASTQ.R2]
 
 Parse fastQ file into separate files by flowcell, barcode and/or index
@@ -120,7 +120,7 @@ custom barcode sequence in the previous column (the "sample ID").
 
 ### Example
 ```
-./ddradseq parse -c out.csv.gz -o /home/dgarriga/src/ddradseq test.R1.fq.gz test.R2.fq.gz
+> ./ddradseq parse -c out.csv.gz -o /home/dgarriga/src/ddradseq test.R1.fq.gz test.R2.fq.gz
 ```
 
 ## Running the program in pair mode
@@ -144,7 +144,7 @@ mate-pairing function on all such files that it finds.
 
 ### Example
 ```
-./ddradseq pair /home/dgarriga/src/ddradseq/2016-09-28
+> ./ddradseq pair /home/dgarriga/src/ddradseq/2016-09-28
 ```
 
 ## Running the program in trimend mode
@@ -168,7 +168,7 @@ Contact dgarriga@lummei.net for support.
 
 ### Example
 ```
-./ddradseq trimend /home/dgarriga/src/ddradseq/2016-09-28
+> ./ddradseq trimend /home/dgarriga/src/ddradseq/2016-09-28
 ```
 
 ## Compiling
