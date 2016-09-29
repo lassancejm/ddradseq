@@ -109,8 +109,7 @@ Parse fastQ file into separate files by flowcell, barcode and/or index
 Mandatory arguments to long options are mandatory for short options too.
  -c, --csv=FILE       CSV file with index and barcode labels
  -o, --out=DIR        Parent directory to write output files    [default: same as input fastQ]
- -n, --threads=INT    Number of threads for concurrency         [default: 1]
- -t, --trim           Trim barcodes from sequences              [default: retain barcode sequence]
+ -d, --dist           Edit distance for barcode matching        [default: 1]
  -h, --help           Display this help message
 
 For development information, see https://github.com/dgarriga/ddradseq
