@@ -1,4 +1,4 @@
-/* file read_fastq.c
+/* file fastq_to_db.c
  * brief Read in a fastQ database from one or two input files
  * author: Daniel Garrigan Lummei Analytics LLC
  * updated: September 2016
@@ -9,7 +9,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include <zlib.h>
 #include "ddradseq.h"
 #include "khash.h"
@@ -71,66 +70,98 @@ fastq_to_db(char *filename)
 			if (l % 4 == 3)
 			{
 				/* Allocate memory for new fastQ entry */
-				e = malloc(sizeof(FASTQ));
-				assert(e != NULL);
+				if ((e = malloc(sizeof(FASTQ))) == NULL)
+				{
+					fputs("ERROR: cannot allocate memory for e.\n", stderr);
+					exit(EXIT_FAILURE);
+				}
 
 				/* Parse entry identifier */
 				pos = strcspn(buf[l - 3], "\n");
 				buf[l - 3][pos] = '\0';
 				strl = strlen(&buf[l - 3][1]);
-				e->id = malloc(strl + 1u);
-				assert (e->id != NULL);
+				if ((e->id = malloc(strl + 1u)) == NULL)
+				{
+					fputs("ERROR: cannot allocate memory for e->id.\n", stderr);
+					exit(EXIT_FAILURE);
+				}
 				strcpy(e->id, &buf[l - 3][1]);
 
 				/* Construct fastQ hash key */
-				idline = malloc(strl + 1u);
-				assert(idline != NULL);
+				if ((idline = malloc(strl + 1u)) == NULL)
+				{
+					fputs("ERROR: cannot allocate memory for idline.\n", stderr);
+					exit(EXIT_FAILURE);
+				}
 				strcpy(idline, &buf[l - 3][1]);
 
 				/* Get instrument name */
-				tok = strtok_r(idline, seps, &r);
-				assert(tok != NULL);
+				if ((tok = strtok_r(idline, seps, &r)) == NULL)
+				{
+					fputs("ERROR: strtok_r failed.\n", stderr);
+					exit(EXIT_FAILURE);
+				}
 
 				/* Get run number, flow cell ID, and lane number */
 				for (z = 0; z < 3; z++)
 				{
-					tok = strtok_r(NULL, seps, &r);
-					assert(tok != NULL);
+					if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+					{
+						fputs("ERROR: strtok_r failed.\n", stderr);
+						exit(EXIT_FAILURE);
+					}
 				}
 
 				/* Get tile number, x, and y coordinate */
-				tok = strtok_r(NULL, seps, &r);
-				assert(tok != NULL);
+				if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+				{
+					fputs("ERROR: strtok_r failed.\n", stderr);
+					exit(EXIT_FAILURE);
+				}
 				tile = atoi(tok);
-				tok = strtok_r(NULL, seps, &r);
-				assert(tok != NULL);
+				if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+				{
+					fputs("ERROR: strtok_r failed.\n", stderr);
+					exit(EXIT_FAILURE);
+				}
 				xpos = atoi(tok);
-				tok = strtok_r(NULL, seps, &r);
-				assert(tok != NULL);
+				if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+				{
+					fputs("ERROR: strtok_r failed.\n", stderr);
+					exit(EXIT_FAILURE);
+				}
 				ypos = atoi(tok);
 
 				/* Construct the hash key */
-				mkey = malloc(KEYLEN);
-				assert(mkey != NULL);
+				if ((mkey = malloc(KEYLEN)) == NULL)
+				{
+					fputs("ERROR: cannot allocate memory for mkey.\n", stderr);
+					exit(EXIT_FAILURE);
+				}
 				sprintf(mkey, "%010d%010d%010d", tile, xpos, ypos);
 				k = kh_put(fastq, h, mkey, &a);
-				if (!a)
-					free(mkey);
+				if (!a) free(mkey);
 
 				/* Parse DNA sequence */
 				pos = strcspn(buf[l - 2], "\n");
 				buf[l - 2][pos] = '\0';
 				strl = strlen(&buf[l - 2][0]);
-				e->seq = malloc(strl + 1u);
-				assert (e->seq != NULL);
+				if ((e->seq = malloc(strl + 1u)) == NULL)
+				{
+					fputs("ERROR: cannot allocate memory for e->seq.\n", stderr);
+					exit(EXIT_FAILURE);
+				}
 				strcpy(e->seq, &buf[l - 2][0]);
 
 				/* Parse quality sequence */
 				pos = strcspn(buf[l], "\n");
 				buf[l][pos] = '\0';
 				strl = strlen(&buf[l][0]);
-				e->qual = malloc(strl + 1u);
-				assert(e->qual != NULL);
+				if ((e->qual = malloc(strl + 1u)) == NULL)
+				{
+					fputs("ERROR: cannot allocate memory for e->qual.\n", stderr);
+					exit(EXIT_FAILURE);
+				}
 				strcpy(e->qual, &buf[l][0]);
 
 				/* Add to database */

@@ -9,7 +9,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include <zlib.h>
 #include "ddradseq.h"
 #include "khash.h"
@@ -86,33 +85,56 @@ pair_mates(char *filename, khash_t(fastq) *h, char *ffor, char *frev)
 				strl = strlen(&buf[l - 3][1]);
 
 				/* Construct fastQ hash key */
-				idline = malloc(strl + 1u);
-				assert(idline != NULL);
+				if ((idline = malloc(strl + 1u)) == NULL)
+				{
+					fputs("ERROR: cannot allocate memory for idline.\n", stderr);
+					exit(EXIT_FAILURE);
+				}
 				strcpy(idline, &buf[l - 3][1]);
 
 				/* Get instrument name */
-				tok = strtok_r(idline, seps, &r);
-				assert(tok != NULL);
+				if ((tok = strtok_r(idline, seps, &r)) == NULL)
+				{
+					fputs("ERROR: strtok_r failed.\n", stderr);
+					exit(EXIT_FAILURE);
+				}
 
 				/* Get run number, flow cell ID, and lane number */
 				for (z = 0; z < 3; z++)
 				{
-					tok = strtok_r(NULL, seps, &r);
-					assert(tok != NULL);
+					if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+					{
+						fputs("ERROR: strtok_r failed.\n", stderr);
+						exit(EXIT_FAILURE);
+					}
 				}
 
 				/* Get tile number, x, and y coordinate */
-				tok = strtok_r(NULL, seps, &r);
-				assert(tok != NULL);
+				if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+				{
+					fputs("ERROR: strtok_r failed.\n", stderr);
+					exit(EXIT_FAILURE);
+				}
 				tile = atoi(tok);
-				tok = strtok_r(NULL, seps, &r);
-				assert(tok != NULL);
+				if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+				{
+					fputs("ERROR: strtok_r failed.\n", stderr);
+					exit(EXIT_FAILURE);
+				}
 				xpos = atoi(tok);
-				tok = strtok_r(NULL, seps, &r);
-				assert(tok != NULL);
+				if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+				{
+					fputs("ERROR: strtok_r failed.\n", stderr);
+					exit(EXIT_FAILURE);
+				}
 				ypos = atoi(tok);
-				mkey = malloc(KEYLEN);
-				assert(mkey != NULL);
+
+				/* Construct hash key */
+				if ((mkey = malloc(KEYLEN)) == NULL)
+				{
+					fputs("ERROR: cannot allocate memory for mkey.\n", stderr);
+					exit(EXIT_FAILURE);
+				}
 				sprintf(mkey, "%010d%010d%010d", tile, xpos, ypos);
 				k = kh_get(fastq, h, mkey);
 				if (k != kh_end(h))

@@ -9,11 +9,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
 #include <time.h>
-#include <assert.h>
 #include <getopt.h>
-#include <ctype.h>
 #include <libgen.h>
 #include "ddradseq.h"
 
@@ -32,42 +29,43 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 	/* Allocate memory for command line option structure */
 	if ((cp = malloc(sizeof (CMD))) == NULL)
 	{
-		fputs("Error allocating memory for command line structure.\n", stderr);
-		return NULL;
+		fputs("ERROR: cannot allocate memory for command line structure.\n", stderr);
+		exit(EXIT_FAILURE);
 	}
 
 	/* Initialize default values on command line data structure */
-	cp->default_dir = false;
-	cp->trim_barcode = false;
-	cp->num_threads = 1;
+	cp->default_dir = 0;
 	cp->parentdir = NULL;
 	cp->outdir = NULL;
 	cp->forfastq = NULL;
 	cp->revfastq = NULL;
 	cp->csvfile = NULL;
+	cp->dist = 1;
 
 	/* Construct the date string for output directory */
 	time(&rawtime);
 	timeinfo = localtime(&rawtime);
-	datec = malloc(DATELEN + 2u);
-	assert(datec != NULL);
+	if ((datec = malloc(DATELEN + 2u)) == NULL)
+	{
+		fputs("ERROR: cannot allocate memory for datec\n", stderr);
+		exit(EXIT_FAILURE);
+	}
 	strftime(datec, DATELEN + 2u, "/%F/", timeinfo);
 
 	while (1)
 	{
 		static struct option long_options[] =
 		{
-			{"trim",	no_argument,	   0, 't'},
 			{"help",	no_argument,	   0, 'h'},
+			{"dist",    required_argument, 0, 'd'},
 			{"out",		required_argument, 0, 'o'},
 			{"csv",		required_argument, 0, 'c'},
-			{"threads", required_argument, 0, 'n'},
 			{0, 0, 0, 0}
 		};
 
 		int option_index = 0;
 
-		c = getopt_long(argc, argv, "o:n:c:th", long_options, &option_index);
+		c = getopt_long(argc, argv, "o:d:c:h", long_options, &option_index);
 		if (c == -1) break;
 
 		switch (c)
@@ -88,7 +86,7 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 					size += 12u;
 					cp->outdir = malloc(size);
 					strcpy(cp->outdir, cp->parentdir);
-					strcat(cp->outdir, datec+1);
+					strcat(cp->outdir, datec + 1);
 				}
 				else
 				{
@@ -101,11 +99,8 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 			case 'c':
 				cp->csvfile = strdup(optarg);
 				break;
-			case 'n':
-				cp->num_threads = atoi(optarg);
-				break;
-			case 't':
-				cp->trim_barcode = true;
+			case 'd':
+				cp->dist = atoi(optarg);
 				break;
 			case 'h':
 				free(cp);
@@ -156,7 +151,7 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 				cp->outdir = malloc(size + 13u);
 				strcpy(cp->outdir, cp->parentdir);
 				strcat(cp->outdir, datec);
-				cp->default_dir = true;
+				cp->default_dir = 1;
 				free(fullpath);
 			}
 			free(datec);
@@ -167,8 +162,7 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 	{
 		if ((optind + 1) > argc)
 		{
-			fputs("ERROR: need the parent output directory as input\n\n",
-				  stderr);
+			fputs("ERROR: need the parent output directory as input\n\n", stderr);
 			free(datec);
 			free(cp);
 			return NULL;

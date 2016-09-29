@@ -37,7 +37,6 @@ char**
 traverse_dirtree(const char *dirpath, char *pattern, unsigned int *x)
 {
 	int r = 0;
-	unsigned int i = 0;
 
 	/* Check validity of directory path */
 	if (dirpath == NULL || *dirpath == '\0')
@@ -60,7 +59,11 @@ traverse_dirtree(const char *dirpath, char *pattern, unsigned int *x)
 	}
 
 	/* Get list of filenames */
-	f = malloc(n * sizeof(char*));
+	if ((f = malloc(n * sizeof(char*))) == NULL)
+	{
+		fputs("ERROR: cannot allocate memory for f.\n", stderr);
+		exit(EXIT_FAILURE);
+	}
 	n = 0;
 	if (strcmp(pattern, "parse") == 0)
 		r = nftw(dirpath, get_parsefiles, USE_FDS, FTW_PHYS);

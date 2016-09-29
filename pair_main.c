@@ -9,7 +9,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include "ddradseq.h"
 #include "khash.h"
 
@@ -28,7 +27,7 @@ pair_main(int argc, char *argv[])
 	if ((cp = parse_cmdline(argc, argv, "pair")) == NULL)
 	{
 		pair_usage();
-		return 1;
+		exit(EXIT_FAILURE);
 	}
 
 	/* Get list of all files */
@@ -40,18 +39,29 @@ pair_main(int argc, char *argv[])
 		char *ffor = NULL;
 		char *frev = NULL;
 		size_t spn = 0;
+		size_t strl = 0;
 
 		/* Construct output file names */
-		ffor = malloc(strlen(f[i]) + 1u);
-		assert(ffor != NULL);
-		frev = malloc(strlen(f[i + 1]) + 1u);
-		assert(frev != NULL);
+		strl = strlen(f[i]);
+		if ((ffor = malloc(strl + 1u)) == NULL)
+		{
+			fputs("ERROR: cannot allocate memory for ffor.\n", stderr);
+			exit(EXIT_FAILURE);
+		}
+		strl = strlen(f[i + 1]);
+		if ((frev = malloc(strl + 1u)) == NULL)
+		{
+			fputs("ERROR: cannot allocate memory for ffor.\n", stderr);
+			exit(EXIT_FAILURE);
+		}
 		strcpy(ffor, f[i]);
 		strcpy(frev, f[i + 1]);
 		pch = strstr(ffor, "parse");
 		strncpy(pch, "pairs", 5);
 		pch = strstr(frev, "parse");
 		strncpy(pch, "pairs", 5);
+
+		/* Double check that files are mates */
 		spn = strcspn(ffor, ".");
 		if (strncmp(ffor, frev, spn) != 0)
 		{

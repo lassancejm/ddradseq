@@ -9,18 +9,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
-#include <assert.h>
 #include "khash.h"
 #include "ddradseq.h"
 
 #define KEYLEN 31
 
 int
-parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
-					khash_t(mates) *m, bool trim_barcode)
+parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(mates) *m, int dist)
 {
-	bool *skip;
 	char *q = buff;
 	char *s = NULL;
 	char *r = NULL;
@@ -34,8 +30,8 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
 	char *barcode_sequence = NULL;
 	char *dna_sequence = NULL;
 	char *qual_sequence = NULL;
+	unsigned char *skip = NULL;
 	int a = 0;
-	int read = 0;
 	int ret = 0;
 	int z = 0;
 	int tile = 0;
@@ -56,79 +52,115 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
 	BARCODE *bc = NULL;
 	POOL *pl = NULL;
 
-	skip = malloc(nl * sizeof(bool));
-	assert(skip != NULL);
-	for (l = 0; l < nl; l++)
-		skip[l] = false;
+	if ((skip = malloc(nl)) == NULL)
+	{
+		fputs("ERROR: cannot allocate memory for skip array.\n", stderr);
+		exit(EXIT_FAILURE);
+	}
+	for (l = 0; l < nl; l++) skip[l] = 0;
 
 	for (l = 0; l < nl; l++)
 	{
 		ll = strlen(q);
-		if (!skip[l])
+		if (skip[l] == 0)
 		{
 			switch (l % 4)
 			{
 				case 0:
 					/* Illumina identifier line */
 					/* Make a copy of the Illumina identifier line */
-					copy = malloc(ll + 1u);
-					assert(copy != NULL);
-					idline = malloc(ll + 1u);
-					assert(idline != NULL);
+					if ((copy = malloc(ll + 1u)) == NULL)
+					{
+						fputs("ERROR: cannot allocate memory for copy.\n", stderr);
+						exit(EXIT_FAILURE);
+					}
+					if ((idline = malloc(ll + 1u)) == NULL)
+					{
+						fputs("ERROR: cannot allocate memory for idline.\n", stderr);
+						exit(EXIT_FAILURE);
+					}
 					strcpy(idline, q);
 					strcpy(copy, q);
 
 					/* Get instrument name */
-					tok = strtok_r(copy, seps, &r);
-					assert(tok != NULL);
+					if ((tok = strtok_r(copy, seps, &r)) == NULL)
+					{
+						fputs("ERROR: strtok_r failed.\n", stderr);
+						exit(EXIT_FAILURE);
+					}
 
 					/* Get run number */
-					tok = strtok_r(NULL, seps, &r);
-					assert(tok != NULL);
+					if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+					{
+						fputs("ERROR: strtok_r failed.\n", stderr);
+						exit(EXIT_FAILURE);
+					}
 
 					/* Get flow cell ID */
-					tok = strtok_r(NULL, seps, &r);
-					assert(tok != NULL);
+					if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+					{
+						fputs("ERROR: strtok_r failed.\n", stderr);
+						exit(EXIT_FAILURE);
+					}
 					strl = strlen(tok);
-					flowcell_ID = malloc(strl + 1u);
-					assert(flowcell_ID != NULL);
+					if ((flowcell_ID = malloc(strl + 1u)) == NULL)
+					{
+						fputs("ERROR: cannot allocate memory for flowcell_ID.\n", stderr);
+						exit(EXIT_FAILURE);
+					}
 					strcpy(flowcell_ID, tok);
 					i = kh_get(pool_hash, h, flowcell_ID);
 					p = kh_value(h, i);
 
 					/* Get lane number */
-					tok = strtok_r(NULL, seps, &r);
-					assert(tok != NULL);
+					if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+					{
+						fputs("ERROR: strtok_r failed.\n", stderr);
+						exit(EXIT_FAILURE);
+					}
 
 					/* Get tile number, x, and y coordinate */
-					tok = strtok_r(NULL, seps, &r);
-					assert(tok != NULL);
+					if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+					{
+						fputs("ERROR: strtok_r failed.\n", stderr);
+						exit(EXIT_FAILURE);
+					}
 					tile = atoi(tok);
-					tok = strtok_r(NULL, seps, &r);
-					assert(tok != NULL);
+					if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+					{
+						fputs("ERROR: strtok_r failed.\n", stderr);
+						exit(EXIT_FAILURE);
+					}
 					xpos = atoi(tok);
-					tok = strtok_r(NULL, seps, &r);
-					assert(tok != NULL);
+					if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+					{
+						fputs("ERROR: strtok_r failed.\n", stderr);
+						exit(EXIT_FAILURE);
+					}
 					ypos = atoi(tok);
 
-					/* Get read number */
-					tok = strtok_r(NULL, seps, &r);
-					assert(tok != NULL);
-					read = atoi(tok);
-
-					/* Get filtered flag and control number */
-					for (z = 0; z < 2; z++)
+					/* Get read orientation, filtered flag and control number */
+					for (z = 0; z < 3; z++)
 					{
-						tok = strtok_r(NULL, seps, &r);
-						assert(tok != NULL);
+						if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+						{
+							fputs("ERROR: strtok_r failed.\n", stderr);
+							exit(EXIT_FAILURE);
+						}
 					}
 
 					/* Get the index sequence */
-					tok = strtok_r(NULL, seps, &r);
-					assert(tok != NULL);
+					if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+					{
+						fputs("ERROR: strtok_r failed.\n", stderr);
+						exit(EXIT_FAILURE);
+					}
 					strl = strlen(tok);
-					index_sequence = malloc(strl + 1u);
-					assert(index_sequence != NULL);
+					if ((index_sequence = malloc(strl + 1u)) == NULL)
+					{
+						fputs("ERROR: cannot allocate memory for index_sequence.\n", stderr);
+						exit(EXIT_FAILURE);
+					}
 					strcpy(index_sequence, tok);
 					j = kh_get(pool, p, index_sequence);
 					pl = kh_value(p, j);
@@ -142,21 +174,23 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
 				case 1:
 					/* Sequence line */
 					/* Grab the barcode before trimming */
-					barcode_sequence = malloc(pl->barcode_length + 1u);
-					assert(barcode_sequence != NULL);
+					if ((barcode_sequence = malloc(pl->barcode_length + 1u)) == NULL)
+					{
+						fputs("ERROR: cannot allocate memory for barcode_sequence.\n", stderr);
+						exit(EXIT_FAILURE);
+					}
 					strncpy(barcode_sequence, q, pl->barcode_length);
 					barcode_sequence[pl->barcode_length] = '\0';
 
-					/* Trim barcode if necessary */
-					if (trim_barcode)
-						sl = ll - pl->barcode_length;
-					else
-						sl = ll;
-					dna_sequence = malloc(sl + 1u);
-					assert(dna_sequence != NULL);
+					/* Trim the barcode */
+					sl = ll - pl->barcode_length;
+					if ((dna_sequence = malloc(sl + 1u)) == NULL)
+					{
+						fputs("ERROR: cannot allocate memory for dna_sequence.\n", stderr);
+						exit(EXIT_FAILURE);
+					}
 					s = q;
-					if (trim_barcode)
-						s += pl->barcode_length;
+					s += pl->barcode_length;
 					strcpy(dna_sequence, s);
 
 					/* Find the barcode in the database */
@@ -173,7 +207,7 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
 							{
 								int d = 0;
 								if ((d = levenshtein((char*)kh_key(b, kk),
-													 barcode_sequence)) < 2)
+													 barcode_sequence)) <= dist)
 								{
 									bc = kh_value(b, kk);
 									break;
@@ -184,8 +218,8 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
 					/* If barcode still not found-- skip sequence */
 					if (bc == NULL)
 					{
-						skip[l+1] = true;
-						skip[l+2] = true;
+						skip[l + 1] = 1;
+						skip[l + 2] = 1;
 						free(idline);
 						free(dna_sequence);
 						free(barcode_sequence);
@@ -193,12 +227,14 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
 					}
 
 					/* Constrcut key for mate pair hash */
-					mkey = malloc(KEYLEN);
-					assert(mkey != NULL);
+					if ((mkey = malloc(KEYLEN)) == NULL)
+					{
+						fputs("ERROR: cannot allocate memory for mkey.\n", stderr);
+						exit(EXIT_FAILURE);
+					}
 					sprintf(mkey, "%010d%010d%010d", tile, xpos, ypos);
 					mk = kh_put(mates, m, mkey, &a);
-					if (!a)
-						free(mkey);
+					if (!a) free(mkey);
 					kh_value(m, mk) = strdup(barcode_sequence);
 					break;
 				case 2:
@@ -206,15 +242,14 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
 					break;
 				case 3:
 					/* Quality sequence line */
-					if (trim_barcode)
-						sl = ll - pl->barcode_length;
-					else
-						sl = ll;
-					qual_sequence = malloc(sl + 1u);
-					assert(qual_sequence != NULL);
+					sl = ll - pl->barcode_length;
+					if ((qual_sequence = malloc(sl + 1u)) == NULL)
+					{
+						fputs("ERROR: cannot allocate memory for qual_sequence.\n", stderr);
+						exit(EXIT_FAILURE);
+					}
 					s = q;
-					if (trim_barcode)
-						 s += pl->barcode_length;
+					s += pl->barcode_length;
 					strcpy(qual_sequence, s);
 					add_bytes = strlen(idline) + strlen(dna_sequence) +
 								strlen(qual_sequence) + 5u;
@@ -224,11 +259,15 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
 						if ((ret = flush_buffer(FORWARD, bc)) != 0)
 						{
 							fputs("Problem writing buffer to file.\n", stderr);
-							abort();
+							exit(EXIT_FAILURE);
 						}
 					}
 					bc->curr_bytes += add_bytes;
-					t = malloc(add_bytes + 1u);
+					if ((t = malloc(add_bytes + 1u)) == NULL)
+					{
+						fputs("ERROR: cannot allocate memory for t.\n", stderr);
+						exit(EXIT_FAILURE);
+					}
 					sprintf (t, "%s\n%s\n+\n%s\n", idline, dna_sequence,
 							 qual_sequence);
 					strcat(bc->buffer, t);

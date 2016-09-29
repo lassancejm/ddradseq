@@ -14,8 +14,7 @@
 #include "ddradseq.h"
 
 int
-parse_fastq(int orient, char *filename, khash_t(pool_hash) *h, khash_t(mates) *m,
-			bool trim_barcode)
+parse_fastq(int orient, char *filename, khash_t(pool_hash) *h, khash_t(mates) *m, int dist)
 {
 	char *r = NULL;
 	char *q = NULL;
@@ -38,7 +37,7 @@ parse_fastq(int orient, char *filename, khash_t(pool_hash) *h, khash_t(mates) *m
 	if (fin == NULL)
 	{
 		fprintf(stderr, "Error: unable to open file \'%s\'.\n", filename);
-		return 1;
+		exit(EXIT_FAILURE);
 	}
 
 	/* Initialize buffer */
@@ -59,7 +58,7 @@ parse_fastq(int orient, char *filename, khash_t(pool_hash) *h, khash_t(mates) *m
 		numlines = count_lines(q);
 		r = clean_buffer(q, &numlines);
 		if (orient == FORWARD)
-			parse_forwardbuffer(q, numlines, h, m, trim_barcode);
+			parse_forwardbuffer(q, numlines, h, m, dist);
 		else
 			parse_reversebuffer(q, numlines, h, m);
 		buff_rem = reset_buffer(q, r);
@@ -89,9 +88,8 @@ parse_fastq(int orient, char *filename, khash_t(pool_hash) *h, khash_t(mates) *m
 							{
 								if ((ret = flush_buffer(orient, bc)) != 0)
 								{
-									fputs("Problem writing buffer to file.\n",
-										  stderr);
-									abort();
+									fputs("Problem writing buffer to file.\n", stderr);
+									exit(EXIT_FAILURE);
 								}
 							}
 						}

@@ -38,8 +38,7 @@ check_directories(CMD *cp, khash_t(pool_hash) *h)
 	writable = access(cp->parentdir, W_OK);
 	if (writable != 0)
 	{
-		fprintf(stderr, "Error: cannot write to directory "
-				"\'%s\'.\n", cp->parentdir);
+		fprintf(stderr, "Error: cannot write to directory \'%s\'.\n", cp->parentdir);
 		return 1;
 	}
 	else
@@ -56,8 +55,7 @@ check_directories(CMD *cp, khash_t(pool_hash) *h)
 									   S_IROTH | S_IXOTH);
 			if (status < 0)
 			{
-				fprintf(stderr, "Error: failed to create output "
-						"directory \'%s\'.\n", cp->outdir);
+				fprintf(stderr, "Error: failed to create output directory \'%s\'.\n", cp->outdir);
 				return 1;
 			}
 		}
@@ -76,12 +74,11 @@ check_directories(CMD *cp, khash_t(pool_hash) *h)
 					closedir(d);
 				else if (ENOENT == errno)
 				{
-					status = mkdir(flowdir,	 S_IRWXU | S_IRGRP | S_IXGRP |
-											 S_IROTH | S_IXOTH);
+					status = mkdir(flowdir, S_IRWXU | S_IRGRP | S_IXGRP |
+											S_IROTH | S_IXOTH);
 					if (status < 0)
 					{
-						fprintf(stderr, "Error: failed to create output "
-								"directory \'%s\'.\n", flowdir);
+						fprintf(stderr, "Error: failed to create output directory \'%s\'.\n", flowdir);
 						return 1;
 					}
 				}

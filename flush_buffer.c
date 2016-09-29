@@ -9,19 +9,27 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include <zlib.h>
 #include "khash.h"
 #include "ddradseq.h"
 
 int flush_buffer(int orient, BARCODE *bc)
 {
-	char *filename = strdup(bc->outfile);
-	char *buffer = bc->buffer;
+	char *filename = NULL;
+	char *buffer = NULL;
 	char *pch = NULL;
 	int ret = 0;
-	size_t len = bc->curr_bytes;
+	size_t len = 0;
 	gzFile out;
+
+	/* Get filename */
+	filename = strdup(bc->outfile);
+
+	/* Get buffer */
+	buffer = bc->buffer;
+
+	/* Get current size of buffer */
+	len = bc->curr_bytes;
 
 	/* Convert forward output file name to reverse */
 	if (orient == REVERSE)
@@ -34,14 +42,14 @@ int flush_buffer(int orient, BARCODE *bc)
 	if ((out = gzopen(filename, "ab")) == NULL)
 	{
 		fprintf(stderr, "Error opening output file \'%s\'.\n", filename);
-		return 1;
+		exit(EXIT_FAILURE);
 	}
 
 	/* Dump buffer to file */
 	if ((ret = gzwrite(out, buffer, len)) != (int)len)
 	{
 		fprintf(stderr, "Error writing to output file \'%s\'.\n", filename);
-		return 1;
+		exit(EXIT_FAILURE);
 	}
 
 	/* Reset buffer */

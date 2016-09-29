@@ -7,13 +7,12 @@
  */
 
 #include <stdlib.h>
-#include <stdbool.h>
 #include "ddradseq.h"
 
 int
 free_cmdline(CMD *cp)
 {
-	if (cp->default_dir == false)
+	if (cp->default_dir == 0)
 		free(cp->parentdir);
 	free(cp->outdir);
 	free(cp->forfastq);

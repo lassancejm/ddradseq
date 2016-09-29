@@ -9,8 +9,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
-#include <assert.h>
 #include <zlib.h>
 #include "khash.h"
 #include "ddradseq.h"
@@ -20,7 +18,6 @@
 khash_t(pool_hash) *
 read_csv (CMD *cp)
 {
-	bool trail = false;			  /* Boolean indicator of trailing slash */
 	char *csvfile = cp->csvfile;  /* Pointer to CSV database file name */
 	char *outpath = cp->outdir;	  /* Pointer to parent of output directories */
 	char buf[MAX_LINE];			  /* File input buffer */
@@ -28,6 +25,7 @@ read_csv (CMD *cp)
 	char *tok = NULL;			  /* Holds parsed CSV tokens */
 	char *r = NULL;				  /* Residual pointer for strtok_r */
 	char *tmp = NULL;			  /* Temporary pointer */
+	unsigned char trail = 0;	  /* Boolean indicator of trailing slash */
 	int a = 0;					  /* Return value for database entry */
 	size_t strl = 0;			  /* Generic string length holder */
 	size_t pathl = 0;			  /* Length of path string */
@@ -43,8 +41,7 @@ read_csv (CMD *cp)
 
 	/* Check for trailing slash on outpath */
 	pathl = strlen(outpath);
-	if (outpath[pathl - 1u] == '/')
-		trail = true;
+	if (outpath[pathl - 1u] == '/') trail = 1;
 
 	/* Open input database text file stream */
 	if ((in = gzopen(csvfile, "rb")) == NULL)
@@ -63,14 +60,20 @@ read_csv (CMD *cp)
 		pathl = strlen(outpath);
 
 		/* Get the flowcell entry */
-		tok = strtok_r(buf, seps, &r);
-		assert(tok != NULL);
+		if ((tok = strtok_r(buf, seps, &r)) == NULL)
+		{
+			fputs("ERROR: strtok_r failed.\n", stderr);
+			exit(EXIT_FAILURE);
+		}
 
 		/* Alloc memory for flowcell string */
 		strl = strlen(tok);
-		tmp = malloc(strl + 1u);
+		if ((tmp = malloc(strl + 1u)) == NULL)
+		{
+			fputs("ERROR: cannot allocate memory for tmp.\n", stderr);
+			exit(EXIT_FAILURE);
+		}
 		pathl += strl + 1u;
-		assert(tmp != NULL);
 		strcpy(tmp, tok);
 
 		/* Put flowcell string as key in top-level hash */
@@ -87,13 +90,19 @@ read_csv (CMD *cp)
 			free(tmp);
 
 		/* Get pool sequence */
-		tok = strtok_r(NULL, seps, &r);
-		assert(tok != NULL);
+		if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+		{
+			fputs("ERROR: strtok_r failed.\n", stderr);
+			exit(EXIT_FAILURE);
+		}
 
 		/* Alloc memory for pool sequence string */
 		strl = strlen(tok);
-		tmp = malloc(strl + 1u);
-		assert(tmp != NULL);
+		if ((tmp = malloc(strl + 1u)) == NULL)
+		{
+			fputs("ERROR: cannot allocate memory for tmp.\n", stderr);
+			exit(EXIT_FAILURE);
+		}
 		strcpy(tmp, tok);
 
 		/* Put pool sequence string in second-level hash */
@@ -105,8 +114,11 @@ read_csv (CMD *cp)
 		/* Add the new hash to POOL and add POOL to second-level hash */
 		if (a)
 		{
-			pl = malloc(sizeof(POOL));
-			assert(pl != NULL);
+			if ((pl = malloc(sizeof(POOL))) == NULL)
+			{
+				fputs("ERROR: cannot allocate memory for pl.\n", stderr);
+				exit(EXIT_FAILURE);
+			}
 			b = kh_init(barcode);
 			pl->b = b;
 			kh_value(p, j) = pl;
@@ -115,13 +127,19 @@ read_csv (CMD *cp)
 			free(tmp);
 
 		/* Get pool value */
-		tok = strtok_r(NULL, seps, &r);
-		assert(tok != NULL);
+		if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+		{
+			fputs("ERROR: strtok_r failed.\n", stderr);
+			exit(EXIT_FAILURE);
+		}
 
 		/* Alloc memory for pool identifier */
 		strl = strlen(tok);
-		tmp = malloc(strl + 1u);
-		assert(tmp != NULL);
+		if ((tmp = malloc(strl + 1u)) == NULL)
+		{
+			fputs("ERROR: cannot allocate memory for tmp.\n", stderr);
+			exit(EXIT_FAILURE);
+		}
 		pathl += strl + 1u;
 		strcpy(tmp, tok);
 
@@ -129,8 +147,11 @@ read_csv (CMD *cp)
 		/* in POOL data structure */
 		pl = kh_value(p, j);
 		pl->poolID = tmp;
-		tmp = malloc(pathl + 1u);
-		assert(tmp != NULL);
+		if ((tmp = malloc(pathl + 1u)) == NULL)
+		{
+			fputs("ERROR: cannot allocate memory for tmp.\n", stderr);
+			exit(EXIT_FAILURE);
+		}
 		if (trail)
 			sprintf(tmp, "%s%s/%s", outpath, kh_key(h, i), pl->poolID);
 		else
@@ -138,13 +159,19 @@ read_csv (CMD *cp)
 		pl->poolpath = tmp;
 
 		/* Get barcode sequence */
-		tok = strtok_r(NULL, seps, &r);
-		assert(tok != NULL);
+		if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+		{
+			fputs("ERROR: strtok_r failed.\n", stderr);
+			exit(EXIT_FAILURE);
+		}
 
 		/* Alloc memory for barcode sequence string */
 		strl = strlen(tok);
-		tmp = malloc(strl + 1u);
-		assert(tmp != NULL);
+		if ((tmp = malloc(strl + 1u)) == NULL)
+		{
+			fputs("ERROR: cannot allocate memory for tmp.\n", stderr);
+			exit(EXIT_FAILURE);
+		}
 		strcpy(tmp, tok);
 
 		/* Put barcode sequence in third-level hash */
@@ -164,10 +191,16 @@ read_csv (CMD *cp)
 		/* initialize a fourth-level hash and add to value */
 		if (a)
 		{
-			bc = malloc(sizeof(BARCODE));
-			assert(bc != NULL);
-			bc->buffer = malloc(BUFLEN);
-			assert(bc->buffer != NULL);
+			if ((bc = malloc(sizeof(BARCODE))) == NULL)
+			{
+				fputs("ERROR: cannot allocate memory for bc.\n", stderr);
+				exit(EXIT_FAILURE);
+			}
+			if ((bc->buffer = malloc(BUFLEN)) == NULL)
+			{
+				fputs("ERROR: cannot allocate memory for bc->buffer.\n", stderr);
+				exit(EXIT_FAILURE);
+			}
 			bc->buffer[0] = '\0';
 			bc->curr_bytes = 0;
 			kh_value(b, k) = bc;
@@ -176,14 +209,20 @@ read_csv (CMD *cp)
 			free(tmp);
 
 		/* Get barcode value */
-		tok = strtok_r (NULL, seps, &r);
-		assert (tok != NULL);
+		if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+		{
+			fputs("ERROR: strtok_r failed.\n", stderr);
+			exit(EXIT_FAILURE);
+		}
 
 		/* Alloc memory for barcode value */
 		strl = strcspn(tok, " \n");
-		tmp = malloc(strl + 1u);
+		if ((tmp = malloc(strl + 1u)) == NULL)
+		{
+			fputs("ERROR: cannot allocate memory for tmp.\n", stderr);
+			exit(EXIT_FAILURE);
+		}
 		pathl += strl + 1u;
-		assert(tmp != NULL);
 		strncpy(tmp, tok, strl);
 		tmp[strl] = '\0';
 
@@ -191,8 +230,11 @@ read_csv (CMD *cp)
 		bc = kh_value(b, k);
 		bc->smplID = tmp;
 		pathl += 21u;
-		tmp = malloc(pathl + 1u);
-		assert(tmp != NULL);
+		if ((tmp = malloc(pathl + 1u)) == NULL)
+		{
+			fputs("ERROR: cannot allocate memory for tmp.\n", stderr);
+			exit(EXIT_FAILURE);
+		}
 		sprintf(tmp, "%s/parse/smpl_%s.R1.fq.gz", pl->poolpath, bc->smplID);
 		bc->outfile = tmp;
 	}

@@ -15,7 +15,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
 #include <emmintrin.h>
 #include "khash.h"
 
@@ -52,14 +51,13 @@ typedef enum _runmode_t runmode_t;
 /* Define command line parameter data structure */
 typedef struct cmdparam
 {
-	bool default_dir;
-	bool trim_barcode;
 	char *parentdir;
 	char *outdir;
 	char *forfastq;
 	char *revfastq;
 	char *csvfile;
-	int num_threads;
+	unsigned char default_dir;
+	int dist;
 } CMD;
 
 typedef struct _fastq_
@@ -141,10 +139,10 @@ extern void free_db(khash_t(pool_hash) *h);
 extern void free_pairdb (khash_t(fastq) *h);
 
 extern int parse_fastq(int orient, char *filename, khash_t(pool_hash) *h,
-                       khash_t(mates) *m, bool trim_barcode);
+                       khash_t(mates) *m, int dist);
 
 extern int parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
-                               khash_t(mates) *m, bool trim_barcode);
+                               khash_t(mates) *m, int dist);
 
 extern int parse_reversebuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
                                khash_t(mates) *m);
@@ -155,7 +153,7 @@ extern size_t reset_buffer(char *buff, const char *r);
 
 extern size_t count_lines(const char *buff);
 
-extern char** traverse_dirtree(const char *dirpath, char *pattern, int *x);
+extern char** traverse_dirtree(const char *dirpath, char *pattern, unsigned int *x);
 
 extern int flush_buffer(int orient, BARCODE *bc);
 

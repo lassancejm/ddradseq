@@ -1,8 +1,8 @@
 # Makefile for the ddradseq worker program
 # Lummei Analytics LLC September 2016
 CC = gcc
-CFLAGS = -O2 -DNDEBUG -std=gnu99 -Wextra
-DEBUG_CFLAGS = -ggdb -Wextra -std=gnu99
+CFLAGS = -O2 -Wall
+DEBUG_CFLAGS = -ggdb -Wall
 LDFLAGS = -lz
 TARGET = ddradseq
 SRCS = $(wildcard *.c)

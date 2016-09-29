@@ -9,7 +9,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include "ddradseq.h"
 #include "khash.h"
 
@@ -29,7 +28,7 @@ trimend_main(int argc, char *argv[])
 	if ((cp = parse_cmdline(argc, argv, "trimend")) == NULL)
 	{
 		trimend_usage();
-		return 1;
+		exit(EXIT_FAILURE);
 	}
 
 	/* Get list of all files */
@@ -39,18 +38,31 @@ trimend_main(int argc, char *argv[])
 	{
 		char *ffor = NULL;
 		char *frev = NULL;
+		size_t spn = 0;
 
 		/* Construct output file names */
-		ffor = malloc(strlen(f[i]) + 1u);
-		assert(ffor != NULL);
-		frev = malloc(strlen(f[i + 1]) + 1u);
-		assert(frev != NULL);
+		if ((ffor = malloc(strlen(f[i]) + 1u)) == NULL)
+		{
+			fputs("ERROR: cannot allocate memory for ffor.\n", stderr);
+			exit(EXIT_FAILURE);
+		}
+		if ((frev = malloc(strlen(f[i + 1]) + 1u)) == NULL)
+		{
+			fputs("ERROR: cannot allocate memory for frev.\n", stderr);
+			exit(EXIT_FAILURE);
+		}
 		strcpy(ffor, f[i]);
 		strcpy(frev, f[i + 1]);
 		pch = strstr(ffor, "pairs");
 		strncpy(pch, "trime", 5);
 		pch = strstr(frev, "pairs");
 		strncpy(pch, "trime", 5);
+		spn = strcspn(ffor, ".");
+		if (strncmp(ffor, frev, spn) != 0)
+		{
+			fprintf(stderr, "Error pairing files: %s and %s\n", ffor, frev);
+			exit(1);
+		}
 
 		/* Align mated pairs and write to output file*/
 		align_mates(f[i], f[i + 1], ffor, frev);
