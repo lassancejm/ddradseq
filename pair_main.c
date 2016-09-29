@@ -39,6 +39,7 @@ pair_main(int argc, char *argv[])
 		khash_t(fastq) *h = NULL;
 		char *ffor = NULL;
 		char *frev = NULL;
+		size_t spn = 0;
 
 		/* Construct output file names */
 		ffor = malloc(strlen(f[i]) + 1u);
@@ -51,6 +52,12 @@ pair_main(int argc, char *argv[])
 		strncpy(pch, "pairs", 5);
 		pch = strstr(frev, "parse");
 		strncpy(pch, "pairs", 5);
+		spn = strcspn(ffor, ".");
+		if (strncmp(ffor, frev, spn) != 0)
+		{
+			fprintf(stderr, "Error pairing files: %s and %s\n", ffor, frev);
+			exit(1);
+		}
 
 		/* Read forward fastQ file into hash table */
 		h = fastq_to_db(f[i]);
