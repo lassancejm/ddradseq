@@ -1,6 +1,4 @@
-# **ddRADseq**
-
-**Double Digest RADseq pipeline**
+# Double Digest RADseq pipeline
 
 ## Overview
 
@@ -8,7 +6,7 @@ All three steps of the Double Digest RADseq pipeline can be carried out using th
 of the program is freely available from the [GitHub website](https://github.com/dgarriga/ddradseq). A Makefile is provided
 to compile the program. The **ddradseq** program was specifically written to compile and run on modern GNU/Linux systems
 and has primarily been tested on Debian or RedHat based distributions. It is recommended that the program should be 
-compiled with the GCC toolchain using at least the C99 standard. See the [Compiling](.#Compiling) section below for more
+compiled with the GCC toolchain using at least the C99 standard. See the **Compiling** section below for more
 information.
 
 The **ddradseq** program runs in three different modes, corresponding to different steps in the Double Digest RADseq
