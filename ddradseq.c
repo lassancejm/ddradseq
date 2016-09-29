@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include "ddradseq.h"
 
 /* Function prototypes */
@@ -23,6 +24,7 @@ typedef int (*func_t)( int x, char *y[]);
 int
 main(int argc, char *argv[])
 {
+	char logfname[] = "/ddradseq.log\0";
 	char *runmode = NULL;
 	char version_str[] = "ddradseq v0.9-alpha";
 	int val = 0;
@@ -33,6 +35,14 @@ main(int argc, char *argv[])
 	f[1] = trimend_main;
 	f[2] = pair_main;
 
+	/* Get current working directory */
+	if (getcwd(logfile, sizeof(logfile)) == NULL)
+	{
+		fputs("ERROR: failed to get current working directory.\n", stderr);
+		exit(EXIT_FAILURE);
+	}
+	strcat(logfile, logfname);
+	
 	if (argc < 2)
 		main_usage();
 	else
@@ -53,6 +63,7 @@ main(int argc, char *argv[])
 		}
 		else
 		{
+			log_init(ret);
 			argc--;
 			argv++;
 			val = f[ret](argc, argv);

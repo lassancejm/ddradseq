@@ -18,6 +18,7 @@
 CMD *
 parse_cmdline(int argc, char *argv[], char *runmode)
 {
+	char datestr[80];
 	char *datec = NULL;
 	int c = 0;
 	runmode_t ret;
@@ -25,11 +26,19 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 	time_t rawtime;
 	struct tm * timeinfo;
 	CMD *cp = NULL;
+	FILE *lf;
+
+	/* Open the log file */
+	lf = fopen(logfile, "a");
 
 	/* Allocate memory for command line option structure */
 	if ((cp = malloc(sizeof (CMD))) == NULL)
 	{
-		fputs("ERROR: cannot allocate memory for command line structure.\n", stderr);
+		time(&rawtime);
+		timeinfo = localtime(&rawtime);
+		strftime(datestr, 80, "%c", timeinfo);
+		fprintf(lf, "[ddradseq: %s] ERROR -- cannot allocate memory for command line structure.\n", datestr);
+		fclose(lf);
 		exit(EXIT_FAILURE);
 	}
 
@@ -47,7 +56,9 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 	timeinfo = localtime(&rawtime);
 	if ((datec = malloc(DATELEN + 2u)) == NULL)
 	{
-		fputs("ERROR: cannot allocate memory for datec\n", stderr);
+		strftime(datestr, 80, "%c", timeinfo);
+		fprintf(lf, "[ddradseq: %s] ERROR -- cannot allocate memory for datec.\n", datestr);
+		fclose(lf);
 		exit(EXIT_FAILURE);
 	}
 	strftime(datec, DATELEN + 2u, "/%F/", timeinfo);
@@ -105,14 +116,17 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 			case 'h':
 				free(cp);
 				free(datec);
+				fclose(lf);
 				return NULL;
 			case '?':
 				free(cp);
 				free(datec);
+				fclose(lf);
 				return NULL;
 			default:
 				free(datec);
 				free(cp);
+				fclose(lf);
 				return NULL;
 		}
 	}
@@ -125,18 +139,24 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 	{
 		if ((optind + 2) > argc)
 		{
-			fputs("ERROR: two paired fastQ files are required as input\n\n",
-				  stderr);
+			time(&rawtime);
+			timeinfo = localtime(&rawtime);
+			strftime(datestr, 80, "%c", timeinfo);
+			fprintf(lf, "[ddradseq: %s] ERROR -- two paired fastQ files are required as input.\n", datestr);
 			free(cp);
 			free(datec);
+			fclose(lf);
 			return NULL;
 		}
 		else if (cp->csvfile == NULL)
 		{
-			fputs("ERROR: \'--csv\' switch is mandatory in parse mode\n\n",
-				  stderr);
+			time(&rawtime);
+			timeinfo = localtime(&rawtime);
+			strftime(datestr, 80, "%c", timeinfo);
+			fprintf(lf, "[ddradseq: %s] ERROR -- \'--csv\' switch is mandatory in parse mode.\n", datestr);
 			free(cp);
 			free(datec);
+			fclose(lf);
 			return NULL;
 		}
 		else
@@ -154,7 +174,16 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 				cp->default_dir = 1;
 				free(fullpath);
 			}
+			time(&rawtime);
+			timeinfo = localtime(&rawtime);
+			strftime(datestr, 80, "%c", timeinfo);
+			fprintf(lf, "[ddradseq: %s] INFO -- user specified \'%s\' as input fastQ.1.\n", datestr, cp->forfastq);
+			fprintf(lf, "[ddradseq: %s] INFO -- user specified \'%s\' as input fastQ.2.\n", datestr, cp->revfastq);
+			fprintf(lf, "[ddradseq: %s] INFO -- user specified \'%s\' as database file.\n", datestr, cp->csvfile);
+			fprintf(lf, "[ddradseq: %s] INFO -- user specified \'%s\' as output directory.\n", datestr, cp->outdir);
+			fprintf(lf, "[ddradseq: %s] INFO -- program will use edit distance =  %d.\n", datestr, cp->dist);
 			free(datec);
+			fclose(lf);
 			return cp;
 		}
 	}
@@ -162,15 +191,24 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 	{
 		if ((optind + 1) > argc)
 		{
-			fputs("ERROR: need the parent output directory as input\n\n", stderr);
+			time(&rawtime);
+			timeinfo = localtime(&rawtime);
+			strftime(datestr, 80, "%c", timeinfo);
+			fprintf(lf, "[ddradseq: %s] ERROR -- need the parent output directory as input.\n", datestr);
 			free(datec);
 			free(cp);
+			fclose(lf);
 			return NULL;
 		}
 		else
 		{
 			cp->outdir = strdup(argv[optind]);
+			time(&rawtime);
+			timeinfo = localtime(&rawtime);
+			strftime(datestr, 80, "%c", timeinfo);
+			fprintf(lf, "[ddradseq: %s] INFO -- user specified directory %s for input.\n", datestr, cp->outdir);
 			free(datec);
+			fclose(lf);
 			return cp;
 		}
 	}

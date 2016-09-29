@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include "khash.h"
 #include "ddradseq.h"
 
@@ -17,9 +18,13 @@ void parse_usage(void);
 int
 parse_main(int argc, char *argv[])
 {
+	char datestr[80];
 	CMD *cp = NULL;
 	khash_t(pool_hash) *h = NULL;
 	khash_t(mates) *m = NULL;
+	time_t rawtime;
+	struct tm * timeinfo;
+	FILE *lf;
 
 	/* Parse the command line options */
 	if ((cp = parse_cmdline(argc, argv, "parse")) == NULL)
@@ -28,8 +33,23 @@ parse_main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
+	/* Open log file for writing */
+	lf = fopen(logfile, "a");
+
 	/* Read CSV database into memory */
+	time(&rawtime);
+	timeinfo = localtime(&rawtime);
+	strftime(datestr, 80, "%c", timeinfo);
 	h = read_csv(cp);
+	if (h)
+		fprintf(lf, "[ddradseq: %s] INFO -- Successfully read CSV database into memory.\n", datestr);
+	else
+	{
+		fprintf(lf, "[ddradseq: %s] ERROR -- Failed to read CSV database into memory.\n", datestr);
+		fclose(lf);
+		exit(EXIT_FAILURE);
+	}
+	fclose(lf);
 
 	/* Check for write permissions on parent of output directory */
 	check_directories(cp, h);

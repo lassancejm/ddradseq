@@ -126,6 +126,9 @@ KHASH_MAP_INIT_STR(fastq, FASTQ*)
 /* Hash to hold mate information */
 KHASH_MAP_INIT_STR(mates, char*)
 
+/* Globally scoped variables */
+char logfile [1024];
+
 /* Function prototypes */
 
 extern CMD* parse_cmdline(int argc, char *argv[], char *mode);
@@ -172,6 +175,8 @@ extern int pair_mates(char *filename, khash_t(fastq) *h, char *ffor, char *frev)
 extern ALIGN_RESULT local_align(int qlen, unsigned char *query, int tlen,
                                 unsigned char *target, int m, const char *mat,
                                 int gapo, int gape, int xtra, ALIGN_QUERY **qry);
+
+extern void log_init(runmode_t runmode);
 
 static inline runmode_t find_mode(const char *m)
 {

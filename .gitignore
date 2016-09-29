@@ -1,8 +1,6 @@
 ddradseq
+ddradseq.log
 *.o
 .cproject
 .project
-/parse/*
-/trimend/*
-/pair/*
 /.c9/*

@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
+#include <time.h>
 #include <dirent.h>
 #include <libgen.h>
 #include <sys/types.h>
@@ -25,21 +26,34 @@ check_directories(CMD *cp, khash_t(pool_hash) *h)
 	char *parsedir = NULL;
 	char *pairdir = NULL;
 	char *trimdir = NULL;
+	char datestr[80];
 	int writable = 0;
 	int status = 0;
 	size_t strl = 0;
+	time_t rawtime;
+	struct tm * timeinfo;
 	khint_t i = 0;
 	khint_t j = 0;
 	khash_t(pool) *p = NULL;
 	POOL *pl = NULL;
 	DIR *d;
+	FILE *lf;
+
+	/* Open logfile for writing */
+	lf = fopen(logfile, "a");
+
+	/* Get time info */
+	time(&rawtime);
+	timeinfo = localtime(&rawtime);
+	strftime(datestr, 80, "%c", timeinfo);
 
 	/* Check if parent output directory is writable */
 	writable = access(cp->parentdir, W_OK);
 	if (writable != 0)
 	{
-		fprintf(stderr, "Error: cannot write to directory \'%s\'.\n", cp->parentdir);
-		return 1;
+		fprintf(lf, "[ddradseq: %s] ERROR -- cannot write to directory \'%s\'.\n", datestr, cp->parentdir);
+		fclose(lf);
+		exit(EXIT_FAILURE);
 	}
 	else
 	{
@@ -55,8 +69,9 @@ check_directories(CMD *cp, khash_t(pool_hash) *h)
 									   S_IROTH | S_IXOTH);
 			if (status < 0)
 			{
-				fprintf(stderr, "Error: failed to create output directory \'%s\'.\n", cp->outdir);
-				return 1;
+				fprintf(lf, "[ddradseq: %s] ERROR -- failed to create output directory \'%s\'.\n", datestr, cp->outdir);
+				fclose(lf);
+				exit(EXIT_FAILURE);
 			}
 		}
 
@@ -78,8 +93,9 @@ check_directories(CMD *cp, khash_t(pool_hash) *h)
 											S_IROTH | S_IXOTH);
 					if (status < 0)
 					{
-						fprintf(stderr, "Error: failed to create output directory \'%s\'.\n", flowdir);
-						return 1;
+						fprintf(lf, "[ddradseq: %s] ERROR -- failed to create flowcell-level output directory \'%s\'.\n", datestr, flowdir);
+						fclose(lf);
+						exit(EXIT_FAILURE);
 					}
 				}
 				free(flowdir);
@@ -102,9 +118,9 @@ check_directories(CMD *cp, khash_t(pool_hash) *h)
 													S_IXGRP | S_IROTH | S_IXOTH);
 							if (status < 0)
 							{
-								fprintf(stderr, "Error: failed to create "
-										"output directory \'%s\'.\n", pooldir);
-								return 1;
+								fprintf(lf, "[ddradseq: %s] ERROR -- failed to create pool-level directory \'%s\'.\n", datestr, pooldir);
+								fclose(lf);
+								exit(EXIT_FAILURE);
 							}
 						}
 						strl = strlen(pooldir);
@@ -122,9 +138,9 @@ check_directories(CMD *cp, khash_t(pool_hash) *h)
 													 S_IXGRP | S_IROTH | S_IXOTH);
 							if (status < 0)
 							{
-								fprintf(stderr, "Error: failed to create "
-										"output directory \'%s\'.\n", parsedir);
-								return 1;
+								fprintf(lf, "[ddradseq: %s] ERROR -- failed to create output directory \'%s\'.\n", datestr, parsedir);
+								fclose(lf);
+								exit(EXIT_FAILURE);
 							}
 						}
 						free(parsedir);
@@ -143,9 +159,9 @@ check_directories(CMD *cp, khash_t(pool_hash) *h)
 													S_IXGRP | S_IROTH | S_IXOTH);
 							if (status < 0)
 							{
-								fprintf(stderr, "Error: failed to create "
-										"output directory \'%s\'.\n", pairdir);
-								return 1;
+								fprintf(lf, "[ddradseq: %s] ERROR -- failed to create output directory \'%s\'.\n", datestr, pairdir);
+								fclose(lf);
+								exit(EXIT_FAILURE);
 							}
 						}
 						free(pairdir);
@@ -164,9 +180,9 @@ check_directories(CMD *cp, khash_t(pool_hash) *h)
 													S_IXGRP | S_IROTH | S_IXOTH);
 							if (status < 0)
 							{
-								fprintf(stderr, "Error: failed to create "
-										"output directory \'%s\'.\n", trimdir);
-								return 1;
+								fprintf(lf, "[ddradseq: %s] ERROR -- failed to create output directory \'%s\'.\n", datestr, trimdir);
+								fclose(lf);
+								exit(EXIT_FAILURE);
 							}
 						}
 						free(trimdir);
@@ -175,5 +191,9 @@ check_directories(CMD *cp, khash_t(pool_hash) *h)
 			}
 		}
 	}
+
+	/* Close log file */
+	fclose(lf);
+
 	return 0;
 }
