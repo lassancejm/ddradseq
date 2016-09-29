@@ -53,9 +53,10 @@ Usage: ddradseq [MODE] [OPTIONS] [INPUT FILES/DIRECTORY]
 
 Valid modes are:
   parse	   Parses input fastQ by standard Illumina and custom adapter
-  trimend   Trims the 3' end of fastQ reverse sequences
   pair	   Aligns mated pairs in two fastQ input files
+  trimend   Trims the 3' end of fastQ reverse sequences
 
+The modes are intended to be run in the above order.
 Use 'ddradseq -v' or 'ddradseq --version' to see software version
 For development information, see https://github.com/dgarriga/ddradseq
 Contact dgarriga@lummei.net for support.
