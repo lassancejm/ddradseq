@@ -109,11 +109,14 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 				break;
 			case 'h':
 				free(cp);
+				free(datec);
 				return NULL;
 			case '?':
 				free(cp);
+				free(datec);
 				return NULL;
 			default:
+				free(datec);
 				free(cp);
 				return NULL;
 		}
@@ -130,6 +133,7 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 			fputs("ERROR: two paired fastQ files are required as input\n\n",
 				  stderr);
 			free(cp);
+			free(datec);
 			return NULL;
 		}
 		else if (cp->csvfile == NULL)
@@ -137,6 +141,7 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 			fputs("ERROR: \'--csv\' switch is mandatory in parse mode\n\n",
 				  stderr);
 			free(cp);
+			free(datec);
 			return NULL;
 		}
 		else
@@ -154,6 +159,7 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 				cp->default_dir = true;
 				free(fullpath);
 			}
+			free(datec);
 			return cp;
 		}
 	}
@@ -163,12 +169,14 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 		{
 			fputs("ERROR: need the parent output directory as input\n\n",
 				  stderr);
+			free(datec);
 			free(cp);
 			return NULL;
 		}
 		else
 		{
 			cp->outdir = strdup(argv[optind]);
+			free(datec);
 			return cp;
 		}
 	}
