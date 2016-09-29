@@ -34,8 +34,8 @@ or assembly pipeline.
 
 A Makefile is provided to compile the program. The **ddradseq** program was specifically written to compile and run
 on modern GNU/Linux systems and has been tested primarily on Debian- or RedHat-based distributions. It is recommended
-that the program should be compiled using GCC with at least the C99 standard (> version 4.3). See the **Compiling**
-section below for more information.
+that the program should be compiled using a version of GCC with at least a basic implementation of inline functions
+from the C99 standard (> version 4.3). See the **Compiling** section below for more information.
 
 ## The ddRADseq library
 
