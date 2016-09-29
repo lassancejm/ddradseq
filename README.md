@@ -61,6 +61,9 @@ Use 'ddradseq -v' or 'ddradseq --version' to see software version
 For development information, see https://github.com/dgarriga/ddradseq
 Contact dgarriga@lummei.net for support.
 ```
+The program will write all of its activity to the logfile "ddradseq.log". The log file will be place in the user's
+current working directory.
+
 ## The structure of output directories
 
 If the **ddradseq** program is run in **parse** mode and the user specifies that they want output to the existing 
