@@ -51,8 +51,8 @@ void log_init(runmode_t runmode)
 			break;
 	}
 	if (user)
-		fprintf(lf, "by user %s ", user);
-	fprintf(lf, "on host %s %s", host.nodename, host.release);
+		fprintf(lf, "by user \'%s\' ", user);
+	fprintf(lf, "on host \'%s\' (%s)", host.nodename, host.release);
 	fputc('\n', lf);
 	fprintf(lf, "[ddradseq: %s] INFO -- host has %5.1f Gb total RAM and %5.1f Gb "
 	        "free RAM.\n", timestr, si.totalram/gigabyte, si.freeram/gigabyte);
