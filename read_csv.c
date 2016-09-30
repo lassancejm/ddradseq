@@ -39,6 +39,13 @@ read_csv (CMD *cp)
 	BARCODE *bc = NULL;
 	POOL *pl = NULL;
 
+	/* Get time string */
+	get_timestr(&timestr[0]);
+
+	/* Print informational message to log */
+	fprintf(lf, "[ddradseq: %s] INFO -- Parsing CSV database file \'%s\'.\n",
+	        timestr, csvfile);
+
 	/* Check for trailing slash on outpath */
 	pathl = strlen(outpath);
 	if (outpath[pathl - 1u] == '/') trail = 1;
@@ -46,7 +53,9 @@ read_csv (CMD *cp)
 	/* Open input database text file stream */
 	if ((in = gzopen(csvfile, "rb")) == NULL)
 	{
-		fprintf(stderr, "Error opening database file \'%s\'.\n", csvfile);
+		fprintf(stderr, "ERROR: Could not open database file \'%s\'.\n", csvfile);
+		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Could not open CSV database file "
+		        " %s into memory.\n", timestr, __func__, __LINE__, csvfile);
 		return NULL;
 	}
 
@@ -62,16 +71,20 @@ read_csv (CMD *cp)
 		/* Get the flowcell entry */
 		if ((tok = strtok_r(buf, seps, &r)) == NULL)
 		{
-			fputs("ERROR: strtok_r failed.\n", stderr);
-			exit(EXIT_FAILURE);
+			fputs("ERROR: Parsing CSV failed.\n", stderr);
+			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing CSV file failed.\n",
+			        timestr, __func__, __LINE__);
+			return NULL;
 		}
 
 		/* Alloc memory for flowcell string */
 		strl = strlen(tok);
 		if ((tmp = malloc(strl + 1u)) == NULL)
 		{
-			fputs("ERROR: cannot allocate memory for tmp.\n", stderr);
-			exit(EXIT_FAILURE);
+			fputs("ERROR: Memory allocation failure.\n", stderr);
+			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
+			        timestr, __func__, __LINE__);
+			return NULL;
 		}
 		pathl += strl + 1u;
 		strcpy(tmp, tok);
@@ -92,16 +105,20 @@ read_csv (CMD *cp)
 		/* Get pool sequence */
 		if ((tok = strtok_r(NULL, seps, &r)) == NULL)
 		{
-			fputs("ERROR: strtok_r failed.\n", stderr);
-			exit(EXIT_FAILURE);
+			fputs("ERROR: Parsing CSV failed.\n", stderr);
+			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing CSV file failed.\n",
+			        timestr, __func__, __LINE__);
+			return NULL;
 		}
 
 		/* Alloc memory for pool sequence string */
 		strl = strlen(tok);
 		if ((tmp = malloc(strl + 1u)) == NULL)
 		{
-			fputs("ERROR: cannot allocate memory for tmp.\n", stderr);
-			exit(EXIT_FAILURE);
+			fputs("ERROR: Memory allocation failure.\n", stderr);
+			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
+			        timestr, __func__, __LINE__);
+			return NULL;
 		}
 		strcpy(tmp, tok);
 
@@ -116,8 +133,10 @@ read_csv (CMD *cp)
 		{
 			if ((pl = malloc(sizeof(POOL))) == NULL)
 			{
-				fputs("ERROR: cannot allocate memory for pl.\n", stderr);
-				exit(EXIT_FAILURE);
+				fputs("ERROR: Memory allocation failure.\n", stderr);
+				fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
+				        timestr, __func__, __LINE__);
+				return NULL;
 			}
 			b = kh_init(barcode);
 			pl->b = b;
@@ -129,16 +148,20 @@ read_csv (CMD *cp)
 		/* Get pool value */
 		if ((tok = strtok_r(NULL, seps, &r)) == NULL)
 		{
-			fputs("ERROR: strtok_r failed.\n", stderr);
-			exit(EXIT_FAILURE);
+			fputs("ERROR: Parsing CSV failed.\n", stderr);
+			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing CSV file failed.\n",
+			        timestr, __func__, __LINE__);
+			return NULL;
 		}
 
 		/* Alloc memory for pool identifier */
 		strl = strlen(tok);
 		if ((tmp = malloc(strl + 1u)) == NULL)
 		{
-			fputs("ERROR: cannot allocate memory for tmp.\n", stderr);
-			exit(EXIT_FAILURE);
+			fputs("ERROR: Memory allocation failure.\n", stderr);
+			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
+			        timestr, __func__, __LINE__);
+			return NULL;
 		}
 		pathl += strl + 1u;
 		strcpy(tmp, tok);
@@ -149,8 +172,10 @@ read_csv (CMD *cp)
 		pl->poolID = tmp;
 		if ((tmp = malloc(pathl + 1u)) == NULL)
 		{
-			fputs("ERROR: cannot allocate memory for tmp.\n", stderr);
-			exit(EXIT_FAILURE);
+			fputs("ERROR: Memory allocation failure.\n", stderr);
+			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
+			        timestr, __func__, __LINE__);
+			return NULL;
 		}
 		if (trail)
 			sprintf(tmp, "%s%s/%s", outpath, kh_key(h, i), pl->poolID);
@@ -161,16 +186,20 @@ read_csv (CMD *cp)
 		/* Get barcode sequence */
 		if ((tok = strtok_r(NULL, seps, &r)) == NULL)
 		{
-			fputs("ERROR: strtok_r failed.\n", stderr);
-			exit(EXIT_FAILURE);
+			fputs("ERROR: Parsing CSV failed.\n", stderr);
+			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing CSV file failed.\n",
+			        timestr, __func__, __LINE__);
+			return NULL;
 		}
 
 		/* Alloc memory for barcode sequence string */
 		strl = strlen(tok);
 		if ((tmp = malloc(strl + 1u)) == NULL)
 		{
-			fputs("ERROR: cannot allocate memory for tmp.\n", stderr);
-			exit(EXIT_FAILURE);
+			fputs("ERROR: Memory allocation failure.\n", stderr);
+			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
+			        timestr, __func__, __LINE__);
+			return NULL;
 		}
 		strcpy(tmp, tok);
 
@@ -183,8 +212,10 @@ read_csv (CMD *cp)
 		{
 			if (pl->barcode_length != strl)
 			{
-				fputs("Error: unequal barcode lengths\n", stderr);
-				abort();
+				fputs("ERROR: Unequal barcode lengths.\n", stderr);
+				fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Unequal barcode lengths "
+				        "in CSV file %s.\n", timestr, __func__, __LINE__, csvfile);
+				return NULL;
 			}
 		}
 		/* If this barcode is a new entry-- */
@@ -193,13 +224,17 @@ read_csv (CMD *cp)
 		{
 			if ((bc = malloc(sizeof(BARCODE))) == NULL)
 			{
-				fputs("ERROR: cannot allocate memory for bc.\n", stderr);
-				exit(EXIT_FAILURE);
+				fputs("ERROR: Memory allocation failure.\n", stderr);
+				fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
+				        timestr, __func__, __LINE__);
+				return NULL;
 			}
 			if ((bc->buffer = malloc(BUFLEN)) == NULL)
 			{
-				fputs("ERROR: cannot allocate memory for bc->buffer.\n", stderr);
-				exit(EXIT_FAILURE);
+				fputs("ERROR: Memory allocation failure.\n", stderr);
+				fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
+				        timestr, __func__, __LINE__);
+				return NULL;
 			}
 			bc->buffer[0] = '\0';
 			bc->curr_bytes = 0;
@@ -211,16 +246,20 @@ read_csv (CMD *cp)
 		/* Get barcode value */
 		if ((tok = strtok_r(NULL, seps, &r)) == NULL)
 		{
-			fputs("ERROR: strtok_r failed.\n", stderr);
-			exit(EXIT_FAILURE);
+			fputs("ERROR: Parsing CSV failed.\n", stderr);
+			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing CSV file failed.\n",
+			        timestr, __func__, __LINE__);
+			return NULL;
 		}
 
 		/* Alloc memory for barcode value */
 		strl = strcspn(tok, " \n");
 		if ((tmp = malloc(strl + 1u)) == NULL)
 		{
-			fputs("ERROR: cannot allocate memory for tmp.\n", stderr);
-			exit(EXIT_FAILURE);
+			fputs("ERROR: Memory allocation failure.\n", stderr);
+			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
+			        timestr, __func__, __LINE__);
+			return NULL;
 		}
 		pathl += strl + 1u;
 		strncpy(tmp, tok, strl);
@@ -232,8 +271,10 @@ read_csv (CMD *cp)
 		pathl += 21u;
 		if ((tmp = malloc(pathl + 1u)) == NULL)
 		{
-			fputs("ERROR: cannot allocate memory for tmp.\n", stderr);
-			exit(EXIT_FAILURE);
+			fputs("ERROR: Memory allocation failure.\n", stderr);
+			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
+			        timestr, __func__, __LINE__);
+			return NULL;
 		}
 		sprintf(tmp, "%s/parse/smpl_%s.R1.fq.gz", pl->poolpath, bc->smplID);
 		bc->outfile = tmp;
@@ -241,6 +282,13 @@ read_csv (CMD *cp)
 
 	/* Close input CSV file stream */
 	gzclose(in);
+
+	/* Update time string */
+	get_timestr(&timestr[0]);
+
+	/* Print informational message to log */
+	fprintf(lf, "[ddradseq: %s] INFO -- Successfully parsed CSV database file \'%s\'.\n",
+	        timestr, csvfile);
 
 	return h;
 }

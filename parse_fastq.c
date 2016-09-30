@@ -19,7 +19,7 @@ parse_fastq(int orient, char *filename, khash_t(pool_hash) *h, khash_t(mates) *m
 	char *r = NULL;
 	char *q = NULL;
 	char buffer[BUFLEN];
-	int ret = 0;
+	int ret = EXIT_SUCCESS;
 	size_t numlines = 0;
 	size_t bytes_read = 0;
 	size_t buff_rem = 0;
@@ -32,12 +32,19 @@ parse_fastq(int orient, char *filename, khash_t(pool_hash) *h, khash_t(mates) *m
 	POOL *pl = NULL;
 	gzFile fin;
 
+	/* Update time string */
+	get_timestr(&timestr[0]);
+
+	/* Print informational message to log */
+	fprintf(lf, "[ddradseq: %s] INFO -- Parsing fastQ file \'%s\'.\n", timestr, filename);
+
 	/* Open input file */
 	fin = gzopen(filename, "rb");
 	if (fin == NULL)
 	{
-		fprintf(stderr, "Error: unable to open file \'%s\'.\n", filename);
-		exit(EXIT_FAILURE);
+		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Unable to open file \'%s\'.\n",
+		        timestr, __func__, __LINE__, filename);
+		return EXIT_FAILURE;
 	}
 
 	/* Initialize buffer */
@@ -58,9 +65,15 @@ parse_fastq(int orient, char *filename, khash_t(pool_hash) *h, khash_t(mates) *m
 		numlines = count_lines(q);
 		r = clean_buffer(q, &numlines);
 		if (orient == FORWARD)
-			parse_forwardbuffer(q, numlines, h, m, dist);
+		{
+			if ((ret = parse_forwardbuffer(q, numlines, h, m, dist)) == EXIT_FAILURE)
+				return EXIT_FAILURE;
+		}
 		else
-			parse_reversebuffer(q, numlines, h, m);
+		{
+			if ((ret = parse_reversebuffer(q, numlines, h, m)) == EXIT_FAILURE)
+				return EXIT_FAILURE;
+		}
 		buff_rem = reset_buffer(q, r);
 
 		/* Check if we are at the end of file */
@@ -86,10 +99,12 @@ parse_fastq(int orient, char *filename, khash_t(pool_hash) *h, khash_t(mates) *m
 							bc = kh_value(b, k);
 							if (bc->curr_bytes > 0)
 							{
-								if ((ret = flush_buffer(orient, bc)) != 0)
+								if ((ret = flush_buffer(orient, bc)) == EXIT_FAILURE)
 								{
-									fputs("Problem writing buffer to file.\n", stderr);
-									exit(EXIT_FAILURE);
+									fputs("ERROR: Problem writing buffer to file.\n", stderr);
+									fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Problem writing buffer to file.\n",
+									        timestr, __func__, __LINE__);
+									return EXIT_FAILURE;
 								}
 							}
 						}
@@ -102,5 +117,12 @@ parse_fastq(int orient, char *filename, khash_t(pool_hash) *h, khash_t(mates) *m
 	/* Close input file */
 	gzclose(fin);
 
-	return 0;
+	/* Update time string */
+	get_timestr(&timestr[0]);
+
+	/* Print informational message to log */
+	fprintf(lf, "[ddradseq: %s] INFO -- Successfully parsed fastQ file \'%s\'.\n",
+	        timestr, filename);
+
+	return EXIT_SUCCESS;
 }

@@ -13,7 +13,8 @@
 #include "khash.h"
 #include "ddradseq.h"
 
-int flush_buffer(int orient, BARCODE *bc)
+int
+flush_buffer(int orient, BARCODE *bc)
 {
 	char *filename = NULL;
 	char *buffer = NULL;
@@ -21,6 +22,9 @@ int flush_buffer(int orient, BARCODE *bc)
 	int ret = 0;
 	size_t len = 0;
 	gzFile out;
+
+	/* Update time string */
+	get_timestr(&timestr[0]);
 
 	/* Get filename */
 	filename = strdup(bc->outfile);
@@ -41,15 +45,21 @@ int flush_buffer(int orient, BARCODE *bc)
 	/* Open output fastQ file stream */
 	if ((out = gzopen(filename, "ab")) == NULL)
 	{
-		fprintf(stderr, "Error opening output file \'%s\'.\n", filename);
-		exit(EXIT_FAILURE);
+		fprintf(stderr, "ERROR: Unable to open output file \'%s\'.\n", filename);
+		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Unable to open output file "
+		        "\'%s\'.\n", timestr, __func__, __LINE__, filename);
+		free(filename);
+		return EXIT_FAILURE;
 	}
 
 	/* Dump buffer to file */
 	if ((ret = gzwrite(out, buffer, len)) != (int)len)
 	{
-		fprintf(stderr, "Error writing to output file \'%s\'.\n", filename);
-		exit(EXIT_FAILURE);
+		fprintf(stderr, "ERROR: Problem writing to output file \'%s\'.\n", filename);
+		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Problem writing to output file "
+		        "\'%s\'.\n", timestr, __func__, __LINE__, filename);
+		free(filename);
+		return EXIT_FAILURE;
 	}
 
 	/* Reset buffer */
@@ -63,5 +73,5 @@ int flush_buffer(int orient, BARCODE *bc)
 	/* Free allocated memory */
 	free(filename);
 
-	return 0;
+	return EXIT_SUCCESS;
 }

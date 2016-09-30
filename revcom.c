@@ -27,6 +27,9 @@ revcom(char *input_string)
 	size_t strl = 0;
 	size_t i = 0;
 
+	/* Update time string */
+	get_timestr(&timestr[0]);
+
 	/* Create local copy of DNA string */
 	str = strdup(input_string);
 	pch = strchr(str,'\n');
@@ -43,8 +46,9 @@ revcom(char *input_string)
 			continue;
 		else
 		{
-			fprintf(stderr, "Error: bad character '\%c\' at position %zu.\n",
-					str[i], i + 1u);
+			fputs("ERROR: Reverse complementing sequence failed.\n", stderr);
+			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Bad character '\%c\' at position %zu.\n",
+					timestr, __func__, __LINE__, str[i], i + 1u);
 			return NULL;
 		}
 	}
@@ -91,6 +95,9 @@ complement_string(char *s)
 									 12u, 0u, 10u, 13u, 0u, 0u, 0u, 17u, 22u, 2u,
 									  2u, 0u, 18u,	0u, 24u};
 
+	/* Update time string */
+	get_timestr(&timestr[0]);
+
 	/* Iterate through string and complement each base */
 	for (i = 0; i < strlen(s); i++)
 	{
@@ -101,20 +108,22 @@ complement_string(char *s)
 		{
 			if (strchr(iupac_extend, j) != NULL)
 			{
-				fputs("Error: IUPAC codes with three bases at a site are not "
-					  "supported.\n", stderr);
+				fputs("ERROR: Base complementing failed.\n", stderr);
+				fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d IUPAC codes with three "
+				        "bases at a site are not supported.\n", timestr, __func__, __LINE__);
 			}
 			else
 			{
-				fprintf (stderr, "Error: bad character '\%c\' at position %zu.\n",
-								  s[i], i + 1u);
+				fputs("ERROR: Base complementing failed.\n", stderr);
+				fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Bad character '\%c\' at position %zu.\n",
+					    timestr, __func__, __LINE__, s[i], i + 1u);
 			}
-			return -1;
+			return EXIT_FAILURE;
 		}
 		else if (j == '-')
 			continue;
 		else
 			s[i] = (char)(lookup_table[(unsigned int)(j) - DNA_BEGIN] + DNA_BEGIN);
 	}
-	return 0;
+	return EXIT_SUCCESS;
 }

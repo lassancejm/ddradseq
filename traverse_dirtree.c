@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <ftw.h>
+#include "ddradseq.h"
 
 #ifndef USE_FDS
 #define USE_FDS 15
@@ -38,6 +39,9 @@ traverse_dirtree(const char *dirpath, char *pattern, unsigned int *x)
 {
 	int r = 0;
 
+	/* Update time string */
+	get_timestr(&timestr[0]);
+
 	/* Check validity of directory path */
 	if (dirpath == NULL || *dirpath == '\0')
 		return NULL;
@@ -55,14 +59,18 @@ traverse_dirtree(const char *dirpath, char *pattern, unsigned int *x)
 	if (errno)
 	{
 		fprintf(stderr, "%s.\n", strerror(errno));
+		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Directory traversal failed.\n",
+		        timestr, __func__, __LINE__);
 		return NULL;
 	}
 
 	/* Get list of filenames */
 	if ((f = malloc(n * sizeof(char*))) == NULL)
 	{
-		fputs("ERROR: cannot allocate memory for f.\n", stderr);
-		exit(EXIT_FAILURE);
+		fputs("ERROR: Memory allocation failure.\n", stderr);
+		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
+		        timestr, __func__, __LINE__);
+		return NULL;
 	}
 	n = 0;
 	if (strcmp(pattern, "parse") == 0)
@@ -76,6 +84,8 @@ traverse_dirtree(const char *dirpath, char *pattern, unsigned int *x)
 	if (errno)
 	{
 		fprintf(stderr, "%s.\n", strerror(errno));
+		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Directory traversal failed.\n",
+		        timestr, __func__, __LINE__);
 		return NULL;
 	}
 

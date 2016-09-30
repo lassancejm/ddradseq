@@ -60,32 +60,49 @@ align_mates(char *forin, char *revin, char *forout, char *revout)
 	gzFile fout;
 	gzFile rout;
 
+	/* Update time string */
+	get_timestr(&timestr[0]);
+
 	/* Open input forward fastQ file stream */
 	if ((fin = gzopen(forin, "rb")) == NULL)
 	{
-		fprintf(stderr, "Error opening input file \'%s\'.\n", forin);
-		return 1;
+		fprintf(stderr, "ERROR: Failed to open input forward fastQ file \'%s\'.\n", forin);
+		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to open input forward fastQ file \'%s\'.\n",
+		        timestr, __func__, __LINE__, forin);
+		return EXIT_FAILURE;
 	}
 
 	/* Open input reverse fastQ file stream */
 	if ((rin = gzopen(revin, "rb")) == NULL)
 	{
-		fprintf(stderr, "Error opening input file \'%s\'.\n", revin);
-		return 1;
+		fprintf(stderr, "ERROR: Failed to open input reverse fastQ file \'%s\'.\n", revin);
+		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to open input reverse fastQ file \'%s\'.\n",
+		        timestr, __func__, __LINE__, revin);
+		gzclose(fin);
+		return EXIT_FAILURE;
 	}
 
 	/* Open output forward fastQ file stream */
 	if ((fout = gzopen(forout, "wb")) == NULL)
 	{
-		fprintf(stderr, "Error opening output file \'%s\'.\n", forout);
-		return 1;
+		fprintf(stderr, "ERROR: Failed to open forward output fastQ file \'%s\'.\n", forout);
+		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to open forward output fastQ file \'%s\'.\n",
+		        timestr, __func__, __LINE__, forout);
+		gzclose(fin);
+		gzclose(rin);
+		return EXIT_FAILURE;
 	}
 
 	/* Open output reverse fastQ file stream */
 	if ((rout = gzopen(revout, "wb")) == NULL)
 	{
-		fprintf(stderr, "Error opening output file \'%s\'.\n", revout);
-		return 1;
+		fprintf(stderr, "ERROR: Failed to open reverse output fastQ file \'%s\'.\n", revout);
+		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to open reverse output fastQ file \'%s\'.\n",
+		        timestr, __func__, __LINE__, revout);
+		gzclose(fin);
+		gzclose(rin);
+		gzclose(fout);
+		return EXIT_FAILURE;
 	}
 
 	/* Initialize the scoring matrix */
@@ -183,7 +200,9 @@ align_mates(char *forin, char *revin, char *forout, char *revout)
 		if (lc < BSIZE) break;
 	}
 
-	fprintf(stdout, "%d sequences trimmed.\n", count);
+	/* Print informational message to logfile */
+	get_timestr(&timestr[0]);
+	fprintf(lf, "[ddradseq: %s] INFO -- %d sequences trimmed.\n", timestr, count);
 
 	/* Close all file streams */
 	gzclose(fin);
@@ -191,5 +210,5 @@ align_mates(char *forin, char *revin, char *forout, char *revout)
 	gzclose(fout);
 	gzclose(rout);
 
-	return 0;
+	return EXIT_SUCCESS;
 }

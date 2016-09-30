@@ -8,66 +8,87 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 #include "khash.h"
 #include "ddradseq.h"
 
 /* Function prototypes */
 void parse_usage(void);
+void deallocate_mem(CMD*, khash_t(pool_hash)*, khash_t(mates)*);
 
 int
 parse_main(int argc, char *argv[])
 {
-	char datestr[80];
+	int ret = EXIT_SUCCESS;
 	CMD *cp = NULL;
 	khash_t(pool_hash) *h = NULL;
 	khash_t(mates) *m = NULL;
-	time_t rawtime;
-	struct tm * timeinfo;
-	FILE *lf;
+
+	/* Update time string */
+	get_timestr(&timestr[0]);
 
 	/* Parse the command line options */
 	if ((cp = parse_cmdline(argc, argv, "parse")) == NULL)
 	{
 		parse_usage();
-		exit(EXIT_FAILURE);
+		return EXIT_FAILURE;
 	}
-
-	/* Open log file for writing */
-	lf = fopen(logfile, "a");
 
 	/* Read CSV database into memory */
-	time(&rawtime);
-	timeinfo = localtime(&rawtime);
-	strftime(datestr, 80, "%c", timeinfo);
 	h = read_csv(cp);
-	if (h)
-		fprintf(lf, "[ddradseq: %s] INFO -- Successfully read CSV database into memory.\n", datestr);
-	else
+	if (h == NULL)
 	{
-		fprintf(lf, "[ddradseq: %s] ERROR -- Failed to read CSV database into memory.\n", datestr);
-		fclose(lf);
-		exit(EXIT_FAILURE);
+		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to read CSV database "
+		        "into memory.\n", timestr, __func__, __LINE__);
+		deallocate_mem(cp, NULL, NULL);
+		return EXIT_FAILURE;
 	}
-	fclose(lf);
 
 	/* Check for write permissions on parent of output directory */
-	check_directories(cp, h);
+	if ((ret = check_directories(cp, h)) == EXIT_FAILURE)
+	{
+		deallocate_mem(cp, h, NULL);
+		return EXIT_FAILURE;
+	}
 
 	/* Initialize hash for mate pair information */
-	m = kh_init(mates);
+	if ((m = kh_init(mates)) == NULL)
+	{
+		deallocate_mem(cp, h, NULL);
+		return EXIT_FAILURE;
+	}
 
-	/* Read the fastQ input files */
-	parse_fastq(FORWARD, cp->forfastq, h, m, cp->dist);
-	parse_fastq(REVERSE, cp->revfastq, h, m, cp->dist);
+	/* Read the forward fastQ input file */
+	if ((ret = parse_fastq(FORWARD, cp->forfastq, h, m, cp->dist)) == EXIT_FAILURE)
+	{
+		deallocate_mem(cp, h, m);
+		return EXIT_FAILURE;
+	}
+
+	/* Read the reverse fastQ input file */
+	if ((ret = parse_fastq(REVERSE, cp->revfastq, h, m, cp->dist)) == EXIT_FAILURE)
+	{
+		deallocate_mem(cp, h, m);
+		return EXIT_FAILURE;
+	}
 
 	/* Deallocate memory */
-	free_db(h);
-	kh_destroy(mates, m);
-	if (cp)
-		free_cmdline(cp);
+	deallocate_mem(cp, h, m);
 
-	return 0;
+	/* Update time string */
+	get_timestr(&timestr[0]);
+
+	/* Print informational message to log */
+	fprintf(lf, "[ddradseq: %s] INFO -- Parse step of pipeline is complete.\n", timestr);
+
+	return EXIT_SUCCESS;
+}
+
+void
+deallocate_mem(CMD *cp, khash_t(pool_hash) *h, khash_t(mates) *m)
+{
+	if (h) free_db(h);
+	if (m) kh_destroy(mates, m);
+	if (cp) free_cmdline(cp);	
 }
 
 void

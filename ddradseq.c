@@ -27,7 +27,7 @@ main(int argc, char *argv[])
 	char logfname[] = "/ddradseq.log\0";
 	char *runmode = NULL;
 	char version_str[] = "ddradseq v0.9-alpha";
-	int val = 0;
+	int val = EXIT_SUCCESS;
 	runmode_t ret;
 	func_t f[3];
 
@@ -38,10 +38,13 @@ main(int argc, char *argv[])
 	/* Get current working directory */
 	if (getcwd(logfile, sizeof(logfile)) == NULL)
 	{
-		fputs("ERROR: failed to get current working directory.\n", stderr);
-		exit(EXIT_FAILURE);
+		fputs("ERROR: Failed to get current working directory.\n", stderr);
+		return EXIT_FAILURE;
 	}
 	strcat(logfile, logfname);
+
+	/* Open log file for writing */
+	lf = fopen(logfile, "a");
 	
 	if (argc < 2)
 		main_usage();
@@ -51,15 +54,15 @@ main(int argc, char *argv[])
 			strcmp(argv[1], "-v") == 0)
 		{
 			fprintf(stdout, "%s\n", version_str);
-			return 0;
+			return EXIT_SUCCESS;
 		}
 		runmode = strdup(argv[1]);
 		ret = find_mode(runmode);
 		if (ret == ERROR)
 		{
-			val = 1;
-			fprintf(stderr, "Mode \'%s\' not recognized.\n\n", runmode);
+			fprintf(stderr, "ERROR: Mode \'%s\' not recognized.\n\n", runmode);
 			main_usage();
+			val = EXIT_FAILURE;
 		}
 		else
 		{
@@ -69,6 +72,9 @@ main(int argc, char *argv[])
 			val = f[ret](argc, argv);
 		}
 	}
+
+	/* Close logfile output stream */
+	fclose(lf);
 
 	/* Free allocated memory */
 	free(runmode);

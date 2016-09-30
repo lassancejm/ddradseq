@@ -13,6 +13,7 @@
 #define __GNUC_GNU_INLINE__ 1
 #endif
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <emmintrin.h>
@@ -128,6 +129,8 @@ KHASH_MAP_INIT_STR(mates, char*)
 
 /* Globally scoped variables */
 char logfile [1024];
+char timestr[80];
+FILE *lf;
 
 /* Function prototypes */
 
@@ -177,6 +180,8 @@ extern ALIGN_RESULT local_align(int qlen, unsigned char *query, int tlen,
                                 int gapo, int gape, int xtra, ALIGN_QUERY **qry);
 
 extern void log_init(runmode_t runmode);
+
+extern int get_timestr(char *s);
 
 static inline runmode_t find_mode(const char *m)
 {

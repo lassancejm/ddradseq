@@ -40,13 +40,18 @@ fastq_to_db(char *filename)
 	FASTQ *e = NULL;
 	khash_t(fastq) *h = NULL;
 
+	/* Update time string */
+	get_timestr(&timestr[0]);
+
 	/* Initialize fastQ hash */
 	h = kh_init(fastq);
 
 	/* Open the fastQ input stream */
 	if ((in = gzopen(filename, "rb")) == Z_NULL)
 	{
-		fprintf(stderr, "Error: cannot open input fastQ file %s.\n", filename);
+		fprintf(stderr, "ERROR: Failed to open input fastQ file %s.\n", filename);
+		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to open input fastQ file %s.\n",
+		        timestr, __func__, __LINE__, filename);
 		return NULL;
 	}
 
@@ -72,8 +77,11 @@ fastq_to_db(char *filename)
 				/* Allocate memory for new fastQ entry */
 				if ((e = malloc(sizeof(FASTQ))) == NULL)
 				{
-					fputs("ERROR: cannot allocate memory for e.\n", stderr);
-					exit(EXIT_FAILURE);
+					fputs("ERROR: Memory allocation failure.\n", stderr);
+					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
+					        timestr, __func__, __LINE__);
+					kh_destroy(fastq, h);
+					return NULL;
 				}
 
 				/* Parse entry identifier */
@@ -82,24 +90,39 @@ fastq_to_db(char *filename)
 				strl = strlen(&buf[l - 3][1]);
 				if ((e->id = malloc(strl + 1u)) == NULL)
 				{
-					fputs("ERROR: cannot allocate memory for e->id.\n", stderr);
-					exit(EXIT_FAILURE);
+					fputs("ERROR: Memory allocation failure.\n", stderr);
+					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
+					        timestr, __func__, __LINE__);
+					free(e);
+					kh_destroy(fastq, h);
+					return NULL;
 				}
 				strcpy(e->id, &buf[l - 3][1]);
 
 				/* Construct fastQ hash key */
 				if ((idline = malloc(strl + 1u)) == NULL)
 				{
-					fputs("ERROR: cannot allocate memory for idline.\n", stderr);
-					exit(EXIT_FAILURE);
+					fputs("ERROR: Memory allocation failure.\n", stderr);
+					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
+					        timestr, __func__, __LINE__);
+					free(e->id);
+					free(e);
+					kh_destroy(fastq, h);
+					return NULL;
 				}
 				strcpy(idline, &buf[l - 3][1]);
 
 				/* Get instrument name */
 				if ((tok = strtok_r(idline, seps, &r)) == NULL)
 				{
-					fputs("ERROR: strtok_r failed.\n", stderr);
-					exit(EXIT_FAILURE);
+					fputs("ERROR: Parsing ID line failed.\n", stderr);
+					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
+					        timestr, __func__, __LINE__);
+					free(e->id);
+					free(e);
+					free(idline);
+					kh_destroy(fastq, h);
+					return NULL;
 				}
 
 				/* Get run number, flow cell ID, and lane number */
@@ -107,36 +130,66 @@ fastq_to_db(char *filename)
 				{
 					if ((tok = strtok_r(NULL, seps, &r)) == NULL)
 					{
-						fputs("ERROR: strtok_r failed.\n", stderr);
-						exit(EXIT_FAILURE);
+						fputs("ERROR: Parsing ID line failed.\n", stderr);
+						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
+						        timestr, __func__, __LINE__);
+						free(e->id);
+						free(e);
+						free(idline);
+						kh_destroy(fastq, h);
+						return NULL;
 					}
 				}
 
 				/* Get tile number, x, and y coordinate */
 				if ((tok = strtok_r(NULL, seps, &r)) == NULL)
 				{
-					fputs("ERROR: strtok_r failed.\n", stderr);
-					exit(EXIT_FAILURE);
+					fputs("ERROR: Parsing ID line failed.\n", stderr);
+					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
+					        timestr, __func__, __LINE__);
+					free(e->id);
+					free(e);
+					free(idline);
+					kh_destroy(fastq, h);
+					return NULL;
 				}
 				tile = atoi(tok);
 				if ((tok = strtok_r(NULL, seps, &r)) == NULL)
 				{
-					fputs("ERROR: strtok_r failed.\n", stderr);
-					exit(EXIT_FAILURE);
+					fputs("ERROR: Parsing ID line failed.\n", stderr);
+					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
+					        timestr, __func__, __LINE__);
+					free(e->id);
+					free(e);
+					free(idline);
+					kh_destroy(fastq, h);
+					return NULL;
 				}
 				xpos = atoi(tok);
 				if ((tok = strtok_r(NULL, seps, &r)) == NULL)
 				{
-					fputs("ERROR: strtok_r failed.\n", stderr);
-					exit(EXIT_FAILURE);
+					fputs("ERROR: Parsing ID line failed.\n", stderr);
+					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
+					        timestr, __func__, __LINE__);
+					free(e->id);
+					free(e);
+					free(idline);
+					kh_destroy(fastq, h);
+					return NULL;
 				}
 				ypos = atoi(tok);
 
 				/* Construct the hash key */
 				if ((mkey = malloc(KEYLEN)) == NULL)
 				{
-					fputs("ERROR: cannot allocate memory for mkey.\n", stderr);
-					exit(EXIT_FAILURE);
+					fputs("ERROR: Memory allocation failure.\n", stderr);
+					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
+					        timestr, __func__, __LINE__);
+					free(e->id);
+					free(e);
+					free(idline);
+					kh_destroy(fastq, h);
+					return NULL;
 				}
 				sprintf(mkey, "%010d%010d%010d", tile, xpos, ypos);
 				k = kh_put(fastq, h, mkey, &a);
@@ -148,8 +201,14 @@ fastq_to_db(char *filename)
 				strl = strlen(&buf[l - 2][0]);
 				if ((e->seq = malloc(strl + 1u)) == NULL)
 				{
-					fputs("ERROR: cannot allocate memory for e->seq.\n", stderr);
-					exit(EXIT_FAILURE);
+					fputs("ERROR: Memory allocation failure.\n", stderr);
+					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
+					        timestr, __func__, __LINE__);
+					free(e->id);
+					free(e);
+					free(idline);
+					kh_destroy(fastq, h);
+					return NULL;
 				}
 				strcpy(e->seq, &buf[l - 2][0]);
 
@@ -159,8 +218,15 @@ fastq_to_db(char *filename)
 				strl = strlen(&buf[l][0]);
 				if ((e->qual = malloc(strl + 1u)) == NULL)
 				{
-					fputs("ERROR: cannot allocate memory for e->qual.\n", stderr);
-					exit(EXIT_FAILURE);
+					fputs("ERROR: Memory allocation failure.\n", stderr);
+					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
+					        timestr, __func__, __LINE__);
+					free(e->id);
+					free(e);
+					free(idline);
+					free(e->seq);
+					kh_destroy(fastq, h);
+					return NULL;
 				}
 				strcpy(e->qual, &buf[l][0]);
 
