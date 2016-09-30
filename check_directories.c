@@ -41,9 +41,9 @@ check_directories(CMD *cp, khash_t(pool_hash) *h)
 	writable = access(cp->parentdir, W_OK);
 	if (writable != 0)
 	{
-		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Cannot write to directory \'%s\'.\n",
-		        timestr, __func__, __LINE__, cp->parentdir);
-		return EXIT_FAILURE;
+		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Cannot write to directory "
+		        "\'%s\'.\n", timestr, __func__, __LINE__, cp->parentdir);
+		return 1;
 	}
 	else
 	{
@@ -61,7 +61,7 @@ check_directories(CMD *cp, khash_t(pool_hash) *h)
 			{
 				fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to create output "
 				        "directory \'%s\'.\n", timestr, __func__, __LINE__, cp->outdir);
-				return EXIT_FAILURE;
+				return 1;
 			}
 		}
 
@@ -86,7 +86,7 @@ check_directories(CMD *cp, khash_t(pool_hash) *h)
 						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to create "
 						        "flowcell-level output directory \'%s\'.\n", timestr,
 						        __func__, __LINE__, flowdir);
-						return EXIT_FAILURE;
+						return 1;
 					}
 				}
 				free(flowdir);
@@ -112,7 +112,7 @@ check_directories(CMD *cp, khash_t(pool_hash) *h)
 								fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to create "
 								        "pool-level directory \'%s\'.\n", timestr, __func__,
 								        __LINE__, pooldir);
-								return EXIT_FAILURE;
+								return 1;
 							}
 						}
 						strl = strlen(pooldir);
@@ -133,7 +133,7 @@ check_directories(CMD *cp, khash_t(pool_hash) *h)
 								fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to create "
 								        "output directory \'%s\'.\n", timestr, __func__,
 								        __LINE__, parsedir);
-								return EXIT_FAILURE;
+								return 1;
 							}
 						}
 						free(parsedir);
@@ -155,7 +155,7 @@ check_directories(CMD *cp, khash_t(pool_hash) *h)
 								fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to create "
 								        "output directory \'%s\'.\n", timestr, __func__,
 								        __LINE__, pairdir);
-								return EXIT_FAILURE;
+								return 1;
 							}
 						}
 						free(pairdir);
@@ -177,7 +177,7 @@ check_directories(CMD *cp, khash_t(pool_hash) *h)
 								fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to create "
 								        "output directory \'%s\'.\n", timestr, __func__,
 								        __LINE__, trimdir);
-								return EXIT_FAILURE;
+								return 1;
 							}
 						}
 						free(trimdir);
@@ -187,5 +187,5 @@ check_directories(CMD *cp, khash_t(pool_hash) *h)
 		}
 	}
 
-	return EXIT_SUCCESS;
+	return 0;
 }

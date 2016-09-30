@@ -44,7 +44,7 @@ parse_fastq(int orient, char *filename, khash_t(pool_hash) *h, khash_t(mates) *m
 	{
 		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Unable to open file \'%s\'.\n",
 		        timestr, __func__, __LINE__, filename);
-		return EXIT_FAILURE;
+		return 1;
 	}
 
 	/* Initialize buffer */
@@ -66,13 +66,13 @@ parse_fastq(int orient, char *filename, khash_t(pool_hash) *h, khash_t(mates) *m
 		r = clean_buffer(q, &numlines);
 		if (orient == FORWARD)
 		{
-			if ((ret = parse_forwardbuffer(q, numlines, h, m, dist)) == EXIT_FAILURE)
-				return EXIT_FAILURE;
+			if ((ret = parse_forwardbuffer(q, numlines, h, m, dist)) != 0)
+				return 1;
 		}
 		else
 		{
-			if ((ret = parse_reversebuffer(q, numlines, h, m)) == EXIT_FAILURE)
-				return EXIT_FAILURE;
+			if ((ret = parse_reversebuffer(q, numlines, h, m)) != 0)
+				return 1;
 		}
 		buff_rem = reset_buffer(q, r);
 
@@ -99,12 +99,12 @@ parse_fastq(int orient, char *filename, khash_t(pool_hash) *h, khash_t(mates) *m
 							bc = kh_value(b, k);
 							if (bc->curr_bytes > 0)
 							{
-								if ((ret = flush_buffer(orient, bc)) == EXIT_FAILURE)
+								if ((ret = flush_buffer(orient, bc)) != 0)
 								{
 									fputs("ERROR: Problem writing buffer to file.\n", stderr);
 									fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Problem writing buffer to file.\n",
 									        timestr, __func__, __LINE__);
-									return EXIT_FAILURE;
+									return 1;
 								}
 							}
 						}
@@ -124,5 +124,5 @@ parse_fastq(int orient, char *filename, khash_t(pool_hash) *h, khash_t(mates) *m
 	fprintf(lf, "[ddradseq: %s] INFO -- Successfully parsed fastQ file \'%s\'.\n",
 	        timestr, filename);
 
-	return EXIT_SUCCESS;
+	return 0;
 }

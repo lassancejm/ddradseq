@@ -69,7 +69,7 @@ align_mates(char *forin, char *revin, char *forout, char *revout)
 		fprintf(stderr, "ERROR: Failed to open input forward fastQ file \'%s\'.\n", forin);
 		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to open input forward fastQ file \'%s\'.\n",
 		        timestr, __func__, __LINE__, forin);
-		return EXIT_FAILURE;
+		return 1;
 	}
 
 	/* Open input reverse fastQ file stream */
@@ -79,7 +79,7 @@ align_mates(char *forin, char *revin, char *forout, char *revout)
 		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to open input reverse fastQ file \'%s\'.\n",
 		        timestr, __func__, __LINE__, revin);
 		gzclose(fin);
-		return EXIT_FAILURE;
+		return 1;
 	}
 
 	/* Open output forward fastQ file stream */
@@ -90,7 +90,7 @@ align_mates(char *forin, char *revin, char *forout, char *revout)
 		        timestr, __func__, __LINE__, forout);
 		gzclose(fin);
 		gzclose(rin);
-		return EXIT_FAILURE;
+		return 1;
 	}
 
 	/* Open output reverse fastQ file stream */
@@ -102,7 +102,7 @@ align_mates(char *forin, char *revin, char *forout, char *revout)
 		gzclose(fin);
 		gzclose(rin);
 		gzclose(fout);
-		return EXIT_FAILURE;
+		return 1;
 	}
 
 	/* Initialize the scoring matrix */
@@ -210,5 +210,5 @@ align_mates(char *forin, char *revin, char *forout, char *revout)
 	gzclose(fout);
 	gzclose(rout);
 
-	return EXIT_SUCCESS;
+	return 0;
 }

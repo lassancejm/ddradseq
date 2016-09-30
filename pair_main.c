@@ -12,35 +12,23 @@
 #include "ddradseq.h"
 #include "khash.h"
 
-void pair_usage(void);
-void pair_main_deallocate(CMD*, char**, char*, char*, unsigned int);
+void pair_main_deallocate(char**, char*, char*, unsigned int);
 
 int
-pair_main(int argc, char *argv[])
+pair_main(CMD *cp)
 {
 	char *pch = NULL;
 	char **f = NULL;
-	int ret = EXIT_SUCCESS;
+	int ret = 0;
 	unsigned int i = 0;
 	unsigned int nfiles = 0;
-	CMD *cp = NULL;
 
 	/* Update time string */
 	get_timestr(&timestr[0]);
 
-	/* Parse the command line options */
-	if ((cp = parse_cmdline(argc, argv, "pair")) == NULL)
-	{
-		pair_usage();
-		return EXIT_FAILURE;
-	}
-
 	/* Get list of all files */
 	if ((f = traverse_dirtree(cp->outdir, "parse", &nfiles)) == NULL)
-	{
-		free_cmdline(cp);
-		return EXIT_FAILURE;
-	}
+		return 1;
 
 	for (i = 0; i < nfiles; i += 2)
 	{
@@ -57,8 +45,8 @@ pair_main(int argc, char *argv[])
 			fputs("ERROR: Memory allocation failure.\n", stderr);
 			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
 			        timestr, __func__, __LINE__);
-			pair_main_deallocate(cp, f, NULL, NULL, nfiles);
-			return EXIT_FAILURE;
+			pair_main_deallocate(f, NULL, NULL, nfiles);
+			return 1;
 		}
 		strl = strlen(f[i + 1]);
 		if ((frev = malloc(strl + 1u)) == NULL)
@@ -66,8 +54,8 @@ pair_main(int argc, char *argv[])
 			fputs("ERROR: Memory allocation failure.\n", stderr);
 			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
 			        timestr, __func__, __LINE__);
-			pair_main_deallocate(cp, f, ffor, NULL, nfiles);
-			return EXIT_FAILURE;
+			pair_main_deallocate(f, ffor, NULL, nfiles);
+			return 1;
 		}
 		strcpy(ffor, f[i]);
 		strcpy(frev, f[i + 1]);
@@ -83,15 +71,15 @@ pair_main(int argc, char *argv[])
 			fprintf(stderr, "ERROR: Pairing files \'%s\' and \'%s\' failed.\n", ffor, frev);
 			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Pairing files \'%s\' and \'%s\' failed.\n",
 			        timestr, __func__, __LINE__, ffor, frev);
-			pair_main_deallocate(cp, f, ffor, frev, nfiles);
-			return EXIT_FAILURE;
+			pair_main_deallocate(f, ffor, frev, nfiles);
+			return 1;
 		}
 
 		/* Read forward fastQ file into hash table */
 		if ((h = fastq_to_db(f[i])) == NULL)
 		{
-			pair_main_deallocate(cp, f, ffor, frev, nfiles);
-			return EXIT_FAILURE;			
+			pair_main_deallocate(f, ffor, frev, nfiles);
+			return 1;			
 		}
 
 		/* Print informational update to log file */
@@ -99,11 +87,11 @@ pair_main(int argc, char *argv[])
 		        timestr, ffor, frev);
 
 		/* Align mated pairs and write to output file*/
-		if ((ret = pair_mates(f[i + 1], h, ffor, frev)) == EXIT_FAILURE)
+		if ((ret = pair_mates(f[i + 1], h, ffor, frev)) != 0)
 		{
 			free_pairdb(h);
-			pair_main_deallocate(cp, f, ffor, frev, nfiles);
-			return EXIT_FAILURE;			
+			pair_main_deallocate(f, ffor, frev, nfiles);
+			return 1;			
 		}
 
 		/* Free allocated memory */
@@ -120,14 +108,14 @@ pair_main(int argc, char *argv[])
 	        timestr, cp->outdir);
 
 	/* Deallocate memory */
-	pair_main_deallocate(cp, f, NULL, NULL, nfiles);
+	pair_main_deallocate(f, NULL, NULL, nfiles);
 
-	return EXIT_SUCCESS;
+	return 0;
 }
 
 
 void
-pair_main_deallocate(CMD *cp, char **f, char *ff, char *rf, unsigned int n)
+pair_main_deallocate(char **f, char *ff, char *rf, unsigned int n)
 {
 	if (f)
 	{
@@ -137,16 +125,4 @@ pair_main_deallocate(CMD *cp, char **f, char *ff, char *rf, unsigned int n)
 	}
 	if (ff) free(ff);
 	if (rf) free(rf);
-	if (cp) free_cmdline(cp);	
-}
-
-void
-pair_usage(void)
-{
-	fputs("Usage : ddradseq pair [OPTIONS] [PARENTDIR]\n\n", stderr);
-	fputs("Aligns mated pairs in all fastQ files existing in a directory tree.\n\n", stderr);
-	fputs("Mandatory arguments to long options are mandatory for short options too.\n", stderr);
-	fputs(" -h, --help			 Display this help message\n\n", stderr);
-	fputs("For development information, see https://github.com/dgarriga/ddradseq\n", stderr);
-	fputs("Contact dgarriga@lummei.net for support.\n\n", stderr);
 }

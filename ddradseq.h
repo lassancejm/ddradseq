@@ -34,7 +34,7 @@
 #define FORWARD 1
 #define REVERSE 2
 
-#define DATELEN 11
+#define DATELEN 20
 
 /* Define quantities needed for alignment */
 #define KSW_XBYTE  0x10000
@@ -43,10 +43,6 @@
 #define KSW_XSTART 0x80000
 #define MINUS_INF -0x40000000
 
-/* Define operating modes */
-enum _runmode_t { PARSE, TRIMEND, PAIR, ERROR };
-typedef enum _runmode_t runmode_t;
-
 /* Define data structures */
 
 /* Define command line parameter data structure */
@@ -54,11 +50,10 @@ typedef struct cmdparam
 {
 	char *parentdir;
 	char *outdir;
-	char *forfastq;
-	char *revfastq;
 	char *csvfile;
-	unsigned char default_dir;
+	char *mode;
 	int dist;
+	int score;
 } CMD;
 
 typedef struct _fastq_
@@ -134,15 +129,15 @@ FILE *lf;
 
 /* Function prototypes */
 
-extern CMD* parse_cmdline(int argc, char *argv[], char *mode);
+extern CMD* parse_cmdline(int argc, char *argv[]);
 
 extern int check_directories(CMD *cp, khash_t(pool_hash) *h);
 
 extern khash_t(pool_hash)* read_csv(CMD *cp);
 
-extern void free_db(khash_t(pool_hash) *h);
+extern int free_db(khash_t(pool_hash) *h);
 
-extern void free_pairdb (khash_t(fastq) *h);
+extern int free_pairdb (khash_t(fastq) *h);
 
 extern int parse_fastq(int orient, char *filename, khash_t(pool_hash) *h,
                        khash_t(mates) *m, int dist);
@@ -179,21 +174,8 @@ extern ALIGN_RESULT local_align(int qlen, unsigned char *query, int tlen,
                                 unsigned char *target, int m, const char *mat,
                                 int gapo, int gape, int xtra, ALIGN_QUERY **qry);
 
-extern void log_init(runmode_t runmode);
+extern int log_init(CMD *cp);
 
 extern int get_timestr(char *s);
-
-static inline runmode_t find_mode(const char *m)
-{
-	int ret;
-	if ((ret = strcmp(m, "parse")) == 0)
-		return PARSE;
-	else if ((ret = strcmp(m, "trimend")) == 0)
-		return TRIMEND;
-	else if ((ret = strcmp(m, "pair")) == 0)
-		return PAIR;
-	else
-		return ERROR;
-}
 
 #endif

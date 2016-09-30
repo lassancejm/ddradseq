@@ -14,14 +14,14 @@
 #include <libgen.h>
 #include "ddradseq.h"
 
-void parse_cmdline_deallocate(CMD *, char *);
 
 CMD *
-parse_cmdline(int argc, char *argv[], char *runmode)
+parse_cmdline(int argc, char *argv[])
 {
 	char *datec = NULL;
+	char *tmpdir = NULL;
+	char version_str[] = "ddradseq v0.9-alpha";
 	int c = 0;
-	runmode_t ret;
 	size_t strl = 0;
 	time_t rawtime;
 	struct tm *timeinfo;
@@ -40,40 +40,30 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 	}
 
 	/* Initialize default values on command line data structure */
-	cp->default_dir = 0;
 	cp->parentdir = NULL;
 	cp->outdir = NULL;
-	cp->forfastq = NULL;
-	cp->revfastq = NULL;
 	cp->csvfile = NULL;
+	cp->mode = NULL;
 	cp->dist = 1;
-
-	/* Construct the date string for output directory */
-	time(&rawtime);
-	timeinfo = localtime(&rawtime);
-	if ((datec = malloc(DATELEN + 2u)) == NULL)
-	{
-		fputs("ERROR: Memory allocation failure.\n", stderr);
-		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
-		        timestr, __func__, __LINE__);
-		return NULL;
-	}
-	strftime(datec, DATELEN + 2u, "/%F/", timeinfo);
+	cp->score = 100;
 
 	while (1)
 	{
 		static struct option long_options[] =
 		{
-			{"help",	no_argument,	   0, 'h'},
+			{"help",    no_argument,       0, 'h'},
+			{"version", no_argument,       0, 'v'},
+			{"mode",    required_argument, 0, 'm'},
 			{"dist",    required_argument, 0, 'd'},
-			{"out",		required_argument, 0, 'o'},
-			{"csv",		required_argument, 0, 'c'},
+			{"out",	    required_argument, 0, 'o'},
+			{"score",   required_argument, 0, 's'},
+			{"csv",	    required_argument, 0, 'c'},
 			{0, 0, 0, 0}
 		};
 
 		int option_index = 0;
 
-		c = getopt_long(argc, argv, "o:d:c:h", long_options, &option_index);
+		c = getopt_long(argc, argv, "o:d:c:m:s:hv", long_options, &option_index);
 		if (c == -1) break;
 
 		switch (c)
@@ -87,34 +77,65 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 				printf("\n");
 				break;
 			case 'o':
-				cp->parentdir = strdup(optarg);
-				strl = strlen(cp->parentdir);
-				if (cp->parentdir[strl - 1] == '/')
+				/* Construct the date string for output directory */
+				if ((datec = malloc(DATELEN + 3u)) == NULL)
 				{
-					strl += 12u;
+					fputs("ERROR: Memory allocation failure.\n", stderr);
+					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
+					        timestr, __func__, __LINE__);
+					return NULL;
+				}
+				strftime(datec, DATELEN + 3u, "/ddradseq-%F/", timeinfo);
+				tmpdir = strdup(optarg);
+				strl = strlen(tmpdir);
+				if (tmpdir[strl - 1] == '/')
+				{
+					strl += 22u;
 					if ((cp->outdir = malloc(strl)) == NULL)
 					{
 						fputs("ERROR: Memory allocation failure.\n", stderr);
 						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
 						        timestr, __func__, __LINE__);
+						free(datec);
+						free(tmpdir);
+						free_cmdline(cp);
 						return NULL;
 					}
-					strcpy(cp->outdir, cp->parentdir);
+					strcpy(cp->outdir, tmpdir);
 					strcat(cp->outdir, datec + 1);
 				}
 				else
 				{
-					strl += 13u;
+					strl += 23u;
 					if ((cp->outdir = malloc(strl)) == NULL)
 					{
 						fputs("ERROR: Memory allocation failure.\n", stderr);
 						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
 						        timestr, __func__, __LINE__);
+						free(datec);
+						free(tmpdir);
+						free_cmdline(cp);
 						return NULL;
 					}
-					strcpy(cp->outdir, cp->parentdir);
+					strcpy(cp->outdir, tmpdir);
 					strcat(cp->outdir, datec);
 				}
+				free(tmpdir);
+				free(datec);
+				break;
+			case 'm':
+				cp->mode = strdup(optarg);
+				if (strcmp(cp->mode, "parse") != 0 ||
+				    strcmp(cp->mode, "pair") != 0 ||
+				    strcmp(cp->mode, "trimend") != 0)
+				{
+					fprintf(stderr, "ERROR: %s is not a valid mode.\n", cp->mode);
+					free_cmdline(cp);
+					return NULL;
+				}
+				break;
+			case 's':
+				cp->score = atoi(optarg);
 				break;
 			case 'c':
 				cp->csvfile = strdup(optarg);
@@ -122,93 +143,70 @@ parse_cmdline(int argc, char *argv[], char *runmode)
 			case 'd':
 				cp->dist = atoi(optarg);
 				break;
+			case 'v':
+				fprintf(stdout, "%s\n", version_str);
+				exit(EXIT_SUCCESS);
 			case 'h':
-				parse_cmdline_deallocate(cp, datec);
+				free_cmdline(cp);
 				return NULL;
 			case '?':
-				parse_cmdline_deallocate(cp, datec);
+				free_cmdline(cp);
 				return NULL;
 			default:
-				parse_cmdline_deallocate(cp, datec);
+				free_cmdline(cp);
 				return NULL;
 		}
 	}
 
-	/* Get run mode */
-	ret = find_mode(runmode);
+	/* Do sanity check on command line options */
+	if (cp->mode == NULL)
+	{
+		cp->mode = malloc(4);
+		strcpy(cp->mode, "all");
+	}
+	if (cp->csvfile == NULL && 
+	    (strcmp(cp->mode, "parse") == 0 ||
+	     strcmp(cp->mode, "all") == 0))
+	{
+		fputs("ERROR: \'--csv\' switch is mandatory when running parse mode.\n", stderr);
+		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d \'--csv\' switch is mandatory when running parse mode.\n",
+		        timestr, __func__, __LINE__);
+		free_cmdline(cp);
+		return NULL;
+	}
+	if (cp->outdir == NULL && 
+	    (strcmp(cp->mode, "parse") == 0 ||
+	     strcmp(cp->mode, "all") == 0))
+	{
+		fputs("ERROR: \'--out\' switch is mandatory when running parse mode.\n", stderr);
+		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d \'--out\' switch is mandatory when running parse mode.\n",
+		        timestr, __func__, __LINE__);
+		free_cmdline(cp);
+		return NULL;
+	}
 
 	/* Parse non-optioned arguments */
-	if (ret == PARSE)
+	if ((optind + 1) > argc)
 	{
-		if ((optind + 2) > argc)
-		{
-			fputs("ERROR: Paired fastQ files are required as input.\n", stderr);
-			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Paired fastQ files are "
-			        "required as input.\n", timestr, __func__, __LINE__);
-			parse_cmdline_deallocate(cp, datec);
-			return NULL;
-		}
-		else if (cp->csvfile == NULL)
-		{
-			fputs("ERROR: \'--csv\' switch is mandatory in parse mode.\n", stderr);
-			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d \'--csv\' switch is mandatory in "
-			        "parse mode.\n", timestr, __func__, __LINE__);
-			parse_cmdline_deallocate(cp, datec);
-			return NULL;
-		}
-		else
-		{
-			cp->forfastq = strdup(argv[optind]);
-			cp->revfastq = strdup(argv[optind + 1]);
-			if (cp->parentdir == NULL)
-			{
-				char *fullpath = strdup(argv[optind]);
-				cp->parentdir = dirname(fullpath);
-				strl = strlen(cp->parentdir);
-				cp->outdir = malloc(strl + 13u);
-				strcpy(cp->outdir, cp->parentdir);
-				strcat(cp->outdir, datec);
-				cp->default_dir = 1;
-				free(fullpath);
-			}
-			fprintf(lf, "[ddradseq: %s] INFO -- user specified \'%s\' as input "
-			        "fastQ.1.\n", timestr, cp->forfastq);
-			fprintf(lf, "[ddradseq: %s] INFO -- user specified \'%s\' as input "
-			        "fastQ.2.\n", timestr, cp->revfastq);
-			fprintf(lf, "[ddradseq: %s] INFO -- user specified \'%s\' as database "
-			        "file.\n", timestr, cp->csvfile);
-			fprintf(lf, "[ddradseq: %s] INFO -- user specified \'%s\' as output "
-			        "directory.\n", timestr, cp->outdir);
-			fprintf(lf, "[ddradseq: %s] INFO -- program will use edit distance of "
-			        "%d base difference.\n", timestr, cp->dist);
-			parse_cmdline_deallocate(NULL, datec);
-			return cp;
-		}
+		fputs("ERROR: need the fastQ parent directory as input.\n", stderr);
+		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Need the fastQ parent "
+		        "directory as input.\n", timestr, __func__, __LINE__);
+		free_cmdline(cp);
+		return NULL;
 	}
 	else
 	{
-		if ((optind + 1) > argc)
-		{
-			fputs("ERROR: need the parent output directory as input.\n", stderr);
-			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Need the parent output "
-			        "directory as input.\n", timestr, __func__, __LINE__);
-			parse_cmdline_deallocate(cp, datec);
-			return NULL;
-		}
-		else
-		{
-			cp->outdir = strdup(argv[optind]);
-			fprintf(lf, "[ddradseq: %s] INFO -- user specified directory %s "
-			        "for input.\n", timestr, cp->outdir);
-			parse_cmdline_deallocate(NULL, datec);
-			return cp;
-		}
-	}
-}
+		cp->parentdir = strdup(argv[optind]);
 
-void
-parse_cmdline_deallocate(CMD *cp, char *s)
-{
-	if (s) free(s);
-	if (cp) free_cmdline(cp);	
+		/* Print informational message to log file */
+		fprintf(lf, "[ddradseq: %s] INFO -- user specified directory %s "
+		        "for input.\n", timestr, cp->parentdir);
+		fprintf(lf, "[ddradseq: %s] INFO -- user specified \'%s\' as database "
+		        "file.\n", timestr, cp->csvfile);
+		fprintf(lf, "[ddradseq: %s] INFO -- user specified \'%s\' as output "
+		        "directory.\n", timestr, cp->outdir);
+		fprintf(lf, "[ddradseq: %s] INFO -- program will use edit distance of "
+		        "%d base difference.\n", timestr, cp->dist);
+		return cp;
+	}
 }

@@ -10,7 +10,7 @@
 #include "khash.h"
 #include "ddradseq.h"
 
-void
+int
 free_db (khash_t(pool_hash) *h)
 {
 	khint_t i = 0;
@@ -21,7 +21,7 @@ free_db (khash_t(pool_hash) *h)
 	POOL *pl = NULL;
 	BARCODE *bc = NULL;
 
-	if (h == NULL) return;
+	if (h == NULL) return 1;
 
 	for (i = kh_begin(h); i != kh_end(h); i++)
 	{
@@ -53,4 +53,5 @@ free_db (khash_t(pool_hash) *h)
 		}
 	}
 	kh_destroy(pool_hash, h);
+	return 0;
 }

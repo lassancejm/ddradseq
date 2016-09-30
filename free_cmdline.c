@@ -12,11 +12,9 @@
 int
 free_cmdline(CMD *cp)
 {
-	if (cp->default_dir == 0)
-		free(cp->parentdir);
+	free(cp->parentdir);
 	free(cp->outdir);
-	free(cp->forfastq);
-	free(cp->revfastq);
+	free(cp->mode);
 	free(cp->csvfile);
 	free(cp);
 	return 0;

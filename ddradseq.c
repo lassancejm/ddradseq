@@ -13,85 +13,75 @@
 #include "ddradseq.h"
 
 /* Function prototypes */
-extern int parse_main(int argc, char *argv[]);
-extern int trimend_main(int argc, char *argv[]);
-extern int pair_main(int argc, char *argv[]);
-void main_usage(void);
-
-/* Function pointer */
-typedef int (*func_t)( int x, char *y[]);
+extern int parse_main(CMD*);
+extern int trimend_main(CMD*);
+extern int pair_main(CMD*);
+void usage(void);
 
 int
 main(int argc, char *argv[])
 {
 	char logfname[] = "/ddradseq.log\0";
-	char *runmode = NULL;
-	char version_str[] = "ddradseq v0.9-alpha";
-	int val = EXIT_SUCCESS;
-	runmode_t ret;
-	func_t f[3];
-
-	f[0] = parse_main;
-	f[1] = trimend_main;
-	f[2] = pair_main;
+	int ret = 0;
+	CMD *cp = NULL;
 
 	/* Get current working directory */
 	if (getcwd(logfile, sizeof(logfile)) == NULL)
 	{
 		fputs("ERROR: Failed to get current working directory.\n", stderr);
-		return EXIT_FAILURE;
+		return 1;
 	}
 	strcat(logfile, logfname);
 
 	/* Open log file for writing */
 	lf = fopen(logfile, "a");
-	
-	if (argc < 2)
-		main_usage();
-	else
+
+	/* Parse the command line options */
+	if ((cp = parse_cmdline(argc, argv)) == NULL)
 	{
-		if (strcmp(argv[1], "--version") == 0 ||
-			strcmp(argv[1], "-v") == 0)
-		{
-			fprintf(stdout, "%s\n", version_str);
-			return EXIT_SUCCESS;
-		}
-		runmode = strdup(argv[1]);
-		ret = find_mode(runmode);
-		if (ret == ERROR)
-		{
-			fprintf(stderr, "ERROR: Mode \'%s\' not recognized.\n\n", runmode);
-			main_usage();
-			val = EXIT_FAILURE;
-		}
-		else
-		{
-			log_init(ret);
-			argc--;
-			argv++;
-			val = f[ret](argc, argv);
-		}
+		usage();
+		return 1;
 	}
+
+	/* Initialize the log files */
+	log_init(ret);
+
+	/* Run the pipeline stages */
+	if (strcmp(cp->mode, "parse") == 0 || strcmp(cp->mode, "all") == 0)
+		if ((ret = parse_main(cp)) != 0)
+			return 1;
+	if (strcmp(cp->mode, "pair") == 0 || strcmp(cp->mode, "all") == 0)
+		if ((ret = pair_main(cp)) != 0)
+			return 1;
+	if (strcmp(cp->mode, "trimend") == 0 || strcmp(cp->mode, "all") == 0)
+		if ((ret = pair_main(cp)) != 0)
+			return 1;
 
 	/* Close logfile output stream */
 	fclose(lf);
 
-	/* Free allocated memory */
-	free(runmode);
+	free_cmdline(cp);
 
-	return val;
+	return 0;
 }
 
 void
-main_usage(void)
+usage(void)
 {
-	fputs("Usage: ddradseq [MODE] [OPTIONS] [INPUT FILES/DIRECTORY]\n\n", stderr);
-	fputs("Valid modes are:\n", stderr);
-	fputs("	 parse	   Parses input fastQ by standard Illumina and custom adapter\n", stderr);
-	fputs("	 pair	   Aligns mated pairs in two fastQ input files\n", stderr);
-	fputs("	 trimend   Trims the 3\' end of fastQ reverse sequences\n\n", stderr);
-	fputs("The modes are intended to be run in the above order.\n", stderr);
-	fputs("Use \'ddradseq -v\' or \'ddradseq --version\' to see software version\n", stderr);
+	fputs("Usage: ddradseq [OPTIONS] [INPUT DIRECTORY]\n\n", stderr);
+	fputs("Parse fastQ file into separate files by flowcell, barcode and/or index\n\n", stderr);
+	fputs("Mandatory arguments to long options are mandatory for short options too.\n", stderr);
+	fputs(" -m  --mode=STR       Run mode of ddradseq program\n", stderr);
+	fputs("                      Valid modes are:\n", stderr);
+	fputs("	                     parse     Parses input fastQ by standard Illumina and custom adapter\n", stderr);
+	fputs("	                     pair      Aligns mated pairs in two fastQ input files\n", stderr);
+	fputs("	                     trimend   Trims the 3\' end of fastQ reverse sequences\n", stderr);
+	fputs(" -c, --csv=FILE       CSV file with index and barcode labels\n", stderr);
+	fputs(" -o, --out=DIR        Parent directory to write output files                 [default: same as input fastQ]\n", stderr);
+	fputs(" -d, --dist           Edit distance for barcode matching                     [default: 1]\n", stderr);
+	fputs(" -s, --score          Alignment score to consider sequences properly aligned [default: 100]\n", stderr);
+	fputs(" -h, --help           Display this help message\n", stderr);
+	fputs(" -v, --version        Print software version number and exit\n\n", stderr);
 	fputs("For development information, see https://github.com/dgarriga/ddradseq\n", stderr);
 	fputs("Contact dgarriga@lummei.net for support.\n\n", stderr);
 }

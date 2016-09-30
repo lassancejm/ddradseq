@@ -49,7 +49,7 @@ flush_buffer(int orient, BARCODE *bc)
 		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Unable to open output file "
 		        "\'%s\'.\n", timestr, __func__, __LINE__, filename);
 		free(filename);
-		return EXIT_FAILURE;
+		return 1;
 	}
 
 	/* Dump buffer to file */
@@ -59,7 +59,7 @@ flush_buffer(int orient, BARCODE *bc)
 		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Problem writing to output file "
 		        "\'%s\'.\n", timestr, __func__, __LINE__, filename);
 		free(filename);
-		return EXIT_FAILURE;
+		return 1;
 	}
 
 	/* Reset buffer */
@@ -73,5 +73,5 @@ flush_buffer(int orient, BARCODE *bc)
 	/* Free allocated memory */
 	free(filename);
 
-	return EXIT_SUCCESS;
+	return 0;
 }

@@ -14,7 +14,7 @@
 #include <sys/sysinfo.h>
 #include "ddradseq.h"
 
-void log_init(runmode_t runmode)
+int log_init(CMD *cp)
 {
 	char *user = NULL;
 	const double gigabyte = 1024 * 1024 * 1024;
@@ -35,7 +35,7 @@ void log_init(runmode_t runmode)
 	/* Get some system specs */
 	sysinfo (&si);
 
-	switch(runmode)
+	/*switch(runmode)
 	{
 		case PARSE:
 			fprintf(lf, "[ddradseq: %s] INFO -- program has started in parse mode ", timestr);
@@ -46,14 +46,12 @@ void log_init(runmode_t runmode)
 		case TRIMEND:
 			fprintf(lf, "[ddradseq: %s] INFO -- program has started in trimend mode ", timestr);
 			break;
-		case ERROR:
-			fprintf(lf, "[ddradseq: %s] ERROR -- program has started in unknown mode ", timestr);
-			break;
-	}
+	}*/
 	if (user)
 		fprintf(lf, "by user \'%s\' ", user);
 	fprintf(lf, "on host \'%s\' (%s)", host.nodename, host.release);
 	fputc('\n', lf);
 	fprintf(lf, "[ddradseq: %s] INFO -- host has %5.1f Gb total RAM and %5.1f Gb "
 	        "free RAM.\n", timestr, si.totalram/gigabyte, si.freeram/gigabyte);
+	return 0;
 }

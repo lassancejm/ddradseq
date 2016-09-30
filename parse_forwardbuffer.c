@@ -62,7 +62,7 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(
 		fputs("ERROR: Memory allocation failure.\n", stderr);
 		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
 		        timestr, __func__, __LINE__);
-		return EXIT_FAILURE;
+		return 1;
 	}
 	for (l = 0; l < nl; l++) skip[l] = 0;
 
@@ -82,7 +82,7 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(
 						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
 						        timestr, __func__, __LINE__);
 						parse_forwardbuffer_deallocate(skip, NULL, NULL);
-						return EXIT_FAILURE;
+						return 1;
 					}
 					if ((idline = malloc(ll + 1u)) == NULL)
 					{
@@ -90,7 +90,7 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(
 						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
 						        timestr, __func__, __LINE__);
 						parse_forwardbuffer_deallocate(skip, copy, NULL);
-						return EXIT_FAILURE;
+						return 1;
 					}
 					strcpy(idline, q);
 					strcpy(copy, q);
@@ -102,7 +102,7 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(
 						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
 						        timestr, __func__, __LINE__);
 						parse_forwardbuffer_deallocate(skip, copy, idline);
-						return EXIT_FAILURE;
+						return 1;
 					}
 
 					/* Get run number */
@@ -112,7 +112,7 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(
 						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
 						        timestr, __func__, __LINE__);
 						parse_forwardbuffer_deallocate(skip, copy, idline);
-						return EXIT_FAILURE;
+						return 1;
 					}
 
 					/* Get flow cell ID */
@@ -122,7 +122,7 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(
 						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
 						        timestr, __func__, __LINE__);
 						parse_forwardbuffer_deallocate(skip, copy, idline);
-						return EXIT_FAILURE;
+						return 1;
 					}
 					strl = strlen(tok);
 					if ((flowcell_ID = malloc(strl + 1u)) == NULL)
@@ -131,7 +131,7 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(
 						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
 						        timestr, __func__, __LINE__);
 						parse_forwardbuffer_deallocate(skip, copy, idline);
-						return EXIT_FAILURE;
+						return 1;
 					}
 					strcpy(flowcell_ID, tok);
 					i = kh_get(pool_hash, h, flowcell_ID);
@@ -144,7 +144,7 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(
 						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
 						        timestr, __func__, __LINE__);
 						parse_forwardbuffer_deallocate(skip, copy, idline);
-						return EXIT_FAILURE;
+						return 1;
 					}
 
 					/* Get tile number, x, and y coordinate */
@@ -154,7 +154,7 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(
 						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
 						        timestr, __func__, __LINE__);
 						parse_forwardbuffer_deallocate(skip, copy, idline);
-						return EXIT_FAILURE;
+						return 1;
 					}
 					tile = atoi(tok);
 					if ((tok = strtok_r(NULL, seps, &r)) == NULL)
@@ -163,7 +163,7 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(
 						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
 						        timestr, __func__, __LINE__);
 						parse_forwardbuffer_deallocate(skip, copy, idline);
-						return EXIT_FAILURE;
+						return 1;
 					}
 					xpos = atoi(tok);
 					if ((tok = strtok_r(NULL, seps, &r)) == NULL)
@@ -172,7 +172,7 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(
 						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
 						        timestr, __func__, __LINE__);
 						parse_forwardbuffer_deallocate(skip, copy, idline);
-						return EXIT_FAILURE;
+						return 1;
 					}
 					ypos = atoi(tok);
 
@@ -185,7 +185,7 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(
 							fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
 							        timestr, __func__, __LINE__);
 							parse_forwardbuffer_deallocate(skip, copy, idline);
-							return EXIT_FAILURE;
+							return 1;
 						}
 					}
 
@@ -196,7 +196,7 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(
 						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
 						        timestr, __func__, __LINE__);
 						parse_forwardbuffer_deallocate(skip, copy, idline);
-						return EXIT_FAILURE;
+						return 1;
 					}
 					strl = strlen(tok);
 					if ((index_sequence = malloc(strl + 1u)) == NULL)
@@ -205,7 +205,7 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(
 						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
 						        timestr, __func__, __LINE__);
 						parse_forwardbuffer_deallocate(skip, copy, idline);
-						return EXIT_FAILURE;
+						return 1;
 					}
 					strcpy(index_sequence, tok);
 					j = kh_get(pool, p, index_sequence);
@@ -225,7 +225,7 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(
 						fputs("ERROR: Memory allocation failure.\n", stderr);
 						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
 						        timestr, __func__, __LINE__);
-						return EXIT_FAILURE;
+						return 1;
 					}
 					strncpy(barcode_sequence, q, pl->barcode_length);
 					barcode_sequence[pl->barcode_length] = '\0';
@@ -238,7 +238,7 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(
 						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
 						        timestr, __func__, __LINE__);
 						free(barcode_sequence);
-						return EXIT_FAILURE;
+						return 1;
 					}
 					s = q;
 					s += pl->barcode_length;
@@ -286,7 +286,7 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(
 						free(idline);
 						free(dna_sequence);
 						free(barcode_sequence);
-						return EXIT_FAILURE;
+						return 1;
 					}
 					sprintf(mkey, "%010d%010d%010d", tile, xpos, ypos);
 					mk = kh_put(mates, m, mkey, &a);
@@ -307,7 +307,7 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(
 						free(idline);
 						free(dna_sequence);
 						free(barcode_sequence);
-						return EXIT_FAILURE;
+						return 1;
 					}
 					s = q;
 					s += pl->barcode_length;
@@ -317,7 +317,7 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(
 					char *t = NULL;
 					if ((bc->curr_bytes + add_bytes) >= BUFLEN)
 					{
-						if ((ret = flush_buffer(FORWARD, bc)) == EXIT_FAILURE)
+						if ((ret = flush_buffer(FORWARD, bc)) != 0)
 						{
 							fputs("ERROR: Problem writing to file.\n", stderr);
 							fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Problem writing to file.\n",
@@ -326,7 +326,7 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(
 							free(dna_sequence);
 							free(qual_sequence);
 							free(barcode_sequence);
-							return EXIT_FAILURE;
+							return 1;
 						}
 					}
 					bc->curr_bytes += add_bytes;
@@ -339,7 +339,7 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(
 						free(dna_sequence);
 						free(qual_sequence);
 						free(barcode_sequence);
-						return EXIT_FAILURE;
+						return 1;
 					}
 					sprintf (t, "%s\n%s\n+\n%s\n", idline, dna_sequence,
 							 qual_sequence);
@@ -360,7 +360,7 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(
 	/* Deallocate memory */
 	free(skip);
 
-	return EXIT_SUCCESS;
+	return 0;
 }
 
 void parse_forwardbuffer_deallocate(unsigned char *s, char *c, char *i)

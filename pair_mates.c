@@ -49,7 +49,7 @@ pair_mates(char *filename, khash_t(fastq) *h, char *ffor, char *frev)
 		fprintf(stderr, "ERROR: Failed to open input fastQ file \'%s\'.\n", filename);
 		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to open input fastQ file \'%s\'.\n",
 		        timestr, __func__, __LINE__, filename);
-		return EXIT_FAILURE;
+		return 1;
 	}
 
 	/* Open the output fastQ file streams */
@@ -59,7 +59,7 @@ pair_mates(char *filename, khash_t(fastq) *h, char *ffor, char *frev)
 		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to open forward output fastQ file \'%s\'.\n",
 		        timestr, __func__, __LINE__, ffor);
 		gzclose(in);
-		return EXIT_FAILURE;
+		return 1;
 	}
 
 	if ((rout = gzopen(frev, "wb")) == Z_NULL)
@@ -69,7 +69,7 @@ pair_mates(char *filename, khash_t(fastq) *h, char *ffor, char *frev)
 		        timestr, __func__, __LINE__, frev);
 		gzclose(in);
 		gzclose(fout);
-		return EXIT_FAILURE;
+		return 1;
 	}
 
 	/* Enter data from the fastQ input file into the database */
@@ -102,7 +102,7 @@ pair_mates(char *filename, khash_t(fastq) *h, char *ffor, char *frev)
 					fputs("ERROR: Memory allocation failure.\n", stderr);
 					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
 					        timestr, __func__, __LINE__);
-					return EXIT_FAILURE;
+					return 1;
 				}
 				strcpy(idline, &buf[l - 3][1]);
 
@@ -113,7 +113,7 @@ pair_mates(char *filename, khash_t(fastq) *h, char *ffor, char *frev)
 					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
 					        timestr, __func__, __LINE__);
 					free(idline);
-					return EXIT_FAILURE;
+					return 1;
 				}
 
 				/* Get run number, flow cell ID, and lane number */
@@ -125,7 +125,7 @@ pair_mates(char *filename, khash_t(fastq) *h, char *ffor, char *frev)
 						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
 						        timestr, __func__, __LINE__);
 						free(idline);
-						return EXIT_FAILURE;
+						return 1;
 					}
 				}
 
@@ -136,7 +136,7 @@ pair_mates(char *filename, khash_t(fastq) *h, char *ffor, char *frev)
 					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
 					        timestr, __func__, __LINE__);
 					free(idline);
-					return EXIT_FAILURE;
+					return 1;
 				}
 				tile = atoi(tok);
 				if ((tok = strtok_r(NULL, seps, &r)) == NULL)
@@ -145,7 +145,7 @@ pair_mates(char *filename, khash_t(fastq) *h, char *ffor, char *frev)
 					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
 					        timestr, __func__, __LINE__);
 					free(idline);
-					return EXIT_FAILURE;
+					return 1;
 				}
 				xpos = atoi(tok);
 				if ((tok = strtok_r(NULL, seps, &r)) == NULL)
@@ -154,7 +154,7 @@ pair_mates(char *filename, khash_t(fastq) *h, char *ffor, char *frev)
 					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
 					        timestr, __func__, __LINE__);
 					free(idline);
-					return EXIT_FAILURE;
+					return 1;
 				}
 				ypos = atoi(tok);
 
@@ -165,7 +165,7 @@ pair_mates(char *filename, khash_t(fastq) *h, char *ffor, char *frev)
 					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
 					        timestr, __func__, __LINE__);
 					free(idline);
-					return EXIT_FAILURE;
+					return 1;
 				}
 				sprintf(mkey, "%010d%010d%010d", tile, xpos, ypos);
 				k = kh_get(fastq, h, mkey);

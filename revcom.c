@@ -118,12 +118,12 @@ complement_string(char *s)
 				fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Bad character '\%c\' at position %zu.\n",
 					    timestr, __func__, __LINE__, s[i], i + 1u);
 			}
-			return EXIT_FAILURE;
+			return 1;
 		}
 		else if (j == '-')
 			continue;
 		else
 			s[i] = (char)(lookup_table[(unsigned int)(j) - DNA_BEGIN] + DNA_BEGIN);
 	}
-	return EXIT_SUCCESS;
+	return 0;
 }

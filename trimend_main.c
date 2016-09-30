@@ -13,39 +13,27 @@
 #include "khash.h"
 
 /* Function prototypes */
-void trimend_usage (void);
-void trimend_main_deallocate(CMD*, char**, char*, char*, unsigned int);
+void trimend_main_deallocate(char**, char*, char*, unsigned int);
 
 int
-trimend_main(int argc, char *argv[])
+trimend_main(CMD *cp)
 {
 	char *pch = NULL;
 	char **f = NULL;
-	int ret = EXIT_SUCCESS;
+	int ret = 0;
 	unsigned int i = 0;
 	unsigned int nfiles = 0;
-	CMD *cp = NULL;
 
 	/* Get time string */
 	get_timestr(&timestr[0]);
 
-	/* Parse the command line options */
-	if ((cp = parse_cmdline(argc, argv, "trimend")) == NULL)
-	{
-		trimend_usage();
-		return EXIT_FAILURE;
-	}
-
 	/* Print informational message to log file */
-	fprintf(lf, "[ddradseq: %s] INFO -- Beginning to trim 3\' end of reverse sequences in \'%s\'.\n",
-	        timestr, cp->outdir);
+	fprintf(lf, "[ddradseq: %s] INFO -- Beginning to trim 3\' end of reverse "
+	        "sequences in \'%s\'.\n", timestr, cp->outdir);
 
 	/* Get list of all files */
 	if ((f = traverse_dirtree(cp->outdir, "pairs", &nfiles)) == NULL)
-	{
-		free_cmdline(cp);
-		return EXIT_FAILURE;
-	}
+		return 1;
 
 	for (i = 0; i < nfiles; i += 2)
 	{
@@ -59,16 +47,16 @@ trimend_main(int argc, char *argv[])
 			fputs("ERROR: Memory allocation failure.\n", stderr);
 			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
 			        timestr, __func__, __LINE__);
-			trimend_main_deallocate(cp, f, NULL, NULL, nfiles);
-			return EXIT_FAILURE;
+			trimend_main_deallocate(f, NULL, NULL, nfiles);
+			return 1;
 		}
 		if ((frev = malloc(strlen(f[i + 1]) + 1u)) == NULL)
 		{
 			fputs("ERROR: Memory allocation failure.\n", stderr);
 			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
 			        timestr, __func__, __LINE__);
-			trimend_main_deallocate(cp, f, ffor, NULL, nfiles);
-			return EXIT_FAILURE;
+			trimend_main_deallocate(f, ffor, NULL, nfiles);
+			return 1;
 		}
 		strcpy(ffor, f[i]);
 		strcpy(frev, f[i + 1]);
@@ -82,19 +70,19 @@ trimend_main(int argc, char *argv[])
 			fprintf(stderr, "ERROR: \'%s\' and \'%s\' do not appear to be mate pairs.\n", ffor, frev);
 			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Files \'%s\' and \'%s\' do not appear to be mate pairs.\n",
 			        timestr, __func__, __LINE__, ffor, frev);
-			trimend_main_deallocate(cp, f, ffor, frev, nfiles);
-			return EXIT_FAILURE;
+			trimend_main_deallocate(f, ffor, frev, nfiles);
+			return 1;
 		}
 
 		/* Print informational update to log file */
-		fprintf(lf, "[ddradseq: %s] INFO -- Attempting to align sequences in \'%s\' and \'%s\'.\n",
-		        timestr, ffor, frev);
+		fprintf(lf, "[ddradseq: %s] INFO -- Attempting to align sequences in "
+		        "\'%s\' and \'%s\'.\n", timestr, ffor, frev);
 
 		/* Align mated pairs and write to output file*/
-		if ((ret = align_mates(f[i], f[i + 1], ffor, frev)) == EXIT_FAILURE)
+		if ((ret = align_mates(f[i], f[i + 1], ffor, frev)) != 0)
 		{
-			trimend_main_deallocate(cp, f, ffor, frev, nfiles);
-			return EXIT_FAILURE;			
+			trimend_main_deallocate(f, ffor, frev, nfiles);
+			return 1;			
 		}
 
 		/* Free allocated memory */
@@ -106,17 +94,17 @@ trimend_main(int argc, char *argv[])
 	get_timestr(&timestr[0]);
 
 	/* Print informational message to log file */
-	fprintf(lf, "[ddradseq: %s] INFO -- Done trimming 3\' end of reverse sequences in \'%s\'.\n",
-	        timestr, cp->outdir);
+	fprintf(lf, "[ddradseq: %s] INFO -- Done trimming 3\' end of reverse "
+	        "sequences in \'%s\'.\n", timestr, cp->outdir);
 
 	/* Deallocate memory */
-	trimend_main_deallocate(cp, f, NULL, NULL, nfiles);
+	trimend_main_deallocate(f, NULL, NULL, nfiles);
 
-	return EXIT_SUCCESS;
+	return 0;
 }
 
 void
-trimend_main_deallocate(CMD *cp, char **f, char *ff, char *rf, unsigned int n)
+trimend_main_deallocate(char **f, char *ff, char *rf, unsigned int n)
 {
 	if (f)
 	{
@@ -126,18 +114,4 @@ trimend_main_deallocate(CMD *cp, char **f, char *ff, char *rf, unsigned int n)
 	}
 	if (ff) free(ff);
 	if (rf) free(rf);
-	if (cp) free_cmdline(cp);	
-}
-
-void
-trimend_usage(void)
-{
-	fputs("Usage : ddradseq trimend [OPTIONS] [PARENTDIR]\n\n", stderr);
-	fputs("Trims the 5\' end of reverse reads in all mate pair fastQ files\n", stderr);
-	fputs("in the specified directory tree. Mated pairs are aligned and any\n", stderr);
-	fputs(" overhand is trimmed.\n\n", stderr);
-	fputs("Mandatory arguments to long options are mandatory for short options too.\n", stderr);
-	fputs(" -h, --help			 Display this help message\n\n", stderr);
-	fputs("For development information, see https://github.com/dgarriga/ddradseq\n", stderr);
-	fputs("Contact dgarriga@lummei.net for support.\n\n", stderr);
 }
