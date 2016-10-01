@@ -24,6 +24,10 @@ unsigned int n;
 char **f;
 
 /* Function prototypes */
+int count_fastqfiles(const char *filepath, const struct stat *info,
+                     const int typeflag, struct FTW *pathinfo);
+int get_fastqfiles(const char *filepath, const struct stat *info,
+                   const int typeflag, struct FTW *pathinfo);
 int count_parsefiles(const char *filepath, const struct stat *info,
 					 const int typeflag, struct FTW *pathinfo);
 int get_parsefiles(const char *filepath, const struct stat *info,
@@ -48,7 +52,9 @@ traverse_dirtree(const char *dirpath, char *pattern, unsigned int *x)
 
 	/* Count number of files in directory tree */
 	n = 0;
-	if (strcmp(pattern, "parse") == 0)
+	if (pattern == NULL)
+		r = nftw(dirpath, count_fastqfiles, USE_FDS, FTW_PHYS);
+	else if (strcmp(pattern, "parse") == 0)
 		r = nftw(dirpath, count_parsefiles, USE_FDS, FTW_PHYS);
 	else if (strcmp(pattern, "pairs") == 0)
 		r = nftw(dirpath, count_pairfiles, USE_FDS, FTW_PHYS);
@@ -73,7 +79,9 @@ traverse_dirtree(const char *dirpath, char *pattern, unsigned int *x)
 		return NULL;
 	}
 	n = 0;
-	if (strcmp(pattern, "parse") == 0)
+	if (pattern == NULL)
+		r = nftw(dirpath, get_fastqfiles, USE_FDS, FTW_PHYS);
+	else if (strcmp(pattern, "parse") == 0)
 		r = nftw(dirpath, get_parsefiles, USE_FDS, FTW_PHYS);
 	else if (strcmp(pattern, "pairs") == 0)
 		r = nftw(dirpath, get_pairfiles, USE_FDS, FTW_PHYS);
@@ -97,6 +105,46 @@ traverse_dirtree(const char *dirpath, char *pattern, unsigned int *x)
 
 	return f;
 }
+
+int
+count_fastqfiles(const char *filepath, const struct stat *info, const int typeflag,
+				 struct FTW *pathinfo)
+{
+	char *p = NULL;
+	char *q = NULL;
+
+	if (typeflag == FTW_F)
+	{
+		p = strstr(filepath, ".fq");
+		q = strstr(filepath, ".fastq");
+		if (p != NULL || q != NULL) n++;
+	}
+	return 0;
+}
+
+int
+get_fastqfiles(const char *filepath, const struct stat *info, const int typeflag,
+			   struct FTW *pathinfo)
+{
+	char *p = NULL;
+	char *q = NULL;
+	size_t l = 0;
+
+	if (typeflag == FTW_F)
+	{
+		p = strstr(filepath, ".fq");
+		q = strstr(filepath, ".fastq");
+		if (p != NULL || q != NULL)
+		{
+			l = strlen(filepath);
+			f[n] = malloc(l + 1u);
+			strcpy(f[n], filepath);
+			n++;
+		}
+	}
+	return 0;
+}
+
 
 int
 count_parsefiles(const char *filepath, const struct stat *info, const int typeflag,

@@ -85,6 +85,8 @@ parse_cmdline(int argc, char *argv[])
 					        timestr, __func__, __LINE__);
 					return NULL;
 				}
+				time(&rawtime);
+				timeinfo = localtime(&rawtime);
 				strftime(datec, DATELEN + 3u, "/ddradseq-%F/", timeinfo);
 				tmpdir = strdup(optarg);
 				strl = strlen(tmpdir);
@@ -161,7 +163,7 @@ parse_cmdline(int argc, char *argv[])
 	/* Do sanity check on command line options */
 	if (cp->mode == NULL)
 	{
-		cp->mode = malloc(4);
+		cp->mode = malloc(4u);
 		strcpy(cp->mode, "all");
 	}
 	if (cp->csvfile == NULL && 

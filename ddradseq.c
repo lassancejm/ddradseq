@@ -44,7 +44,7 @@ main(int argc, char *argv[])
 	}
 
 	/* Initialize the log files */
-	log_init(ret);
+	log_init(cp);
 
 	/* Run the pipeline stages */
 	if (strcmp(cp->mode, "parse") == 0 || strcmp(cp->mode, "all") == 0)
@@ -54,7 +54,7 @@ main(int argc, char *argv[])
 		if ((ret = pair_main(cp)) != 0)
 			return 1;
 	if (strcmp(cp->mode, "trimend") == 0 || strcmp(cp->mode, "all") == 0)
-		if ((ret = pair_main(cp)) != 0)
+		if ((ret = trimend_main(cp)) != 0)
 			return 1;
 
 	/* Close logfile output stream */
