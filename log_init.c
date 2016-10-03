@@ -21,6 +21,7 @@ int log_init(CMD *cp)
 	struct utsname host;
 	struct sysinfo si;
 
+	/* Print logfile header */
 	fputs("***ddradseq LOG FILE***\n", lf);
 
 	/* Get time information */
@@ -35,20 +36,9 @@ int log_init(CMD *cp)
 	/* Get some system specs */
 	sysinfo (&si);
 
-	/*switch(runmode)
-	{
-		case PARSE:
-			fprintf(lf, "[ddradseq: %s] INFO -- program has started in parse mode ", timestr);
-			break;
-		case PAIR:
-			fprintf(lf, "[ddradseq: %s] INFO -- program has started in pair mode ", timestr);
-			break;
-		case TRIMEND:
-			fprintf(lf, "[ddradseq: %s] INFO -- program has started in trimend mode ", timestr);
-			break;
-	}*/
-	if (user)
-		fprintf(lf, "by user \'%s\' ", user);
+	fprintf(lf, "[ddradseq: %s] INFO -- program has started in %s mode ", 
+	        timestr, cp->mode);
+	if (user) fprintf(lf, "by user \'%s\' ", user);
 	fprintf(lf, "on host \'%s\' (%s)", host.nodename, host.release);
 	fputc('\n', lf);
 	fprintf(lf, "[ddradseq: %s] INFO -- host has %5.1f Gb total RAM and %5.1f Gb "

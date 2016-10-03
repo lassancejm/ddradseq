@@ -34,7 +34,11 @@ main(int argc, char *argv[])
 	strcat(logfile, logfname);
 
 	/* Open log file for writing */
-	lf = fopen(logfile, "a");
+	if ((lf = fopen(logfile, "a")) == NULL)
+	{
+		fputs("ERROR: Failed to open logfile", stderr);
+		return 1;
+	}
 
 	/* Parse the command line options */
 	if ((cp = parse_cmdline(argc, argv)) == NULL)
@@ -44,7 +48,7 @@ main(int argc, char *argv[])
 	}
 
 	/* Initialize the log files */
-	log_init(cp);
+	ret = log_init(cp);
 
 	/* Run the pipeline stages */
 	if (strcmp(cp->mode, "parse") == 0 || strcmp(cp->mode, "all") == 0)
@@ -80,6 +84,8 @@ usage(void)
 	fputs(" -o, --out=DIR        Parent directory to write output files                 [default: same as input fastQ]\n", stderr);
 	fputs(" -d, --dist           Edit distance for barcode matching                     [default: 1]\n", stderr);
 	fputs(" -s, --score          Alignment score to consider sequences properly aligned [default: 100]\n", stderr);
+	fputs(" -g, --gapo           Penalty for opening a gap                              [default: 5]\n", stderr);
+	fputs(" -e, --gape           Penalty for extending an open gap                      [default: 2]\n", stderr);
 	fputs(" -h, --help           Display this help message\n", stderr);
 	fputs(" -v, --version        Print software version number and exit\n\n", stderr);
 	fputs("For development information, see https://github.com/dgarriga/ddradseq\n", stderr);

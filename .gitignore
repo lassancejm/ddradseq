@@ -1,6 +1,5 @@
 ddradseq
 ddradseq.log
 *.o
-.cproject
-.project
 /.c9/*
+/.vscode/*

@@ -1,5 +1,5 @@
 /* file pair_mates.c
- * brief Pair mates in two fastQ files
+ * description: Pair mates in two fastQ files
  * author: Daniel Garrigan Lummei Analytics LLC
  * updated: September 2016
  * email: dgarriga@lummei.net

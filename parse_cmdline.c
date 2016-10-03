@@ -14,7 +14,6 @@
 #include <libgen.h>
 #include "ddradseq.h"
 
-
 CMD *
 parse_cmdline(int argc, char *argv[])
 {
@@ -46,6 +45,8 @@ parse_cmdline(int argc, char *argv[])
 	cp->mode = NULL;
 	cp->dist = 1;
 	cp->score = 100;
+	cp->gapo = 5;
+	cp->gape = 2;
 
 	while (1)
 	{
@@ -57,6 +58,8 @@ parse_cmdline(int argc, char *argv[])
 			{"dist",    required_argument, 0, 'd'},
 			{"out",	    required_argument, 0, 'o'},
 			{"score",   required_argument, 0, 's'},
+			{"gapo",    required_argument, 0, 'g'},
+			{"gape",    required_argument, 0, 'e'},
 			{"csv",	    required_argument, 0, 'c'},
 			{0, 0, 0, 0}
 		};
@@ -138,6 +141,12 @@ parse_cmdline(int argc, char *argv[])
 				break;
 			case 's':
 				cp->score = atoi(optarg);
+				break;
+			case 'g':
+				cp->gapo = atoi(optarg);
+				break;
+			case 'e':
+				cp->gape = atoi(optarg);
 				break;
 			case 'c':
 				cp->csvfile = strdup(optarg);

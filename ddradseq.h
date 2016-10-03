@@ -54,6 +54,8 @@ typedef struct cmdparam
 	char *mode;
 	int dist;
 	int score;
+	int gapo;
+	int gape;
 } CMD;
 
 typedef struct _fastq_
@@ -166,7 +168,7 @@ extern khash_t(fastq)* fastq_to_db(char *filename);
 
 extern char* revcom(char *input_string);
 
-extern int align_mates(char *fin, char *rin, char *fout, char *rout);
+extern int align_mates(CMD *cp, char *fin, char *rin, char *fout, char *rout);
 
 extern int pair_mates(char *filename, khash_t(fastq) *h, char *ffor, char *frev);
 

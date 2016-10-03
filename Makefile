@@ -1,4 +1,4 @@
-# Makefile for the ddradseq worker program
+# Makefile for the ddradseq program
 # Lummei Analytics LLC September 2016
 CC = gcc
 CFLAGS = -O2 -Wall

@@ -30,14 +30,14 @@ read_csv (CMD *cp)
 	size_t strl = 0;			  /* Generic string length holder */
 	size_t pathl = 0;			  /* Length of path string */
 	gzFile in;					  /* Input file stream */
-	khint_t i = 0;
-	khint_t j = 0;
-	khint_t k = 0;
-	khash_t(barcode) *b = NULL;
-	khash_t(pool) *p = NULL;
-	khash_t(pool_hash) *h = NULL;
-	BARCODE *bc = NULL;
-	POOL *pl = NULL;
+	khint_t i = 0;                /* Generic hash iterator */
+	khint_t j = 0;                /* Generic hash iterator */
+	khint_t k = 0;                /* Generic hash iterator */
+	khash_t(barcode) *b = NULL;   /* Pointer to barcode hash table */
+	khash_t(pool) *p = NULL;      /* Pointer to pool hash table */
+	khash_t(pool_hash) *h = NULL; /* Pointer to flow hash table */
+	BARCODE *bc = NULL;           /* Pointer barcode data structure */
+	POOL *pl = NULL;              /* Pointer to pool data structure */
 
 	/* Get time string */
 	get_timestr(&timestr[0]);

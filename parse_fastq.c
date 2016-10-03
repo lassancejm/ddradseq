@@ -19,7 +19,7 @@ parse_fastq(int orient, char *filename, khash_t(pool_hash) *h, khash_t(mates) *m
 	char *r = NULL;
 	char *q = NULL;
 	char buffer[BUFLEN];
-	int ret = EXIT_SUCCESS;
+	int ret = 0;
 	size_t numlines = 0;
 	size_t bytes_read = 0;
 	size_t buff_rem = 0;
@@ -36,7 +36,8 @@ parse_fastq(int orient, char *filename, khash_t(pool_hash) *h, khash_t(mates) *m
 	get_timestr(&timestr[0]);
 
 	/* Print informational message to log */
-	fprintf(lf, "[ddradseq: %s] INFO -- Parsing fastQ file \'%s\'.\n", timestr, filename);
+	fprintf(lf, "[ddradseq: %s] INFO -- Parsing fastQ file \'%s\'.\n", timestr,
+	        filename);
 
 	/* Open input file */
 	fin = gzopen(filename, "rb");

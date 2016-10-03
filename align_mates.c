@@ -1,5 +1,5 @@
 /* file align_mates.c
- * brief Align mates in two fastQ files and trim 3' end of reverse sequences
+ * description: Align mates in two fastQ files and trim 3' end of reverse sequences
  * author: Daniel Garrigan Lummei Analytics LLC
  * updated: September 2016
  * email: dgarriga@lummei.net
@@ -38,7 +38,7 @@ unsigned char seq_nt4_table[256] = {
 char alpha[5] = "ACGTN";
 
 int
-align_mates(char *forin, char *revin, char *forout, char *revout)
+align_mates(CMD *cp, char *forin, char *revin, char *forout, char *revout)
 {
 	char fbuf[BSIZE][MAX_LINE_LENGTH];
 	char rbuf[BSIZE][MAX_LINE_LENGTH];
@@ -49,9 +49,9 @@ align_mates(char *forin, char *revin, char *forout, char *revout)
 	int xtra = KSW_XSTART;
 	int sa = 1;
 	int sb = 3;
-	int gap_open = 5;
-	int gap_extend = 2;
-	int min_score = 100;
+	int gap_open = cp->gapo;
+	int gap_extend = cp->gape;
+	int min_score = cp->score;
 	int count = 0;
 	size_t l = 0;
 	size_t lc = 0;

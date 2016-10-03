@@ -162,7 +162,7 @@ check_directories(CMD *cp, khash_t(pool_hash) *h)
 						strl = strlen(pooldir);
 						trimdir = malloc(strl + 7u);
 						strcpy(trimdir, pooldir);
-						strcat(trimdir, "/trime");
+						strcat(trimdir, "/final");
 						d = opendir(trimdir);
 						/* If the subsubdirectory doesn't already exist */
 						/* create it */

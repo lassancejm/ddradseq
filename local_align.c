@@ -1,5 +1,5 @@
-/*! \file local_align.c
- *	\brief Calculates the local sequence alignment by Smith-Waterman algorithm
+/* file: local_align.c
+ * description: Calculates the local sequence alignment by Smith-Waterman algorithm
  * author: Daniel Garrigan Lummei Analytics LLC
  * updated: September 2016
  * email: dgarriga@lummei.net

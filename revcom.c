@@ -1,5 +1,5 @@
-/*! \file revcom.c
- *	\brief Functions to reverse complement a DNA string with full IUPAC alphabet
+/* file: revcom.c
+ * description: Functions to reverse complement a DNA string with full IUPAC alphabet
  * author: Daniel Garrigan Lummei Analytics LLC
  * updated: September 2016
  * email: dgarriga@lummei.net

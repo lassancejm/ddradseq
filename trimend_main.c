@@ -61,9 +61,9 @@ trimend_main(CMD *cp)
 		strcpy(ffor, f[i]);
 		strcpy(frev, f[i + 1]);
 		pch = strstr(ffor, "pairs");
-		strncpy(pch, "trime", 5);
+		strncpy(pch, "final", 5);
 		pch = strstr(frev, "pairs");
-		strncpy(pch, "trime", 5);
+		strncpy(pch, "final", 5);
 		spn = strcspn(ffor, ".");
 		if (strncmp(ffor, frev, spn) != 0)
 		{
@@ -79,7 +79,7 @@ trimend_main(CMD *cp)
 		        "\'%s\' and \'%s\'.\n", timestr, ffor, frev);
 
 		/* Align mated pairs and write to output file*/
-		if ((ret = align_mates(f[i], f[i + 1], ffor, frev)) != 0)
+		if ((ret = align_mates(cp, f[i], f[i + 1], ffor, frev)) != 0)
 		{
 			trimend_main_deallocate(f, ffor, frev, nfiles);
 			return 1;			
