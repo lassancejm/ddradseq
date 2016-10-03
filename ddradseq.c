@@ -75,13 +75,13 @@ usage(void)
 	fputs("Usage: ddradseq [OPTIONS] [INPUT DIRECTORY]\n\n", stderr);
 	fputs("Parse fastQ file into separate files by flowcell, barcode and/or index\n\n", stderr);
 	fputs("Mandatory arguments to long options are mandatory for short options too.\n", stderr);
-	fputs(" -m  --mode=STR       Run mode of ddradseq program\n", stderr);
+	fputs(" -m  --mode=STR       Run mode of ddradseq program                           [default: all]\n", stderr);
 	fputs("                      Valid modes are:\n", stderr);
 	fputs("	                     parse     Parses input fastQ by standard Illumina and custom adapter\n", stderr);
 	fputs("	                     pair      Aligns mated pairs in two fastQ input files\n", stderr);
 	fputs("	                     trimend   Trims the 3\' end of fastQ reverse sequences\n", stderr);
 	fputs(" -c, --csv=FILE       CSV file with index and barcode labels\n", stderr);
-	fputs(" -o, --out=DIR        Parent directory to write output files                 [default: same as input fastQ]\n", stderr);
+	fputs(" -o, --out=DIR        Parent directory to write output files\n", stderr);
 	fputs(" -d, --dist           Edit distance for barcode matching                     [default: 1]\n", stderr);
 	fputs(" -s, --score          Alignment score to consider sequences properly aligned [default: 100]\n", stderr);
 	fputs(" -g, --gapo           Penalty for opening a gap                              [default: 5]\n", stderr);
