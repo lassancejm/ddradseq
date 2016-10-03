@@ -19,7 +19,7 @@ parse_cmdline(int argc, char *argv[])
 {
 	char *datec = NULL;
 	char *tmpdir = NULL;
-	char version_str[] = "ddradseq v0.9-alpha";
+	char version_str[] = "ddradseq v0.9-beta";
 	int c = 0;
 	size_t strl = 0;
 	time_t rawtime;
