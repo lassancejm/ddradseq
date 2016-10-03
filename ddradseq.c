@@ -73,7 +73,7 @@ void
 usage(void)
 {
 	fputs("Usage: ddradseq [OPTIONS] [INPUT DIRECTORY]\n\n", stderr);
-	fputs("Parse fastQ file into separate files by flowcell, barcode and/or index\n\n", stderr);
+	fputs("Parse fastQ file into separate files by flow cell, barcode and/or index\n\n", stderr);
 	fputs("Mandatory arguments to long options are mandatory for short options too.\n", stderr);
 	fputs(" -m  --mode=STR       Run mode of ddradseq program                           [default: all]\n", stderr);
 	fputs("                      Valid modes are:\n", stderr);
