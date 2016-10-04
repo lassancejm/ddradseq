@@ -16,14 +16,11 @@
 const ALIGN_RESULT g_defr = { 0, -1, -1, -1, -1, -1, -1 };
 
 /* Function prototypes */
-ALIGN_QUERY* align_init(int size, int qlen, const unsigned char *query, int m,
+ALIGN_QUERY* align_init(int qlen, const unsigned char *query, int m,
 						const char *mat);
 
 ALIGN_RESULT ksw_u8(ALIGN_QUERY *q, int tlen, const unsigned char *target,
 					int _gapo, int _gape, int xtra);
-
-ALIGN_RESULT ksw_i16(ALIGN_QUERY *q, int tlen, const unsigned char *target,
-					 int _gapo, int _gape, int xtra);
 
 static void revseq(int l, unsigned char *s);
 
@@ -31,22 +28,17 @@ static void revseq(int l, unsigned char *s);
 ALIGN_RESULT
 local_align(int qlen, unsigned char *query, int tlen,
 			unsigned char *target, int m, const char *mat, int gapo,
-			int gape, int xtra, ALIGN_QUERY **qry)
+			int gape, int xtra)
 {
-	int size = 0;
 	ALIGN_QUERY *q;
 	ALIGN_RESULT r;
 	ALIGN_RESULT rr;
 	ALIGN_RESULT (*func)(ALIGN_QUERY *, int, const unsigned char *, int, int, int);
 
-	q = (qry && *qry) ? *qry : align_init((xtra & KSW_XBYTE) ? 1 : 2, qlen, query, m, mat);
-	if (qry && (*qry == 0))
-		*qry = q;
-	func = (q->size == 2) ? ksw_i16 : ksw_u8;
-	size = q->size;
+	q = align_init(qlen, query, m, mat);
+	func = ksw_u8;
 	r = func(q, tlen, target, gapo, gape, xtra);
-	if (qry == NULL)
-		free (q);
+	free (q);
 	if (((xtra & KSW_XSTART) == 0) || ((xtra & KSW_XSUBO) && (r.score < (xtra & 0xffff))))
 		return r;
 	revseq(r.query_end + 1, query);
@@ -54,7 +46,7 @@ local_align(int qlen, unsigned char *query, int tlen,
 	/* +1 because qe/te points to the exact end */
 	/* not the position after the end */
 	revseq (r.target_end + 1, target);
-	q = align_init(size, r.query_end + 1, query, m, mat);
+	q = align_init(r.query_end + 1, query, m, mat);
 	rr = func(q, tlen, target, gapo, gape, KSW_XSTOP | r.score);
 	revseq(r.query_end + 1, query);
 	revseq(r.target_end + 1, target);
@@ -68,7 +60,7 @@ local_align(int qlen, unsigned char *query, int tlen,
 }
 
 ALIGN_QUERY *
-align_init (int size, int qlen, const unsigned char *query, int m,
+align_init (int qlen, const unsigned char *query, int m,
 			const char *mat)
 {
 	int slen = 0;
@@ -77,10 +69,8 @@ align_init (int size, int qlen, const unsigned char *query, int m,
 	int p = 0;
 	ALIGN_QUERY *q = NULL;
 
-	size = (size > 1) ? 2 : 1;
-
 	/* Number of values per __m128i */
-	p = 8 * (3 - size);
+	p = 16;
 
 	/* Segmented length */
 	slen = (qlen + p - 1) / p;
@@ -100,7 +90,6 @@ align_init (int size, int qlen, const unsigned char *query, int m,
 	q->Hmax = q->E + slen;
 	q->slen = slen;
 	q->qlen = qlen;
-	q->size = size;
 
 	/* Compute shift */
 	tmp = m * m;
@@ -113,7 +102,6 @@ align_init (int size, int qlen, const unsigned char *query, int m,
 		if (mat[a] > (char)q->mdiff)
 			q->mdiff = mat[a];
 	}
-
 	q->max = q->mdiff;
 
 	/* NB: q->shift is uint8_t */
@@ -124,43 +112,21 @@ align_init (int size, int qlen, const unsigned char *query, int m,
 
 	/* An example: p=8, qlen=19, slen=3 and segmentation:
 	 * {{0,3,6,9,12,15,18,-1},{1,4,7,10,13,16,-1,-1},{2,5,8,11,14,17,-1,-1}} */
-	if (size == 1)
+	char *t = (char*)q->qp;
+	for (a = 0; a < m; a++)
 	{
-		char *t = (char*)q->qp;
-		for (a = 0; a < m; a++)
-		{
-			int i = 0;
-			int k = 0;
-			int nlen = slen * p;
-			const char *ma = mat + a * m;
+		int i = 0;
+		int k = 0;
+		int nlen = slen * p;
+		const char *ma = mat + a * m;
 
-			for (i = 0; i < slen; ++i)
-			{
-				/* p iterations */
-				for (k = i; k < nlen; k += slen)
-					*t++ = ((k >= qlen) ? 0 : ma[query[k]]) + q->shift;
-			}
+		for (i = 0; i < slen; ++i)
+		{
+			/* p iterations */
+			for (k = i; k < nlen; k += slen)
+				*t++ = ((k >= qlen) ? 0 : ma[query[k]]) + q->shift;
 		}
 	}
-	else
-	{
-		short int *t = (short int*)q->qp;
-		for (a = 0; a < m; a++)
-		{
-			int i = 0;
-			int k = 0;
-			int nlen = slen * p;
-			const char *ma = mat + a * m;
-
-			for (i = 0; i < slen; i++)
-			{
-				/* p iterations */
-				for (k = i; k < nlen; k += slen)
-					*t++ = ((k >= qlen) ? 0 : ma[query[k]]);
-			}
-		}
-	}
-
 	return q;
 }
 
@@ -389,184 +355,6 @@ end_loop16:
 				int e = (int)b[i];
 
 				if ((e < low || e > high) && (int)(b[i] >> 32) > r.score2)
-				{
-					r.score2 = b[i] >> 32;
-					r.target_end2 = e;
-				}
-			}
-		}
-	}
-	free (b);
-
-	return r;
-}
-
-ALIGN_RESULT
-ksw_i16 (ALIGN_QUERY *q, int tlen, const unsigned char *target,
-		 int _gapo, int _gape, int xtra)
-{
-	int slen = 0;
-	int i = 0;
-	int m_b = 0;
-	int n_b = 0;
-	int te = -1;
-	int gmax = 0;
-	int minsc = 0;
-	int endsc = 0;
-	uint64_t *b = 0;
-	__m128i zero;
-	__m128i gapoe;
-	__m128i gape;
-	__m128i *H0;
-	__m128i *H1;
-	__m128i *E;
-	__m128i *Hmax;
-	ALIGN_RESULT r;
-
-#define __max_8(ret, xx) do { \
-		(xx) = _mm_max_epi16((xx), _mm_srli_si128((xx), 8)); \
-		(xx) = _mm_max_epi16((xx), _mm_srli_si128((xx), 4)); \
-		(xx) = _mm_max_epi16((xx), _mm_srli_si128((xx), 2)); \
-		(ret) = _mm_extract_epi16((xx), 0); \
-	} while (0)
-
-	/* Initialization */
-	r = g_defr;
-	minsc = (xtra & KSW_XSUBO) ? xtra & 0xffff : 0x10000;
-	endsc = (xtra & KSW_XSTOP) ? xtra & 0xffff : 0x10000;
-	m_b = n_b = 0;
-	b = 0;
-	zero = _mm_set1_epi32 (0);
-	gapoe = _mm_set1_epi16 (_gapo + _gape);
-	gape = _mm_set1_epi16 (_gape);
-	H0 = q->H0;
-	H1 = q->H1;
-	E = q->E;
-	Hmax = q->Hmax;
-	slen = q->slen;
-
-	for (i = 0; i < slen; ++i)
-	{
-		_mm_store_si128(E + i, zero);
-		_mm_store_si128(H0 + i, zero);
-		_mm_store_si128(Hmax + i, zero);
-	}
-
-	/* Core loop */
-	for (i = 0; i < tlen; ++i)
-	{
-		int j = 0;
-		int k = 0;
-		int imax = 0;
-		__m128i e;
-		__m128i h;
-		__m128i f = zero;
-		__m128i max = zero;
-		__m128i *S = q->qp + target[i] * slen;
-
-		/* h={2,5,8,11,14,17,-1,-1} in the above example */
-		h = _mm_load_si128(H0 + slen - 1);
-		h = _mm_slli_si128(h, 2);
-
-		for (j = 0; LIKELY(j < slen); j++)
-		{
-			h = _mm_adds_epi16(h, *S++);
-			e = _mm_load_si128(E + j);
-			h = _mm_max_epi16(h, e);
-			h = _mm_max_epi16(h, f);
-			max = _mm_max_epi16(max, h);
-			_mm_store_si128(H1 + j, h);
-			h = _mm_subs_epu16(h, gapoe);
-			e = _mm_subs_epu16(e, gape);
-			e = _mm_max_epi16(e, h);
-			_mm_store_si128(E + j, e);
-			f = _mm_subs_epu16(f, gape);
-			f = _mm_max_epi16(f, h);
-			h = _mm_load_si128(H0 + j);
-		}
-
-		for (k = 0; LIKELY(k < 16); k++)
-		{
-			f = _mm_slli_si128(f, 2);
-			for (j = 0; LIKELY(j < slen); j++)
-			{
-				h = _mm_load_si128(H1 + j);
-				h = _mm_max_epi16(h, f);
-				_mm_store_si128(H1 + j, h);
-				h = _mm_subs_epu16(h, gapoe);
-				f = _mm_subs_epu16(f, gape);
-				if (UNLIKELY(!_mm_movemask_epi8(_mm_cmpgt_epi16(f, h))))
-					goto end_loop8;
-			}
-		}
-end_loop8:
-		__max_8(imax, max);
-
-		if (imax >= minsc)
-		{
-			if ((n_b == 0) || ((int)b[n_b-1] + 1 != i))
-			{
-				if (n_b == m_b)
-				{
-					m_b = m_b ? m_b << 1 : 8;
-					if ((b = realloc(b, 8 * m_b)) == NULL)
-					{
-						fputs("Error: cannot allocate memory for b array.\n", stderr);
-						return r;
-					}
-				}
-				b[n_b++] = (uint64_t)imax << 32 | i;
-			}
-			else if ((int)(b[n_b-1] >> 32) < imax)
-			{
-				/* Modify the last */
-				b[n_b-1] = (uint64_t)imax << 32 | i;
-			}
-		}
-
-		if (imax > gmax)
-		{
-			gmax = imax;
-			te = i;
-			for (j = 0; LIKELY(j < slen); j++)
-				_mm_store_si128(Hmax + j, _mm_load_si128(H1 + j));
-			if (gmax >= endsc)
-				break;
-		}
-		S = H1;
-		H1 = H0;
-		H0 = S;
-	}
-
-	r.score = gmax;
-	r.target_end = te;
-	{
-		int max = -1;
-		int low = 0;
-		int high = 0;
-		int qlen = slen * 8;
-		unsigned short int *t = (unsigned short int *)Hmax;
-
-		for (i = 0, r.query_end = -1; i < qlen; i++, t++)
-		{
-			if ((int)*t > max)
-			{
-				max = *t;
-				r.query_end = i / 8 + i % 8 * slen;
-			}
-		}
-
-		if (b)
-		{
-			i = (r.score + q->max - 1) / q->max;
-			low = te - i;
-			high = te + i;
-
-			for (i = 0; i < n_b; i++)
-			{
-				int e = (int)b[i];
-
-				if (((e < low) || (e > high)) && ((int)(b[i] >> 32) > r.score2))
 				{
 					r.score2 = b[i] >> 32;
 					r.target_end2 = e;

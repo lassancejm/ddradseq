@@ -83,7 +83,6 @@ typedef struct _kswq_t
     unsigned char shift;
     unsigned char mdiff;
     unsigned char max;
-    unsigned char size;
     __m128i *qp;
     __m128i *H0;
     __m128i *H1;
@@ -174,7 +173,7 @@ extern int pair_mates(char *filename, khash_t(fastq) *h, char *ffor, char *frev)
 
 extern ALIGN_RESULT local_align(int qlen, unsigned char *query, int tlen,
                                 unsigned char *target, int m, const char *mat,
-                                int gapo, int gape, int xtra, ALIGN_QUERY **qry);
+                                int gapo, int gape, int xtra);
 
 extern int log_init(CMD *cp);
 

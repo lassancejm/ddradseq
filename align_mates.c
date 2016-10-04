@@ -146,7 +146,6 @@ align_mates(CMD *cp, char *forin, char *revin, char *forout, char *revout)
 			/* We are at the end of one fastQ entry */
 			if (l % 4 == 3)
 			{
-				ALIGN_QUERY *q[2] = {0, 0};
 				ALIGN_RESULT r;
 				char *target;
 				char *query;
@@ -169,8 +168,7 @@ align_mates(CMD *cp, char *forin, char *revin, char *forout, char *revout)
 								 (int)tlen,
 								 (unsigned char *)target,
 								 5, mat, gap_open,
-								 gap_extend, xtra,
-								 &q[0]);
+								 gap_extend, xtra);
 				free(target);
 				free(query);
 

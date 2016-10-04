@@ -52,7 +52,10 @@ parse_main(CMD *cp)
 
 	/* Get list of all files */
 	if ((f = traverse_dirtree(cp->parentdir, NULL, &nfiles)) == NULL)
+	{
+		parse_deallocate_mem(h, m, NULL, 0, NULL, NULL);
 		return 1;
+	}
 
 	for (i = 0; i < nfiles; i += 2)
 	{

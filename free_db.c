@@ -13,6 +13,7 @@
 int
 free_db (khash_t(pool_hash) *h)
 {
+	/*har *key = NULL;*/
 	khint_t i = 0;
 	khint_t j = 0;
 	khint_t k = 0;
@@ -40,15 +41,23 @@ free_db (khash_t(pool_hash) *h)
 					{
 						if (kh_exist(b, k))
 						{
+							/*key = kh_key(b, k);*/
 							bc = kh_value(b, k);
 							free(bc->smplID);
 							free(bc->outfile);
 							free(bc->buffer);
+							free(bc);
+							/*free(key);*/
 						}
 					}
 					kh_destroy(barcode, b);
+					/*key = kh_key(p, j);
+					free(key);*/
+					free(pl);
 				}
 			}
+			/*key = kh_key(h, i);
+			free(key);*/
 			kh_destroy(pool, p);
 		}
 	}

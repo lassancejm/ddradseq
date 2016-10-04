@@ -13,6 +13,7 @@
 int
 free_pairdb (khash_t(fastq) *h)
 {
+	/*char *key = NULL;*/
 	khint_t i = 0;
 	FASTQ *e = NULL;
 
@@ -23,9 +24,12 @@ free_pairdb (khash_t(fastq) *h)
 		if (kh_exist(h, i))
 		{
 			e = kh_value(h, i);
+			/*key = kh_key(h, i);*/
 			free(e->id);
 			free(e->seq);
 			free(e->qual);
+			free(e);
+			/*free(key);*/
 		}
 	}
 	kh_destroy(fastq, h);
