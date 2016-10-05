@@ -39,7 +39,7 @@ int get_pairfiles(const char *filepath, const struct stat *info,
 static int compare(const void * a, const void * b);
 
 char**
-traverse_dirtree(const char *dirpath, char *pattern, unsigned int *x)
+traverse_dirtree(const char *dirpath, const char *pattern, unsigned int *x)
 {
 	int r = 0;
 

@@ -14,7 +14,7 @@
 #include <sys/sysinfo.h>
 #include "ddradseq.h"
 
-int log_init(CMD *cp)
+int log_init(const CMD *cp)
 {
 	char *user = NULL;
 	const double gigabyte = 1024 * 1024 * 1024;
@@ -36,7 +36,16 @@ int log_init(CMD *cp)
 	/* Get some system specs */
 	sysinfo (&si);
 
-	fprintf(lf, "[ddradseq: %s] INFO -- program has started in %s mode ", 
+	/* Print information on starting parameters */
+	fprintf(lf, "[ddradseq: %s] INFO -- user specified directory %s "
+	        "for input.\n", timestr, cp->parentdir);
+	fprintf(lf, "[ddradseq: %s] INFO -- user specified \'%s\' as database "
+	        "file.\n", timestr, cp->csvfile);
+	fprintf(lf, "[ddradseq: %s] INFO -- user specified \'%s\' as output "
+	        "directory.\n", timestr, cp->outdir);
+	fprintf(lf, "[ddradseq: %s] INFO -- program will use edit distance of "
+	        "%d base difference.\n", timestr, cp->dist);
+	fprintf(lf, "[ddradseq: %s] INFO -- program has started in %s mode ",
 	        timestr, cp->mode);
 	if (user) fprintf(lf, "by user \'%s\' ", user);
 	fprintf(lf, "on host \'%s\' (%s)", host.nodename, host.release);

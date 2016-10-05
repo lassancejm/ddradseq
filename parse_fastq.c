@@ -14,7 +14,7 @@
 #include "ddradseq.h"
 
 int
-parse_fastq(int orient, char *filename, khash_t(pool_hash) *h, khash_t(mates) *m, int dist)
+parse_fastq(const int orient, const char *filename, khash_t(pool_hash) *h, khash_t(mates) *m, const int dist)
 {
 	char *r = NULL;
 	char *q = NULL;

@@ -18,7 +18,7 @@
 #include "ddradseq.h"
 
 int
-check_directories(CMD *cp, khash_t(pool_hash) *h)
+check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 {
 	char *pooldir = NULL;
 	char *flowdir = NULL;

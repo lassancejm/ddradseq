@@ -18,15 +18,16 @@
 #define KEYLEN 31
 
 khash_t(fastq) *
-fastq_to_db(char *filename)
+fastq_to_db(const char *filename)
 {
-	char buf[BSIZE][MAX_LINE_LENGTH];
+	char **buf;
 	char *idline = NULL;
 	char seps[] = ": ";
 	char *tok = NULL;
 	char *mkey = NULL;
 	char *r = NULL;
 	int a = 0;
+	int i = 0;
 	int tile = 0;
 	int xpos = 0;
 	int ypos = 0;
@@ -42,6 +43,25 @@ fastq_to_db(char *filename)
 
 	/* Update time string */
 	get_timestr(&timestr[0]);
+
+	/* Allocate memory for buffer from heap */
+	if ((buf = malloc(BSIZE * sizeof(char*))) == NULL)
+	{
+		fputs("ERROR: Memory allocation failure.\n", stderr);
+		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
+		        timestr, __func__, __LINE__);
+		return NULL;
+	}
+	for (i = 0; i < BSIZE; i++)
+	{
+		if ((buf[i] = malloc(MAX_LINE_LENGTH)) == NULL)
+		{
+			fputs("ERROR: Memory allocation failure.\n", stderr);
+			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
+			        timestr, __func__, __LINE__);
+			return NULL;
+		}
+	}
 
 	/* Initialize fastQ hash */
 	h = kh_init(fastq);
@@ -233,7 +253,7 @@ fastq_to_db(char *filename)
 				/* Add to database */
 				kh_value(h, k) = e;
 
-				/* Free allocated memory */
+				/* Free allocated memory from heap */
 				free(idline);
 			}
 		}
@@ -241,6 +261,11 @@ fastq_to_db(char *filename)
 		/* If we are at the end of the file */
 		if (lc < BSIZE) break;
 	}
+
+	/* Free memory for buffer to heap */
+	for (i = 0; i < BSIZE; i++)
+		free(buf[i]);
+	free(buf);
 
 	/* Close input stream */
 	gzclose(in);

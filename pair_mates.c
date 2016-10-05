@@ -18,15 +18,16 @@
 #define KEYLEN 31
 
 int
-pair_mates(char *filename, khash_t(fastq) *h, char *ffor, char *frev)
+pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor, const char *frev)
 {
-	char buf[BSIZE][MAX_LINE_LENGTH];
+	char **buf = NULL;
 	char *idline = NULL;
 	char seps[] = ": ";
 	char *tok = NULL;
 	char *mkey = NULL;
 	char *r = NULL;
 	int tile = 0;
+	int i = 0;
 	int xpos = 0;
 	int ypos = 0;
 	size_t z = 0;
@@ -42,6 +43,25 @@ pair_mates(char *filename, khash_t(fastq) *h, char *ffor, char *frev)
 
 	/* Update time string */
 	get_timestr(&timestr[0]);
+
+	/* Allocate memory for buffer from heap */
+	if ((buf = malloc(BSIZE * sizeof(char*))) == NULL)
+	{
+		fputs("ERROR: Memory allocation failure.\n", stderr);
+		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
+		        timestr, __func__, __LINE__);
+		return 1;
+	}
+	for (i = 0; i < BSIZE; i++)
+	{
+		if ((buf[i] = malloc(MAX_LINE_LENGTH)) == NULL)
+		{
+			fputs("ERROR: Memory allocation failure.\n", stderr);
+			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
+			        timestr, __func__, __LINE__);
+			return 1;
+		}
+	}
 
 	/* Open the fastQ input stream */
 	if ((in = gzopen(filename, "rb")) == Z_NULL)
@@ -194,6 +214,11 @@ pair_mates(char *filename, khash_t(fastq) *h, char *ffor, char *frev)
 		/* If we are at the end of the file */
 		if (lc < BSIZE) break;
 	}
+
+	/* Free memory for buffer to heap */
+	for (i = 0; i < BSIZE; i++)
+		free(buf[i]);
+	free(buf);
 
 	/* Close input stream */
 	gzclose(in);

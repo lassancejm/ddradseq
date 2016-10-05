@@ -26,15 +26,10 @@ parse_cmdline(int argc, char *argv[])
 	struct tm *timeinfo;
 	CMD *cp = NULL;
 
-	/* Update time string */
-	get_timestr(&timestr[0]);
-
 	/* Allocate memory for command line option structure */
 	if ((cp = malloc(sizeof(CMD))) == NULL)
 	{
 		fputs("ERROR: Memory allocation failure.\n", stderr);
-		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
-		        timestr, __func__, __LINE__);
 		return NULL;
 	}
 
@@ -84,8 +79,6 @@ parse_cmdline(int argc, char *argv[])
 				if ((datec = malloc(DATELEN + 3u)) == NULL)
 				{
 					fputs("ERROR: Memory allocation failure.\n", stderr);
-					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
-					        timestr, __func__, __LINE__);
 					return NULL;
 				}
 				time(&rawtime);
@@ -99,8 +92,6 @@ parse_cmdline(int argc, char *argv[])
 					if ((cp->outdir = malloc(strl)) == NULL)
 					{
 						fputs("ERROR: Memory allocation failure.\n", stderr);
-						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
-						        timestr, __func__, __LINE__);
 						free(datec);
 						free(tmpdir);
 						free_cmdline(cp);
@@ -115,8 +106,6 @@ parse_cmdline(int argc, char *argv[])
 					if ((cp->outdir = malloc(strl)) == NULL)
 					{
 						fputs("ERROR: Memory allocation failure.\n", stderr);
-						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
-						        timestr, __func__, __LINE__);
 						free(datec);
 						free(tmpdir);
 						free_cmdline(cp);
@@ -175,23 +164,19 @@ parse_cmdline(int argc, char *argv[])
 		cp->mode = malloc(4u);
 		strcpy(cp->mode, "all");
 	}
-	if (cp->csvfile == NULL && 
+	if (cp->csvfile == NULL &&
 	    (strcmp(cp->mode, "parse") == 0 ||
 	     strcmp(cp->mode, "all") == 0))
 	{
 		fputs("ERROR: \'--csv\' switch is mandatory when running parse mode.\n", stderr);
-		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d \'--csv\' switch is mandatory when running parse mode.\n",
-		        timestr, __func__, __LINE__);
 		free_cmdline(cp);
 		return NULL;
 	}
-	if (cp->outdir == NULL && 
+	if (cp->outdir == NULL &&
 	    (strcmp(cp->mode, "parse") == 0 ||
 	     strcmp(cp->mode, "all") == 0))
 	{
 		fputs("ERROR: \'--out\' switch is mandatory when running parse mode.\n", stderr);
-		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d \'--out\' switch is mandatory when running parse mode.\n",
-		        timestr, __func__, __LINE__);
 		free_cmdline(cp);
 		return NULL;
 	}
@@ -200,24 +185,12 @@ parse_cmdline(int argc, char *argv[])
 	if ((optind + 1) > argc)
 	{
 		fputs("ERROR: need the fastQ parent directory as input.\n", stderr);
-		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Need the fastQ parent "
-		        "directory as input.\n", timestr, __func__, __LINE__);
 		free_cmdline(cp);
 		return NULL;
 	}
 	else
 	{
 		cp->parentdir = strdup(argv[optind]);
-
-		/* Print informational message to log file */
-		fprintf(lf, "[ddradseq: %s] INFO -- user specified directory %s "
-		        "for input.\n", timestr, cp->parentdir);
-		fprintf(lf, "[ddradseq: %s] INFO -- user specified \'%s\' as database "
-		        "file.\n", timestr, cp->csvfile);
-		fprintf(lf, "[ddradseq: %s] INFO -- user specified \'%s\' as output "
-		        "directory.\n", timestr, cp->outdir);
-		fprintf(lf, "[ddradseq: %s] INFO -- program will use edit distance of "
-		        "%d base difference.\n", timestr, cp->dist);
 		return cp;
 	}
 }

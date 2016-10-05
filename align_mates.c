@@ -38,7 +38,7 @@ unsigned char seq_nt4_table[256] = {
 char alpha[5] = "ACGTN";
 
 int
-align_mates(CMD *cp, char *forin, char *revin, char *forout, char *revout)
+align_mates(CMD *cp, const char *forin, const char *revin, const char *forout, const char *revout)
 {
 	char **fbuf = NULL;
 	char **rbuf = NULL;

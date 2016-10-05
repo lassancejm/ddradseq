@@ -132,7 +132,7 @@ FILE *lf;
 
 extern CMD* parse_cmdline(int argc, char *argv[]);
 
-extern int check_directories(CMD *cp, khash_t(pool_hash) *h);
+extern int check_directories(const CMD *cp, const khash_t(pool_hash) *h);
 
 extern khash_t(pool_hash)* read_csv(CMD *cp);
 
@@ -140,8 +140,8 @@ extern int free_db(khash_t(pool_hash) *h);
 
 extern int free_pairdb (khash_t(fastq) *h);
 
-extern int parse_fastq(int orient, char *filename, khash_t(pool_hash) *h,
-                       khash_t(mates) *m, int dist);
+extern int parse_fastq(const int orient, const char *filename, khash_t(pool_hash) *h,
+                       khash_t(mates) *m, const int dist);
 
 extern int parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
                                khash_t(mates) *m, int dist);
@@ -155,7 +155,7 @@ extern size_t reset_buffer(char *buff, const char *r);
 
 extern size_t count_lines(const char *buff);
 
-extern char** traverse_dirtree(const char *dirpath, char *pattern, unsigned int *x);
+extern char** traverse_dirtree(const char *dirpath, const char *pattern, unsigned int *x);
 
 extern int flush_buffer(int orient, BARCODE *bc);
 
@@ -163,19 +163,19 @@ extern int free_cmdline(CMD *cp);
 
 extern int levenshtein(char *s1, char *s2);
 
-extern khash_t(fastq)* fastq_to_db(char *filename);
+extern khash_t(fastq)* fastq_to_db(const char *filename);
 
 extern char* revcom(char *input_string);
 
-extern int align_mates(CMD *cp, char *fin, char *rin, char *fout, char *rout);
+extern int align_mates(CMD *cp, const char *fin, const char *rin, const char *fout, const char *rout);
 
-extern int pair_mates(char *filename, khash_t(fastq) *h, char *ffor, char *frev);
+extern int pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor, const char *frev);
 
 extern ALIGN_RESULT local_align(int qlen, unsigned char *query, int tlen,
                                 unsigned char *target, int m, const char *mat,
                                 int gapo, int gape, int xtra);
 
-extern int log_init(CMD *cp);
+extern int log_init(const CMD *cp);
 
 extern int get_timestr(char *s);
 

@@ -25,6 +25,13 @@ main(int argc, char *argv[])
 	int ret = 0;
 	CMD *cp = NULL;
 
+	/* Parse the command line options */
+	if ((cp = parse_cmdline(argc, argv)) == NULL)
+	{
+		usage();
+		return 1;
+	}
+
 	/* Get current working directory */
 	if (getcwd(logfile, sizeof(logfile)) == NULL)
 	{
@@ -37,13 +44,6 @@ main(int argc, char *argv[])
 	if ((lf = fopen(logfile, "a")) == NULL)
 	{
 		fputs("ERROR: Failed to open logfile", stderr);
-		return 1;
-	}
-
-	/* Parse the command line options */
-	if ((cp = parse_cmdline(argc, argv)) == NULL)
-	{
-		usage();
 		return 1;
 	}
 
@@ -64,6 +64,7 @@ main(int argc, char *argv[])
 	/* Close logfile output stream */
 	fclose(lf);
 
+	/* Free memory for command line data structure from heap */
 	free_cmdline(cp);
 
 	return 0;
