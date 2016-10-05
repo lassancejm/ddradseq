@@ -1,7 +1,7 @@
 /* file: flush_buffer.c
  * description: Dump full buffer to file
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: September 2016
+ * updated: October 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */

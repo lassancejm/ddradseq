@@ -1,7 +1,7 @@
 /* file: get_timestr.c
  * description: Fill in current time for logfile reporting
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: September 2016
+ * updated: October 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */

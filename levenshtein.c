@@ -1,7 +1,7 @@
 /* file: levenshtein.c
  * description: Calculates the Levenshtein distance between two strings
  * author: Daniel Garrigan
- * date: September 2016
+ * date: October 2016
  * copyright: MIT license
  * note: Code is from https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#C
 */

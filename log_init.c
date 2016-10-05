@@ -1,7 +1,7 @@
 /* file: log_init.c
  * description: Initialize the ddradseq log file
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: September 2016
+ * updated: October 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */

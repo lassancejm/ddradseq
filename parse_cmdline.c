@@ -1,7 +1,7 @@
 /* file: parse_cmdline.c
  * description: Function to read command line parameters
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: September 2016
+ * updated: October 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */
@@ -19,7 +19,7 @@ parse_cmdline(int argc, char *argv[])
 {
 	char *datec = NULL;
 	char *tmpdir = NULL;
-	char version_str[] = "ddradseq v0.9-beta";
+	char version_str[] = "ddradseq v1.0-beta";
 	int c = 0;
 	size_t strl = 0;
 	time_t rawtime;

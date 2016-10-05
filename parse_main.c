@@ -1,7 +1,7 @@
 /* file: parse_main.c
  * description: Entry point for the parse modality
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: September 2016
+ * updated: October 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */
@@ -112,7 +112,7 @@ parse_main(CMD *cp)
 		parse_deallocate_mem(NULL, NULL, NULL, nfiles, ffor, frev);
 	}
 
-	/* Deallocate memory */
+	/* Deallocate memory from the heap */
 	parse_deallocate_mem(h, m, f, nfiles, NULL, NULL);
 
 	/* Update time string */

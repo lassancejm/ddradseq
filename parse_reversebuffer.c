@@ -1,7 +1,7 @@
 /* file: parse_reversebuffer.c
  * description: Function to parse reverse fastQ entries in the buffer
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: September 2016
+ * updated: October 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */

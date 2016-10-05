@@ -1,7 +1,7 @@
 /* file: parse_fastq.c
  * description: Main code to parse a fastQ file by index sequence
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: September 2016
+ * updated: October 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */

@@ -1,7 +1,7 @@
 /* file: clean_buffer.c
  * description: Function to limit buffer to hold only entire fastQ entries
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: September 2016
+ * updated: October 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */

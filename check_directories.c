@@ -1,7 +1,7 @@
 /* file: check_directories.c
  * description: Function to check write permissions on parent directory
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: September 2016
+ * updated: October 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */

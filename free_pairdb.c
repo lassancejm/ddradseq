@@ -1,7 +1,7 @@
 /* file: free_pairdb.c
  * description: Function to free memory used by pairs database
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: September 2016
+ * updated: October 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */
@@ -13,25 +13,11 @@
 int
 free_pairdb (khash_t(fastq) *h)
 {
-	/*char *key = NULL;*/
-	khint_t i = 0;
+	const char *key;
 	FASTQ *e = NULL;
 
 	if (h == NULL) return 1;
-
-	for (i = kh_begin(h); i != kh_end(h); i++)
-	{
-		if (kh_exist(h, i))
-		{
-			e = kh_value(h, i);
-			/*key = kh_key(h, i);*/
-			free(e->id);
-			free(e->seq);
-			free(e->qual);
-			free(e);
-			/*free(key);*/
-		}
-	}
+	kh_foreach(h, key, e, free(e->id); free(e->seq); free(e->qual); free(e); free((void*)key););
 	kh_destroy(fastq, h);
 	return 0;
 }

@@ -1,7 +1,7 @@
 /* file: read_csv.c
  * description: Function to read CSV file into hash database
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: September 2016
+ * updated: October 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */
@@ -169,7 +169,8 @@ read_csv (CMD *cp)
 		/* Put pool identifier string and directory path */
 		/* in POOL data structure */
 		pl = kh_value(p, j);
-		pl->poolID = tmp;
+		if (a) pl->poolID = tmp;
+		else free(tmp);
 		if ((tmp = malloc(pathl + 1u)) == NULL)
 		{
 			fputs("ERROR: Memory allocation failure.\n", stderr);
@@ -181,7 +182,8 @@ read_csv (CMD *cp)
 			sprintf(tmp, "%s%s/%s", outpath, kh_key(h, i), pl->poolID);
 		else
 			sprintf(tmp, "%s/%s/%s", outpath, kh_key(h, i), pl->poolID);
-		pl->poolpath = tmp;
+		if (a) pl->poolpath = tmp;
+		else free(tmp);
 
 		/* Get barcode sequence */
 		if ((tok = strtok_r(NULL, seps, &r)) == NULL)
@@ -204,7 +206,6 @@ read_csv (CMD *cp)
 		strcpy(tmp, tok);
 
 		/* Put barcode sequence in third-level hash */
-		pl = kh_value(p, j);
 		b = pl->b;
 		k = kh_put(barcode, b, tmp, &a);
 		if (b->size == 1) pl->barcode_length = strl;

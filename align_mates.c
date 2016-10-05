@@ -1,7 +1,7 @@
 /* file align_mates.c
  * description: Align mates in two fastQ files and trim 3' end of reverse sequences
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: September 2016
+ * updated: October 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */
@@ -40,8 +40,8 @@ char alpha[5] = "ACGTN";
 int
 align_mates(CMD *cp, char *forin, char *revin, char *forout, char *revout)
 {
-	char fbuf[BSIZE][MAX_LINE_LENGTH];
-	char rbuf[BSIZE][MAX_LINE_LENGTH];
+	char **fbuf = NULL;
+	char **rbuf = NULL;
 	char mat[25];
 	int i = 0;
 	int j = 0;
@@ -62,6 +62,40 @@ align_mates(CMD *cp, char *forin, char *revin, char *forout, char *revout)
 
 	/* Update time string */
 	get_timestr(&timestr[0]);
+
+	/* Allocate buffer memory from the heap */
+	if ((fbuf = malloc(BSIZE * sizeof(char*))) == NULL)
+	{
+		fputs("ERROR: Memory allocation failure.\n", stderr);
+		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
+		        timestr, __func__, __LINE__);
+		return 1;
+	}
+	if ((rbuf = malloc(BSIZE * sizeof(char*))) == NULL)
+	{
+		fputs("ERROR: Memory allocation failure.\n", stderr);
+		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
+		        timestr, __func__, __LINE__);
+		free(fbuf);
+		return 1;
+	}
+	for (i = 0; i < BSIZE; i++)
+	{
+		if ((fbuf[i] = malloc(MAX_LINE_LENGTH)) == NULL)
+		{
+			fputs("ERROR: Memory allocation failure.\n", stderr);
+			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
+					timestr, __func__, __LINE__);
+			return 1;
+		}
+		if ((rbuf[i] = malloc(MAX_LINE_LENGTH)) == NULL)
+		{
+			fputs("ERROR: Memory allocation failure.\n", stderr);
+			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
+					timestr, __func__, __LINE__);
+			return 1;
+		}
+	}
 
 	/* Open input forward fastQ file stream */
 	if ((fin = gzopen(forin, "rb")) == NULL)
@@ -201,6 +235,15 @@ align_mates(CMD *cp, char *forin, char *revin, char *forout, char *revout)
 	/* Print informational message to logfile */
 	get_timestr(&timestr[0]);
 	fprintf(lf, "[ddradseq: %s] INFO -- %d sequences trimmed.\n", timestr, count);
+
+	/* Free memory from the heap */
+	for (i = 0; i < BSIZE; i++)
+	{
+		free(fbuf[i]);
+		free(rbuf[i]);
+	}
+	free(fbuf);
+	free(rbuf);
 
 	/* Close all file streams */
 	gzclose(fin);

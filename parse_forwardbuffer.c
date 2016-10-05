@@ -1,7 +1,7 @@
 /* file: parse_forwardbuffer.c
  * description: Function to parse forward fastQ entries in the buffer
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: September 2016
+ * updated: October 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */
@@ -258,7 +258,7 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(
 							{
 								int d = 0;
 								if ((d = levenshtein((char*)kh_key(b, kk),
-													 barcode_sequence)) <= dist)
+								                     barcode_sequence)) <= dist)
 								{
 									bc = kh_value(b, kk);
 									break;
@@ -290,8 +290,8 @@ parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(
 					}
 					sprintf(mkey, "%010d%010d%010d", tile, xpos, ypos);
 					mk = kh_put(mates, m, mkey, &a);
-					if (!a) free(mkey);
-					kh_value(m, mk) = strdup(barcode_sequence);
+					if (a) kh_value(m, mk) = strdup(barcode_sequence);
+					else free(mkey);
 					break;
 				case 2:
 					/* Quality identifier line */

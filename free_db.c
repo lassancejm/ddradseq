@@ -1,7 +1,7 @@
 /* file: free_db.c
  * description: Function to free memory used by CSV database
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: September 2016
+ * updated: October 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */
@@ -11,9 +11,9 @@
 #include "ddradseq.h"
 
 int
-free_db (khash_t(pool_hash) *h)
+free_db(khash_t(pool_hash) *h)
 {
-	/*har *key = NULL;*/
+	const char *key;
 	khint_t i = 0;
 	khint_t j = 0;
 	khint_t k = 0;
@@ -41,23 +41,23 @@ free_db (khash_t(pool_hash) *h)
 					{
 						if (kh_exist(b, k))
 						{
-							/*key = kh_key(b, k);*/
+							key = kh_key(b, k);
 							bc = kh_value(b, k);
 							free(bc->smplID);
 							free(bc->outfile);
 							free(bc->buffer);
 							free(bc);
-							/*free(key);*/
+							free((void*)key);
 						}
 					}
 					kh_destroy(barcode, b);
-					/*key = kh_key(p, j);
-					free(key);*/
+					key = kh_key(p, j);
+					free((void*)key);
 					free(pl);
 				}
 			}
-			/*key = kh_key(h, i);
-			free(key);*/
+			key = kh_key(h, i);
+			free((void*)key);
 			kh_destroy(pool, p);
 		}
 	}

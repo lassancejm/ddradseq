@@ -1,7 +1,7 @@
 /* file fastq_to_db.c
  * brief Read in a fastQ database from one or two input files
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: September 2016
+ * updated: October 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */

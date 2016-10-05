@@ -1,7 +1,7 @@
 /* file: traverse_dirtree.c
  * description: Function to get a sorted list of all fastQ files in a directory tree
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: September 2016
+ * updated: October 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */
