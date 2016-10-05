@@ -301,7 +301,6 @@ parse_reversebuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(
 							free(idline);
 							free(dna_sequence);
 							free(qual_sequence);
-							free(barcode_sequence);
 							return 1;
 						}
 					}
@@ -314,7 +313,6 @@ parse_reversebuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(
 						free(idline);
 						free(dna_sequence);
 						free(qual_sequence);
-						free(barcode_sequence);
 						return 1;
 					}
 					sprintf(t, "%s\n%s\n+\n%s\n", idline, dna_sequence, qual_sequence);
@@ -325,7 +323,6 @@ parse_reversebuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(
 					free(idline);
 					free(dna_sequence);
 					free(qual_sequence);
-					free(barcode_sequence);
 					break;
 			}
 		}

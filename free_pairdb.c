@@ -11,7 +11,7 @@
 #include "ddradseq.h"
 
 int
-free_pairdb (khash_t(fastq) *h)
+free_pairdb(khash_t(fastq) *h)
 {
 	const char *key;
 	FASTQ *e = NULL;

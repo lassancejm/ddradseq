@@ -161,6 +161,8 @@ extern int flush_buffer(int orient, BARCODE *bc);
 
 extern int free_cmdline(CMD *cp);
 
+extern int free_matedb(khash_t(mates) *m);
+
 extern int levenshtein(char *s1, char *s2);
 
 extern khash_t(fastq)* fastq_to_db(const char *filename);

@@ -102,7 +102,7 @@ parse_main(CMD *cp)
 			parse_deallocate_mem(h, m, f, nfiles, ffor, frev);
 			return 1;
 		}
-	
+
 		/* Read the reverse fastQ input file */
 		if ((ret = parse_fastq(REVERSE, frev, h, m, cp->dist)) != 0)
 		{
@@ -135,7 +135,7 @@ parse_deallocate_mem(khash_t(pool_hash) *h, khash_t(mates) *m, char **f, unsigne
 		free(f);
 	}
 	if (h) free_db(h);
-	if (m) kh_destroy(mates, m);
+	if (m) free_matedb(m);
 	if (r) free(r);
 	if (s) free(s);
 }
