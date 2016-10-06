@@ -66,7 +66,7 @@ pair_main(CMD *cp)
 
 		/* Double check that files are mates */
 		spn = strcspn(ffor, ".");
-		if (strncmp(ffor, frev, spn) != 0)
+		if ((ret = strncmp(ffor, frev, spn)) != 0)
 		{
 			fprintf(stderr, "ERROR: Pairing files \'%s\' and \'%s\' failed.\n", ffor, frev);
 			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Pairing files \'%s\' and \'%s\' failed.\n",
@@ -79,7 +79,7 @@ pair_main(CMD *cp)
 		if ((h = fastq_to_db(f[i])) == NULL)
 		{
 			pair_main_deallocate(f, ffor, frev, nfiles);
-			return 1;			
+			return 1;
 		}
 
 		/* Print informational update to log file */
@@ -91,7 +91,7 @@ pair_main(CMD *cp)
 		{
 			free_pairdb(h);
 			pair_main_deallocate(f, ffor, frev, nfiles);
-			return 1;			
+			return 1;
 		}
 
 		/* Free allocated memory */

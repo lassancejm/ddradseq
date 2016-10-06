@@ -186,6 +186,5 @@ check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 			}
 		}
 	}
-
 	return 0;
 }

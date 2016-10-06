@@ -65,7 +65,7 @@ trimend_main(CMD *cp)
 		pch = strstr(frev, "pairs");
 		strncpy(pch, "final", 5);
 		spn = strcspn(ffor, ".");
-		if (strncmp(ffor, frev, spn) != 0)
+		if ((ret = strncmp(ffor, frev, spn)) != 0)
 		{
 			fprintf(stderr, "ERROR: \'%s\' and \'%s\' do not appear to be mate pairs.\n", ffor, frev);
 			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Files \'%s\' and \'%s\' do not appear to be mate pairs.\n",
@@ -82,7 +82,7 @@ trimend_main(CMD *cp)
 		if ((ret = align_mates(cp, f[i], f[i + 1], ffor, frev)) != 0)
 		{
 			trimend_main_deallocate(f, ffor, frev, nfiles);
-			return 1;			
+			return 1;
 		}
 
 		/* Free allocated memory */

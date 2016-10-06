@@ -33,11 +33,9 @@ local_align(int qlen, unsigned char *query, int tlen,
 	ALIGN_QUERY *q;
 	ALIGN_RESULT r;
 	ALIGN_RESULT rr;
-	ALIGN_RESULT (*func)(ALIGN_QUERY *, int, const unsigned char *, int, int, int);
 
 	q = align_init(qlen, query, m, mat);
-	func = ksw_u8;
-	r = func(q, tlen, target, gapo, gape, xtra);
+	r = ksw_u8(q, tlen, target, gapo, gape, xtra);
 	free (q);
 	if (((xtra & KSW_XSTART) == 0) || ((xtra & KSW_XSUBO) && (r.score < (xtra & 0xffff))))
 		return r;
@@ -47,7 +45,7 @@ local_align(int qlen, unsigned char *query, int tlen,
 	/* not the position after the end */
 	revseq (r.target_end + 1, target);
 	q = align_init(r.query_end + 1, query, m, mat);
-	rr = func(q, tlen, target, gapo, gape, KSW_XSTOP | r.score);
+	rr = ksw_u8(q, tlen, target, gapo, gape, KSW_XSTOP | r.score);
 	revseq(r.query_end + 1, query);
 	revseq(r.target_end + 1, target);
 	free(q);
@@ -60,8 +58,8 @@ local_align(int qlen, unsigned char *query, int tlen,
 }
 
 ALIGN_QUERY *
-align_init (int qlen, const unsigned char *query, int m,
-			const char *mat)
+align_init(int qlen, const unsigned char *query, int m,
+		   const char *mat)
 {
 	int slen = 0;
 	int a = 0;
@@ -131,7 +129,7 @@ align_init (int qlen, const unsigned char *query, int m,
 }
 
 ALIGN_RESULT
-ksw_u8 (ALIGN_QUERY *q, int tlen, const unsigned char *target, int _gapo, int _gape, int xtra)
+ksw_u8(ALIGN_QUERY *q, int tlen, const unsigned char *target, int _gapo, int _gape, int xtra)
 {
 	int slen = 0;
 	int i = 0;
@@ -141,7 +139,7 @@ ksw_u8 (ALIGN_QUERY *q, int tlen, const unsigned char *target, int _gapo, int _g
 	int gmax = 0;
 	int minsc = 0;
 	int endsc = 0;
-	uint64_t *b;
+	uint64_t *b = NULL;
 	__m128i zero;
 	__m128i gapoe;
 	__m128i gape;
@@ -175,7 +173,6 @@ ksw_u8 (ALIGN_QUERY *q, int tlen, const unsigned char *target, int _gapo, int _g
 	E = q->E;
 	Hmax = q->Hmax;
 	slen = q->slen;
-
 	for (i = 0; i < slen; i++)
 	{
 		_mm_store_si128(E + i, zero);
@@ -268,7 +265,6 @@ ksw_u8 (ALIGN_QUERY *q, int tlen, const unsigned char *target, int _gapo, int _g
 				h = _mm_subs_epu8(h, gapoe);
 				f = _mm_subs_epu8(f, gape);
 				cmp = _mm_movemask_epi8(_mm_cmpeq_epi8(_mm_subs_epu8(f, h), zero));
-
 				if (UNLIKELY(cmp == 0xffff))
 					goto end_loop16;
 			}
@@ -300,7 +296,6 @@ end_loop16:
 				b[n_b-1] = (uint64_t)imax << 32 | i;
 			}
 		}
-
 		if (imax > gmax)
 		{
 			gmax = imax;
@@ -343,17 +338,14 @@ end_loop16:
 				r.query_end = i / 16 + i % 16 * slen;
 			}
 		}
-
 		if (b)
 		{
 			i = (r.score + q->max - 1) / q->max;
 			low = te - i;
 			high = te + i;
-
 			for (i = 0; i < n_b; i++)
 			{
 				int e = (int)b[i];
-
 				if ((e < low || e > high) && (int)(b[i] >> 32) > r.score2)
 				{
 					r.score2 = b[i] >> 32;

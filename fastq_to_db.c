@@ -20,7 +20,7 @@
 khash_t(fastq) *
 fastq_to_db(const char *filename)
 {
-	char **buf;
+	char **buf = NULL;
 	char *idline = NULL;
 	char seps[] = ": ";
 	char *tok = NULL;
@@ -263,8 +263,7 @@ fastq_to_db(const char *filename)
 	}
 
 	/* Free memory for buffer to heap */
-	for (i = 0; i < BSIZE; i++)
-		free(buf[i]);
+	for (i = 0; i < BSIZE; i++) free(buf[i]);
 	free(buf);
 
 	/* Close input stream */

@@ -216,8 +216,7 @@ pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor, cons
 	}
 
 	/* Free memory for buffer to heap */
-	for (i = 0; i < BSIZE; i++)
-		free(buf[i]);
+	for (i = 0; i < BSIZE; i++) free(buf[i]);
 	free(buf);
 
 	/* Close input stream */

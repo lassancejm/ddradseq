@@ -148,7 +148,6 @@ align_mates(CMD *cp, const char *forin, const char *revin, const char *forout, c
 		/* Ambiguous base */
 		mat[k++] = 0;
 	}
-
 	for (j = 0; j < 5; j++)
 		mat[k++] = 0;
 
@@ -181,8 +180,8 @@ align_mates(CMD *cp, const char *forin, const char *revin, const char *forout, c
 			if (l % 4 == 3)
 			{
 				ALIGN_RESULT r;
-				char *target;
-				char *query;
+				char *target = NULL;
+				char *query = NULL;
 				target = strdup(&fbuf[l - 2][0]);
 				query = revcom(&rbuf[l - 2][0]);
 				int tlen = (int)strlen(target);
@@ -192,7 +191,6 @@ align_mates(CMD *cp, const char *forin, const char *revin, const char *forout, c
 				/* Transform sequences */
 				for (i = 0; i < qlen; i++)
 					query[i] = seq_nt4_table[(int)query[i]];
-
 				for (i = 0; i < tlen; i++)
 					target[i] = seq_nt4_table[(int)target[i]];
 
@@ -210,8 +208,8 @@ align_mates(CMD *cp, const char *forin, const char *revin, const char *forout, c
 				if (r.score >= min_score)
 				{
 					/* Test trimming criterion */
-					if ((r.target_begin == 0) &&
-						(r.query_begin > 0))
+					if (r.target_begin == 0 &&
+						r.query_begin > 0)
 					{
 						int new_end_pos = qlen - r.query_begin;
 						char *seq = &rbuf[l - 2][0];

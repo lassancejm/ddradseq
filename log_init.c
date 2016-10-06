@@ -14,7 +14,8 @@
 #include <sys/sysinfo.h>
 #include "ddradseq.h"
 
-int log_init(const CMD *cp)
+int
+log_init(const CMD *cp)
 {
 	char *user = NULL;
 	const double gigabyte = 1024 * 1024 * 1024;

@@ -21,6 +21,7 @@ parse_cmdline(int argc, char *argv[])
 	char *tmpdir = NULL;
 	char version_str[] = "ddradseq v1.0-beta";
 	int c = 0;
+	int r = 0;
 	size_t strl = 0;
 	time_t rawtime;
 	struct tm *timeinfo;
@@ -119,9 +120,9 @@ parse_cmdline(int argc, char *argv[])
 				break;
 			case 'm':
 				cp->mode = strdup(optarg);
-				if (strcmp(cp->mode, "parse") != 0 ||
-				    strcmp(cp->mode, "pair") != 0 ||
-				    strcmp(cp->mode, "trimend") != 0)
+				if ((r = strcmp(cp->mode, "parse")) != 0 ||
+				    (r = strcmp(cp->mode, "pair")) != 0 ||
+				    (r = strcmp(cp->mode, "trimend")) != 0)
 				{
 					fprintf(stderr, "ERROR: %s is not a valid mode.\n", cp->mode);
 					free_cmdline(cp);
@@ -165,16 +166,16 @@ parse_cmdline(int argc, char *argv[])
 		strcpy(cp->mode, "all");
 	}
 	if (cp->csvfile == NULL &&
-	    (strcmp(cp->mode, "parse") == 0 ||
-	     strcmp(cp->mode, "all") == 0))
+	    ((r = strcmp(cp->mode, "parse")) == 0 ||
+	     (r = strcmp(cp->mode, "all")) == 0))
 	{
 		fputs("ERROR: \'--csv\' switch is mandatory when running parse mode.\n", stderr);
 		free_cmdline(cp);
 		return NULL;
 	}
 	if (cp->outdir == NULL &&
-	    (strcmp(cp->mode, "parse") == 0 ||
-	     strcmp(cp->mode, "all") == 0))
+	    ((r = strcmp(cp->mode, "parse")) == 0 ||
+	     (r = strcmp(cp->mode, "all")) == 0))
 	{
 		fputs("ERROR: \'--out\' switch is mandatory when running parse mode.\n", stderr);
 		free_cmdline(cp);
