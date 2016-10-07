@@ -1,5 +1,5 @@
 /* file: free_db.c
- * description: Function to free memory used by CSV database
+ * description: Deallocates memory used by CSV database
  * author: Daniel Garrigan Lummei Analytics LLC
  * updated: October 2016
  * email: dgarriga@lummei.net

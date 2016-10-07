@@ -1,5 +1,5 @@
 /* file: parse_reversebuffer.c
- * description: Function to parse reverse fastQ entries in the buffer
+ * description: Parses reverse fastQ entries in the buffer
  * author: Daniel Garrigan Lummei Analytics LLC
  * updated: October 2016
  * email: dgarriga@lummei.net
@@ -17,7 +17,7 @@
 void parse_reversebuffer_deallocate(unsigned char*, char*, char*);
 
 int
-parse_reversebuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(mates) *m)
+parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h, const khash_t(mates) *m)
 {
 	char *q = buff;
 	char *r = NULL;

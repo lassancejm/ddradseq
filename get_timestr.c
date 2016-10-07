@@ -1,5 +1,5 @@
 /* file: get_timestr.c
- * description: Fill in current time for logfile reporting
+ * description: Fills in current time for logfile reporting
  * author: Daniel Garrigan Lummei Analytics LLC
  * updated: October 2016
  * email: dgarriga@lummei.net

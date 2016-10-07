@@ -14,7 +14,7 @@
 #define MIN3(a, b, c) ((a) < (b) ? ((a) < (c) ? (a) : (c)) : ((b) < (c) ? (b) : (c)))
 
 int
-levenshtein (char *s1, char *s2)
+levenshtein(const char *s1, const char *s2)
 {
 	unsigned int x = 0;
 	unsigned int y = 0;

@@ -1,5 +1,5 @@
 /* file: flush_buffer.c
- * description: Dump full buffer to file
+ * description: Dumps a full buffer to file
  * author: Daniel Garrigan Lummei Analytics LLC
  * updated: October 2016
  * email: dgarriga@lummei.net

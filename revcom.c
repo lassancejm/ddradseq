@@ -16,11 +16,11 @@
 #define DNA_BEGIN 65
 
 /* Function prototypes */
-int reverse_string(char *s);
-int complement_string(char *s);
+int reverse_string(char*);
+int complement_string(char*);
 
 char *
-revcom(char *input_string)
+revcom(const char *s)
 {
 	char *str = NULL;
 	char *pch = NULL;
@@ -31,7 +31,7 @@ revcom(char *input_string)
 	get_timestr(&timestr[0]);
 
 	/* Create local copy of DNA string */
-	str = strdup(input_string);
+	str = strdup(s);
 	pch = strchr(str,'\n');
 	if (pch) *pch = '\0';
 	strl = strlen(str);

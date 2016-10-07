@@ -1,5 +1,5 @@
 /* file: free_pairdb.c
- * description: Function to free memory used by pairs database
+ * description: Deallocates memory used by pairs database
  * author: Daniel Garrigan Lummei Analytics LLC
  * updated: October 2016
  * email: dgarriga@lummei.net

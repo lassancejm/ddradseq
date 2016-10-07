@@ -16,7 +16,7 @@
 #define MAX_LINE 400
 
 khash_t(pool_hash) *
-read_csv (CMD *cp)
+read_csv (const CMD *cp)
 {
 	char *csvfile = cp->csvfile;  /* Pointer to CSV database file name */
 	char *outpath = cp->outdir;	  /* Pointer to parent of output directories */

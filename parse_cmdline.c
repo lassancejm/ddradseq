@@ -1,5 +1,5 @@
 /* file: parse_cmdline.c
- * description: Function to read command line parameters
+ * description: Populates command line data structure from program arguments
  * author: Daniel Garrigan Lummei Analytics LLC
  * updated: October 2016
  * email: dgarriga@lummei.net

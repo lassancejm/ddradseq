@@ -1,5 +1,5 @@
 /* file: parse_forwardbuffer.c
- * description: Function to parse forward fastQ entries in the buffer
+ * description: Parses forward fastQ entries in the buffer
  * author: Daniel Garrigan Lummei Analytics LLC
  * updated: October 2016
  * email: dgarriga@lummei.net
@@ -17,7 +17,8 @@
 void parse_forwardbuffer_deallocate(unsigned char*, char*, char*);
 
 int
-parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h, khash_t(mates) *m, int dist)
+parse_forwardbuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h,
+                    khash_t(mates) *m, const int dist)
 {
 	char *q = buff;
 	char *s = NULL;

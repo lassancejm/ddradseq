@@ -1,5 +1,5 @@
 /* file: reset_buffer.c
- * description: Function to reset the buffer for next read block
+ * description: Resets the buffer for next read block
  * author: Daniel Garrigan Lummei Analytics LLC
  * updated: October 2016
  * email: dgarriga@lummei.net

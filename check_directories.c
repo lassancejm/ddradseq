@@ -1,5 +1,5 @@
 /* file: check_directories.c
- * description: Function to check write permissions on parent directory
+ * description: Creates and checks output directory tree
  * author: Daniel Garrigan Lummei Analytics LLC
  * updated: October 2016
  * email: dgarriga@lummei.net

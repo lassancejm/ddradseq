@@ -1,5 +1,5 @@
 /* file: free_matedb.c
- * description: Function to free memory used by mates database
+ * description: Deallocates memory used by mate pair database
  * author: Daniel Garrigan Lummei Analytics LLC
  * updated: October 2016
  * email: dgarriga@lummei.net

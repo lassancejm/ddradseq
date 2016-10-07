@@ -1,5 +1,5 @@
 /* file: count_lines.c
- * description: Function to count newline characters in buffer
+ * description: Counts newline characters in buffer
  * author: Daniel Garrigan Lummei Analytics LLC
  * updated: October 2016
  * email: dgarriga@lummei.net

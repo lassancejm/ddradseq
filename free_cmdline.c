@@ -1,5 +1,5 @@
 /* file: free_cmdline.c
- * description: Deallocate memory for command line parameter data structure
+ * description: Deallocates memory for command line parameter data structure
  * author: Daniel Garrigan Lummei Analytics LLC
  * updated: October 2016
  * email: dgarriga@lummei.net

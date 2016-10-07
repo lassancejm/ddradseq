@@ -43,7 +43,7 @@ local_align(int qlen, unsigned char *query, int tlen,
 
 	/* +1 because qe/te points to the exact end */
 	/* not the position after the end */
-	revseq (r.target_end + 1, target);
+	revseq(r.target_end + 1, target);
 	q = align_init(r.query_end + 1, query, m, mat);
 	rr = ksw_u8(q, tlen, target, gapo, gape, KSW_XSTOP | r.score);
 	revseq(r.query_end + 1, query);
@@ -58,8 +58,7 @@ local_align(int qlen, unsigned char *query, int tlen,
 }
 
 ALIGN_QUERY *
-align_init(int qlen, const unsigned char *query, int m,
-		   const char *mat)
+align_init(int qlen, const unsigned char *query, int m, const char *mat)
 {
 	int slen = 0;
 	int a = 0;
@@ -122,7 +121,7 @@ align_init(int qlen, const unsigned char *query, int m,
 		{
 			/* p iterations */
 			for (k = i; k < nlen; k += slen)
-				*t++ = ((k >= qlen) ? 0 : ma[query[k]]) + q->shift;
+				*t++ = (k >= qlen ? 0 : ma[query[k]]) + q->shift;
 		}
 	}
 	return q;

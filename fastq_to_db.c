@@ -1,5 +1,5 @@
 /* file fastq_to_db.c
- * brief Read in a fastQ database from one or two input files
+ * brief Populates a fastQ database from fastQ input file
  * author: Daniel Garrigan Lummei Analytics LLC
  * updated: October 2016
  * email: dgarriga@lummei.net
