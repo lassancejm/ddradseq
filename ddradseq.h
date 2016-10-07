@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 #include <emmintrin.h>
 #include "khash.h"
 
@@ -130,7 +131,7 @@ KHASH_MAP_INIT_STR(fastq, FASTQ*)
 KHASH_MAP_INIT_STR(mates, char*)
 
 /* Globally scoped variables */
-char logfile [1024];
+char logfile [PATH_MAX];
 char timestr[80];
 FILE *lf;
 
