@@ -221,8 +221,8 @@ align_mates(CMD *cp, const char *forin, const char *revin, const char *forout, c
 				}
 
 				/* Write sequences to file */
-				gzprintf(fout, "%s\n%s\n+\n%s\n", &fbuf[l - 3][0], &fbuf[l - 2][0], &fbuf[l][0]);
-				gzprintf(rout, "%s\n%s\n+\n%s\n", &rbuf[l - 3][0], &rbuf[l - 2][0], &rbuf[l][0]);
+				gzprintf(fout, "%s%s+\n%s", &fbuf[l - 3][0], &fbuf[l - 2][0], &fbuf[l][0]);
+				gzprintf(rout, "%s%s+\n%s", &rbuf[l - 3][0], &rbuf[l - 2][0], &rbuf[l][0]);
 			}
 		}
 
