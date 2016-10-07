@@ -63,7 +63,7 @@ Mandatory arguments to long options are mandatory for short options too.
  -c, --csv=FILE       CSV file with index and barcode labels
  -o, --out=DIR        Parent directory to write output files
  -d, --dist           Edit distance for barcode matching                     [default: 1]
- -s, --score          Alignment score to consider sequences properly aligned [default: 100]
+ -s, --score          Alignment score to consider mates as overlapping       [default: 100]
  -g, --gapo           Penalty for opening a gap                              [default: 5]
  -e, --gape           Penalty for extending an open gap                      [default: 2]
  -h, --help           Display this help message
@@ -81,7 +81,7 @@ each of the parameters in more detail:
 | `-c, --csv`   | CSV text file        | The comma-separated database file, see **The CSV database file** section below for details on what information should be provided in this file. |
 | `-o, --out`   | Filesystem directory | An existing directory on the filesystem where **ddradseq** should write all of its output. |
 | `-d, --dist`  | Integer              | The maximum number of mismatches allowed for a barcode to be considered a match with a barcode sequence in the database file. |
-| `-s, --score` | Integer              | The number of matching bases for mate-pairs to be considered valid. |
+| `-s, --score` | Integer              | The number of matching bases for mate-pairs to be considered as overlapping. |
 | `-g, --gapo`  | Integer              | The gap penalty invoked during the alignment in the **trimend** stage. |
 | `-e, --gape`  | Integer              | The gap extension penalty invoked during the alignment in the **trimend** stage. |
 
