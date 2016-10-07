@@ -91,7 +91,7 @@ usage(void)
 	fputs(" -c, --csv=FILE       CSV file with index and barcode labels\n", stderr);
 	fputs(" -o, --out=DIR        Parent directory to write output files\n", stderr);
 	fputs(" -d, --dist           Edit distance for barcode matching                     [default: 1]\n", stderr);
-	fputs(" -s, --score          Alignment score to consider sequences properly aligned [default: 100]\n", stderr);
+	fputs(" -s, --score          Alignment score to consider mates as overlapping       [default: 100]\n", stderr);
 	fputs(" -g, --gapo           Penalty for opening a gap                              [default: 5]\n", stderr);
 	fputs(" -e, --gape           Penalty for extending an open gap                      [default: 2]\n", stderr);
 	fputs(" -h, --help           Display this help message\n", stderr);
