@@ -12,40 +12,41 @@
 #include <emmintrin.h>
 #include "ddradseq.h"
 
+/* Define alphabet size */
+#define ALPHA_SIZE 5
+
 /* Globally scoped variables */
 const ALIGN_RESULT g_defr = { 0, -1, -1, -1, -1, -1, -1 };
 
 /* Function prototypes */
-ALIGN_QUERY* align_init(int qlen, const unsigned char *query, int m,
-						const char *mat);
+ALIGN_QUERY* align_init(int qlen, const char *query, const char *mat);
 
-ALIGN_RESULT ksw_u8(ALIGN_QUERY *q, int tlen, const unsigned char *target,
-					int _gapo, int _gape, int xtra);
+ALIGN_RESULT smith_waterman(ALIGN_QUERY *q, int tlen, const char *target, int _gapo,
+                            int _gape, int xtra);
 
-static void revseq(int l, unsigned char *s);
+static void revseq(int l, char *s);
 
 
 ALIGN_RESULT
-local_align(int qlen, unsigned char *query, int tlen,
-			unsigned char *target, int m, const char *mat, int gapo,
+local_align(int qlen, char *query, int tlen, char *target, const char *mat, int gapo,
 			int gape, int xtra)
 {
 	ALIGN_QUERY *q;
 	ALIGN_RESULT r;
 	ALIGN_RESULT rr;
 
-	q = align_init(qlen, query, m, mat);
-	r = ksw_u8(q, tlen, target, gapo, gape, xtra);
-	free (q);
-	if (((xtra & KSW_XSTART) == 0) || ((xtra & KSW_XSUBO) && (r.score < (xtra & 0xffff))))
+	q = align_init(qlen, query, mat);
+	r = smith_waterman(q, tlen, target, gapo, gape, xtra);
+	free(q);
+	if (((xtra & KSW_XSTART) == 0 || (xtra & KSW_XSUBO)) && r.score < (xtra & 0xffff))
 		return r;
 	revseq(r.query_end + 1, query);
 
 	/* +1 because qe/te points to the exact end */
 	/* not the position after the end */
 	revseq(r.target_end + 1, target);
-	q = align_init(r.query_end + 1, query, m, mat);
-	rr = ksw_u8(q, tlen, target, gapo, gape, KSW_XSTOP | r.score);
+	q = align_init(r.query_end + 1, query, mat);
+	rr = smith_waterman(q, tlen, target, gapo, gape, KSW_XSTOP | r.score);
 	revseq(r.query_end + 1, query);
 	revseq(r.target_end + 1, target);
 	free(q);
@@ -58,7 +59,7 @@ local_align(int qlen, unsigned char *query, int tlen,
 }
 
 ALIGN_QUERY *
-align_init(int qlen, const unsigned char *query, int m, const char *mat)
+align_init(int qlen, const char *query, const char *mat)
 {
 	int slen = 0;
 	int a = 0;
@@ -73,7 +74,7 @@ align_init(int qlen, const unsigned char *query, int m, const char *mat)
 	slen = (qlen + p - 1) / p;
 
 	/* Allocate memory for query profile */
-	if ((q = malloc(sizeof(ALIGN_QUERY) + 256 + 16 * slen * (m + 4))) == NULL)
+	if ((q = malloc(sizeof(ALIGN_QUERY) + 256 + 16 * slen * (ALPHA_SIZE + 4))) == NULL)
 	{
 		fputs("Error: cannot allocate memory for query profile.\n", stderr);
 		return NULL;
@@ -81,7 +82,7 @@ align_init(int qlen, const unsigned char *query, int m, const char *mat)
 
 	/* Align memory */
 	q->qp = (__m128i*)(((size_t)q + sizeof(ALIGN_QUERY) + 15u) >> 4 << 4);
-	q->H0 = q->qp + slen * m;
+	q->H0 = q->qp + slen * ALPHA_SIZE;
 	q->H1 = q->H0 + slen;
 	q->E  = q->H1 + slen;
 	q->Hmax = q->E + slen;
@@ -89,7 +90,7 @@ align_init(int qlen, const unsigned char *query, int m, const char *mat)
 	q->qlen = qlen;
 
 	/* Compute shift */
-	tmp = m * m;
+	tmp = ALPHA_SIZE * ALPHA_SIZE;
 
 	/* Find the minimum and maximum score */
 	for (a = 0, q->shift = 127, q->mdiff = 0; a < tmp; a++)
@@ -107,28 +108,23 @@ align_init(int qlen, const unsigned char *query, int m, const char *mat)
 	/* Difference between the min and max scores */
 	q->mdiff += q->shift;
 
-	/* An example: p=8, qlen=19, slen=3 and segmentation:
-	 * {{0,3,6,9,12,15,18,-1},{1,4,7,10,13,16,-1,-1},{2,5,8,11,14,17,-1,-1}} */
 	char *t = (char*)q->qp;
-	for (a = 0; a < m; a++)
+	for (a = 0; a < ALPHA_SIZE; a++)
 	{
 		int i = 0;
 		int k = 0;
 		int nlen = slen * p;
-		const char *ma = mat + a * m;
+		const char *ma = mat + a * ALPHA_SIZE;
 
-		for (i = 0; i < slen; ++i)
-		{
-			/* p iterations */
+		for (i = 0; i < slen; i++)
 			for (k = i; k < nlen; k += slen)
-				*t++ = (k >= qlen ? 0 : ma[query[k]]) + q->shift;
-		}
+				*t++ = (k >= qlen ? 0 : ma[(unsigned char)query[k]]) + q->shift;
 	}
 	return q;
 }
 
 ALIGN_RESULT
-ksw_u8(ALIGN_QUERY *q, int tlen, const unsigned char *target, int _gapo, int _gape, int xtra)
+smith_waterman(ALIGN_QUERY *q, int tlen, const char *target, int _gapo, int _gape, int xtra)
 {
 	int slen = 0;
 	int i = 0;
@@ -159,8 +155,8 @@ ksw_u8(ALIGN_QUERY *q, int tlen, const unsigned char *target, int _gapo, int _ga
 
 	/* Initialization */
 	r = g_defr;
-	minsc = (xtra & KSW_XSUBO) ? xtra & 0xffff : 0x10000;
-	endsc = (xtra & KSW_XSTOP) ? xtra & 0xffff : 0x10000;
+	minsc = xtra & KSW_XSUBO ? xtra & 0xffff : 0x10000;
+	endsc = xtra & KSW_XSTOP ? xtra & 0xffff : 0x10000;
 	m_b = n_b = 0;
 	b = 0;
 	zero = _mm_set1_epi32(0);
@@ -306,7 +302,7 @@ end_loop16:
 			for (j = 0; LIKELY(j < slen); j++)
 				_mm_store_si128 (Hmax + j, _mm_load_si128 (H1 + j));
 
-			if ((gmax + q->shift >= 255) || (gmax >= endsc))
+			if (gmax + q->shift >= 255 || gmax >= endsc)
 				break;
 		}
 		S = H1;
@@ -316,7 +312,7 @@ end_loop16:
 		H0 = S;
 	}
 
-	r.score = (gmax + q->shift < 255) ? gmax : 255;
+	r.score = gmax + q->shift < 255 ? gmax : 255;
 	r.target_end = te;
 
 	/* Get a->query_end, the end of query match */
@@ -327,7 +323,7 @@ end_loop16:
 		int low = 0;
 		int high = 0;
 		int qlen = slen * 16;
-		unsigned char *t = (unsigned char *)Hmax;
+		char *t = (char*)Hmax;
 
 		for (i = 0; i < qlen; i++, t++)
 		{
@@ -359,12 +355,12 @@ end_loop16:
 }
 
 static void
-revseq(int l, unsigned char *s)
+revseq(int l, char *s)
 {
 	int i = 0;
 	int t = 0;
 
-	for (i = 0; i < l >> 1; ++i)
+	for (i = 0; i < l >> 1; i++)
 	{
 		t = s[i];
 		s[i] = s[l - 1 - i];

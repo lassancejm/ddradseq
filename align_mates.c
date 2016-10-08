@@ -17,7 +17,7 @@
 #define BSIZE 4000
 
 /*Globally scoped variables */
-unsigned char seq_nt4_table[256] = {
+char seq_nt4_table[256] = {
 	4, 4, 4, 4,	 4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
 	4, 4, 4, 4,	 4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
 	4, 4, 4, 4,	 4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
@@ -190,17 +190,12 @@ align_mates(CMD *cp, const char *forin, const char *revin, const char *forout, c
 
 				/* Transform sequences */
 				for (i = 0; i < qlen; i++)
-					query[i] = seq_nt4_table[(int)query[i]];
+					query[i] = seq_nt4_table[(unsigned char)query[i]];
 				for (i = 0; i < tlen; i++)
-					target[i] = seq_nt4_table[(int)target[i]];
+					target[i] = seq_nt4_table[(unsigned char)target[i]];
 
 				/* Do the alignment */
-				r = local_align ((int)qlen,
-								 (unsigned char *)query,
-								 (int)tlen,
-								 (unsigned char *)target,
-								 5, mat, gap_open,
-								 gap_extend, xtra);
+				r = local_align(qlen, query, tlen, target, mat, gap_open, gap_extend, xtra);
 				free(target);
 				free(query);
 

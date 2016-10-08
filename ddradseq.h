@@ -403,7 +403,7 @@ extern int free_matedb(khash_t(mates) *m);
  * Alignment functions
  ******************************************************/
 
-/* ALIGN_RESULT local_align(int qlen, unsigned char *query, int tlen, unsigned char *target, int m, const char *mat,
+/* ALIGN_RESULT local_align(int qlen, char *query, int tlen, char *target, const char *mat,
                             int gapo, int gape, int xtra)
  * Calculates the local sequence alignment by Smith-Waterman algorithm
  * Arguments:
@@ -411,7 +411,6 @@ extern int free_matedb(khash_t(mates) *m);
  * query -- Pointer string holding query sequence
  * tlen -- Length of the target sequence
  * target -- Pointer to string holding target sequence
- * m -- Size of the alphabet
  * mat -- Scoring matrix in a one-dimension array (read-only)
  * gapo -- Gap penalty
  * gape -- Gap extension penalty
@@ -420,8 +419,7 @@ extern int free_matedb(khash_t(mates) *m);
  * ALIGN_RESULT data structure
  */
 
-extern ALIGN_RESULT local_align(int qlen, unsigned char *query, int tlen,
-                                unsigned char *target, int m, const char *mat,
+extern ALIGN_RESULT local_align(int qlen, char *query, int tlen, char *target, const char *mat,
                                 int gapo, int gape, int xtra);
 
 
