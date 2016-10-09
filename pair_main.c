@@ -27,8 +27,8 @@ pair_main(CMD *cp)
 	get_timestr(&timestr[0]);
 
 	/* Get list of all files */
-	if ((f = traverse_dirtree(cp->outdir, "parse", &nfiles)) == NULL)
-		return 1;
+	f = traverse_dirtree(cp->outdir, "parse", &nfiles);
+	if (f == NULL) return 1;
 
 	for (i = 0; i < nfiles; i += 2)
 	{
@@ -40,7 +40,8 @@ pair_main(CMD *cp)
 
 		/* Construct output file names */
 		strl = strlen(f[i]);
-		if ((ffor = malloc(strl + 1u)) == NULL)
+		ffor = malloc(strl + 1u);
+		if (UNLIKELY(ffor == NULL))
 		{
 			fputs("ERROR: Memory allocation failure.\n", stderr);
 			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
@@ -49,7 +50,8 @@ pair_main(CMD *cp)
 			return 1;
 		}
 		strl = strlen(f[i + 1]);
-		if ((frev = malloc(strl + 1u)) == NULL)
+		frev = malloc(strl + 1u);
+		if (UNLIKELY(frev == NULL))
 		{
 			fputs("ERROR: Memory allocation failure.\n", stderr);
 			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",

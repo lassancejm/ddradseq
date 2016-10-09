@@ -72,6 +72,11 @@ check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 			{
 				strl = strlen(cp->outdir) + strlen(kh_key(h, i));
 				flowdir = malloc(strl + 1u);
+				if (UNLIKELY(flowdir == NULL))
+				{
+					fputs("ERROR: Memory allocation failure.\n", stderr);
+					return 1;
+				}
 				strcpy(flowdir, cp->outdir);
 				strcat(flowdir, kh_key(h, i));
 				d = opendir(flowdir);
@@ -117,9 +122,15 @@ check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 						}
 						strl = strlen(pooldir);
 						parsedir = malloc(strl + 7u);
+						if (UNLIKELY(parsedir == NULL))
+						{
+							fputs("ERROR: Memory allocation failure.\n", stderr);
+							return 1;
+						}
 						strcpy(parsedir, pooldir);
 						strcat(parsedir, "/parse");
 						d = opendir(parsedir);
+
 						/* If the subsubdirectory doesn't already exist */
 						/* create it */
 						if (d)
@@ -139,9 +150,15 @@ check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 						free(parsedir);
 						strl = strlen(pooldir);
 						pairdir = malloc(strl + 7u);
+						if (UNLIKELY(pairdir == NULL))
+						{
+							fputs("ERROR: Memory allocation failure.\n", stderr);
+							return 1;
+						}
 						strcpy(pairdir, pooldir);
 						strcat(pairdir, "/pairs");
 						d = opendir(pairdir);
+
 						/* If the subsubdirectory doesn't already exist */
 						/* create it */
 						if (d)
@@ -161,9 +178,15 @@ check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 						free(pairdir);
 						strl = strlen(pooldir);
 						trimdir = malloc(strl + 7u);
+						if (UNLIKELY(trimdir == NULL))
+						{
+							fputs("ERROR: Memory allocation failure.\n", stderr);
+							return 1;
+						}
 						strcpy(trimdir, pooldir);
 						strcat(trimdir, "/final");
 						d = opendir(trimdir);
+
 						/* If the subsubdirectory doesn't already exist */
 						/* create it */
 						if (d)

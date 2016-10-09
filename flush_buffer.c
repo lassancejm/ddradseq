@@ -43,7 +43,8 @@ flush_buffer(int orient, BARCODE *bc)
 	}
 
 	/* Open output fastQ file stream */
-	if ((out = gzopen(filename, "ab")) == NULL)
+	out = gzopen(filename, "ab");
+	if (out == NULL)
 	{
 		fprintf(stderr, "ERROR: Unable to open output file \'%s\'.\n", filename);
 		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Unable to open output file "

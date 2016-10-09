@@ -37,21 +37,24 @@ parse_main(CMD *cp)
 	}
 
 	/* Check for write permissions on parent of output directory */
-	if ((ret = check_directories(cp, h)) != 0)
+	ret = check_directories(cp, h);
+	if (ret != 0)
 	{
 		parse_deallocate_mem(h, NULL, NULL, 0, NULL, NULL);
 		return 1;
 	}
 
 	/* Initialize hash for mate pair information */
-	if ((m = kh_init(mates)) == NULL)
+	m = kh_init(mates);
+	if (m == NULL)
 	{
 		parse_deallocate_mem(h, NULL, NULL, 0, NULL, NULL);
 		return 1;
 	}
 
 	/* Get list of all files */
-	if ((f = traverse_dirtree(cp->parentdir, NULL, &nfiles)) == NULL)
+	f = traverse_dirtree(cp->parentdir, NULL, &nfiles);
+	if (f == NULL)
 	{
 		parse_deallocate_mem(h, m, NULL, 0, NULL, NULL);
 		return 1;
@@ -64,7 +67,8 @@ parse_main(CMD *cp)
 		size_t spn = 0;
 
 		/* Construct output file names */
-		if ((ffor = malloc(strlen(f[i]) + 1u)) == NULL)
+		ffor = malloc(strlen(f[i]) + 1u);
+		if (UNLIKELY(ffor == NULL))
 		{
 			fputs("ERROR: Memory allocation failure.\n", stderr);
 			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
@@ -72,7 +76,8 @@ parse_main(CMD *cp)
 			parse_deallocate_mem(h, m, f, nfiles, NULL, NULL);
 			return 1;
 		}
-		if ((frev = malloc(strlen(f[i + 1]) + 1u)) == NULL)
+		frev = malloc(strlen(f[i + 1]) + 1u);
+		if (UNLIKELY(frev == NULL))
 		{
 			fputs("ERROR: Memory allocation failure.\n", stderr);
 			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
@@ -97,14 +102,16 @@ parse_main(CMD *cp)
 		        "\'%s\' and \'%s\'.\n", timestr, ffor, frev);
 
 		/* Read the forward fastQ input file */
-		if ((ret = parse_fastq(FORWARD, ffor, h, m, cp->dist)) != 0)
+		ret = parse_fastq(FORWARD, ffor, h, m, cp->dist);
+		if (ret != 0)
 		{
 			parse_deallocate_mem(h, m, f, nfiles, ffor, frev);
 			return 1;
 		}
 
 		/* Read the reverse fastQ input file */
-		if ((ret = parse_fastq(REVERSE, frev, h, m, cp->dist)) != 0)
+		ret = parse_fastq(REVERSE, frev, h, m, cp->dist);
+		if (ret != 0)
 		{
 			parse_deallocate_mem(h, m, f, nfiles, ffor, frev);
 			return 1;

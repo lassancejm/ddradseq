@@ -51,7 +51,8 @@ read_csv (const CMD *cp)
 	if (outpath[pathl - 1u] == '/') trail = 1;
 
 	/* Open input database text file stream */
-	if ((in = gzopen(csvfile, "rb")) == NULL)
+	in = gzopen(csvfile, "rb");
+	if (in == NULL)
 	{
 		fprintf(stderr, "ERROR: Could not open database file \'%s\'.\n", csvfile);
 		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Could not open CSV database file "
@@ -79,7 +80,8 @@ read_csv (const CMD *cp)
 
 		/* Alloc memory for flowcell string */
 		strl = strlen(tok);
-		if ((tmp = malloc(strl + 1u)) == NULL)
+		tmp = malloc(strl + 1u);
+		if (UNLIKELY(tmp == NULL))
 		{
 			fputs("ERROR: Memory allocation failure.\n", stderr);
 			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
@@ -113,7 +115,8 @@ read_csv (const CMD *cp)
 
 		/* Alloc memory for pool sequence string */
 		strl = strlen(tok);
-		if ((tmp = malloc(strl + 1u)) == NULL)
+		tmp = malloc(strl + 1u);
+		if (UNLIKELY(tmp == NULL))
 		{
 			fputs("ERROR: Memory allocation failure.\n", stderr);
 			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
@@ -131,7 +134,8 @@ read_csv (const CMD *cp)
 		/* Add the new hash to POOL and add POOL to second-level hash */
 		if (a)
 		{
-			if ((pl = malloc(sizeof(POOL))) == NULL)
+			pl = malloc(sizeof(POOL));
+			if (UNLIKELY(pl == NULL))
 			{
 				fputs("ERROR: Memory allocation failure.\n", stderr);
 				fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
@@ -156,7 +160,8 @@ read_csv (const CMD *cp)
 
 		/* Alloc memory for pool identifier */
 		strl = strlen(tok);
-		if ((tmp = malloc(strl + 1u)) == NULL)
+		tmp = malloc(strl + 1u);
+		if (UNLIKELY(tmp == NULL))
 		{
 			fputs("ERROR: Memory allocation failure.\n", stderr);
 			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
@@ -171,7 +176,8 @@ read_csv (const CMD *cp)
 		pl = kh_value(p, j);
 		if (a) pl->poolID = tmp;
 		else free(tmp);
-		if ((tmp = malloc(pathl + 1u)) == NULL)
+		tmp = malloc(pathl + 1u);
+		if (UNLIKELY(tmp == NULL))
 		{
 			fputs("ERROR: Memory allocation failure.\n", stderr);
 			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
@@ -196,7 +202,8 @@ read_csv (const CMD *cp)
 
 		/* Alloc memory for barcode sequence string */
 		strl = strlen(tok);
-		if ((tmp = malloc(strl + 1u)) == NULL)
+		tmp = malloc(strl + 1u);
+		if (UNLIKELY(tmp == NULL))
 		{
 			fputs("ERROR: Memory allocation failure.\n", stderr);
 			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
@@ -223,14 +230,16 @@ read_csv (const CMD *cp)
 		/* initialize a fourth-level hash and add to value */
 		if (a)
 		{
-			if ((bc = malloc(sizeof(BARCODE))) == NULL)
+			bc = malloc(sizeof(BARCODE));
+			if (UNLIKELY(bc == NULL))
 			{
 				fputs("ERROR: Memory allocation failure.\n", stderr);
 				fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
 				        timestr, __func__, __LINE__);
 				return NULL;
 			}
-			if ((bc->buffer = malloc(BUFLEN)) == NULL)
+			bc->buffer = malloc(BUFLEN);
+			if (UNLIKELY(bc->buffer == NULL))
 			{
 				fputs("ERROR: Memory allocation failure.\n", stderr);
 				fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
@@ -255,7 +264,8 @@ read_csv (const CMD *cp)
 
 		/* Alloc memory for barcode value */
 		strl = strcspn(tok, " \n");
-		if ((tmp = malloc(strl + 1u)) == NULL)
+		tmp = malloc(strl + 1u);
+		if (UNLIKELY(tmp == NULL))
 		{
 			fputs("ERROR: Memory allocation failure.\n", stderr);
 			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
@@ -270,7 +280,8 @@ read_csv (const CMD *cp)
 		bc = kh_value(b, k);
 		bc->smplID = tmp;
 		pathl += 21u;
-		if ((tmp = malloc(pathl + 1u)) == NULL)
+		tmp = malloc(pathl + 1u);
+		if (UNLIKELY(tmp == NULL))
 		{
 			fputs("ERROR: Memory allocation failure.\n", stderr);
 			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",

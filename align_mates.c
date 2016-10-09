@@ -64,14 +64,16 @@ align_mates(CMD *cp, const char *forin, const char *revin, const char *forout, c
 	get_timestr(&timestr[0]);
 
 	/* Allocate buffer memory from the heap */
-	if ((fbuf = malloc(BSIZE * sizeof(char*))) == NULL)
+	fbuf = malloc(BSIZE * sizeof(char*));
+	if (UNLIKELY(fbuf == NULL))
 	{
 		fputs("ERROR: Memory allocation failure.\n", stderr);
 		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
 		        timestr, __func__, __LINE__);
 		return 1;
 	}
-	if ((rbuf = malloc(BSIZE * sizeof(char*))) == NULL)
+	rbuf = malloc(BSIZE * sizeof(char*));
+	if (UNLIKELY(rbuf == NULL))
 	{
 		fputs("ERROR: Memory allocation failure.\n", stderr);
 		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
@@ -81,14 +83,16 @@ align_mates(CMD *cp, const char *forin, const char *revin, const char *forout, c
 	}
 	for (i = 0; i < BSIZE; i++)
 	{
-		if ((fbuf[i] = malloc(MAX_LINE_LENGTH)) == NULL)
+		fbuf[i] = malloc(MAX_LINE_LENGTH);
+		if (UNLIKELY(fbuf[i] == NULL))
 		{
 			fputs("ERROR: Memory allocation failure.\n", stderr);
 			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
 					timestr, __func__, __LINE__);
 			return 1;
 		}
-		if ((rbuf[i] = malloc(MAX_LINE_LENGTH)) == NULL)
+		rbuf[i] = malloc(MAX_LINE_LENGTH);
+		if (UNLIKELY(rbuf[i] == NULL))
 		{
 			fputs("ERROR: Memory allocation failure.\n", stderr);
 			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
@@ -98,7 +102,8 @@ align_mates(CMD *cp, const char *forin, const char *revin, const char *forout, c
 	}
 
 	/* Open input forward fastQ file stream */
-	if ((fin = gzopen(forin, "rb")) == NULL)
+	fin = gzopen(forin, "rb");
+	if (fin == NULL)
 	{
 		fprintf(stderr, "ERROR: Failed to open input forward fastQ file \'%s\'.\n", forin);
 		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to open input forward fastQ file \'%s\'.\n",
@@ -107,7 +112,8 @@ align_mates(CMD *cp, const char *forin, const char *revin, const char *forout, c
 	}
 
 	/* Open input reverse fastQ file stream */
-	if ((rin = gzopen(revin, "rb")) == NULL)
+	rin = gzopen(revin, "rb");
+	if (rin == NULL)
 	{
 		fprintf(stderr, "ERROR: Failed to open input reverse fastQ file \'%s\'.\n", revin);
 		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to open input reverse fastQ file \'%s\'.\n",
@@ -117,7 +123,8 @@ align_mates(CMD *cp, const char *forin, const char *revin, const char *forout, c
 	}
 
 	/* Open output forward fastQ file stream */
-	if ((fout = gzopen(forout, "wb")) == NULL)
+	fout = gzopen(forout, "wb");
+	if (fout == NULL)
 	{
 		fprintf(stderr, "ERROR: Failed to open forward output fastQ file \'%s\'.\n", forout);
 		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to open forward output fastQ file \'%s\'.\n",
@@ -128,7 +135,8 @@ align_mates(CMD *cp, const char *forin, const char *revin, const char *forout, c
 	}
 
 	/* Open output reverse fastQ file stream */
-	if ((rout = gzopen(revout, "wb")) == NULL)
+	rout = gzopen(revout, "wb");
+	if (rout == NULL)
 	{
 		fprintf(stderr, "ERROR: Failed to open reverse output fastQ file \'%s\'.\n", revout);
 		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to open reverse output fastQ file \'%s\'.\n",

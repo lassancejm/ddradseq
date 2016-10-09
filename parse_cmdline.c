@@ -28,7 +28,8 @@ parse_cmdline(int argc, char *argv[])
 	CMD *cp = NULL;
 
 	/* Allocate memory for command line option structure */
-	if ((cp = malloc(sizeof(CMD))) == NULL)
+	cp = malloc(sizeof(CMD));
+	if (UNLIKELY(cp == NULL))
 	{
 		fputs("ERROR: Memory allocation failure.\n", stderr);
 		return NULL;
@@ -77,7 +78,8 @@ parse_cmdline(int argc, char *argv[])
 				break;
 			case 'o':
 				/* Construct the date string for output directory */
-				if ((datec = malloc(DATELEN + 3u)) == NULL)
+				datec = malloc(DATELEN + 3u);
+				if (UNLIKELY(datec == NULL))
 				{
 					fputs("ERROR: Memory allocation failure.\n", stderr);
 					return NULL;
@@ -90,7 +92,8 @@ parse_cmdline(int argc, char *argv[])
 				if (tmpdir[strl - 1] == '/')
 				{
 					strl += 22u;
-					if ((cp->outdir = malloc(strl)) == NULL)
+					cp->outdir = malloc(strl);
+					if (UNLIKELY(cp->outdir == NULL))
 					{
 						fputs("ERROR: Memory allocation failure.\n", stderr);
 						free(datec);
@@ -104,7 +107,8 @@ parse_cmdline(int argc, char *argv[])
 				else
 				{
 					strl += 23u;
-					if ((cp->outdir = malloc(strl)) == NULL)
+					cp->outdir = malloc(strl);
+					if (UNLIKELY(cp->outdir == NULL))
 					{
 						fputs("ERROR: Memory allocation failure.\n", stderr);
 						free(datec);

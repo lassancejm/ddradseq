@@ -45,7 +45,8 @@ fastq_to_db(const char *filename)
 	get_timestr(&timestr[0]);
 
 	/* Allocate memory for buffer from heap */
-	if ((buf = malloc(BSIZE * sizeof(char*))) == NULL)
+	buf = malloc(BSIZE * sizeof(char*));
+	if (UNLIKELY(buf == NULL))
 	{
 		fputs("ERROR: Memory allocation failure.\n", stderr);
 		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
@@ -54,7 +55,8 @@ fastq_to_db(const char *filename)
 	}
 	for (i = 0; i < BSIZE; i++)
 	{
-		if ((buf[i] = malloc(MAX_LINE_LENGTH)) == NULL)
+		buf[i] = malloc(MAX_LINE_LENGTH);
+		if (UNLIKELY(buf[i] == NULL))
 		{
 			fputs("ERROR: Memory allocation failure.\n", stderr);
 			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
@@ -67,7 +69,8 @@ fastq_to_db(const char *filename)
 	h = kh_init(fastq);
 
 	/* Open the fastQ input stream */
-	if ((in = gzopen(filename, "rb")) == Z_NULL)
+	in = gzopen(filename, "rb");
+	if (in == Z_NULL)
 	{
 		fprintf(stderr, "ERROR: Failed to open input fastQ file %s.\n", filename);
 		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to open input fastQ file %s.\n",
@@ -95,7 +98,8 @@ fastq_to_db(const char *filename)
 			if (l % 4 == 3)
 			{
 				/* Allocate memory for new fastQ entry */
-				if ((e = malloc(sizeof(FASTQ))) == NULL)
+				e = malloc(sizeof(FASTQ));
+				if (UNLIKELY(e == NULL))
 				{
 					fputs("ERROR: Memory allocation failure.\n", stderr);
 					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
@@ -108,7 +112,8 @@ fastq_to_db(const char *filename)
 				pos = strcspn(buf[l - 3], "\n");
 				buf[l - 3][pos] = '\0';
 				strl = strlen(&buf[l - 3][1]);
-				if ((e->id = malloc(strl + 1u)) == NULL)
+				e->id = malloc(strl + 1u);
+				if (UNLIKELY(e->id == NULL))
 				{
 					fputs("ERROR: Memory allocation failure.\n", stderr);
 					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
@@ -120,7 +125,8 @@ fastq_to_db(const char *filename)
 				strcpy(e->id, &buf[l - 3][1]);
 
 				/* Construct fastQ hash key */
-				if ((idline = malloc(strl + 1u)) == NULL)
+				idline = malloc(strl + 1u);
+				if (UNLIKELY(idline == NULL))
 				{
 					fputs("ERROR: Memory allocation failure.\n", stderr);
 					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
@@ -200,7 +206,8 @@ fastq_to_db(const char *filename)
 				ypos = atoi(tok);
 
 				/* Construct the hash key */
-				if ((mkey = malloc(KEYLEN)) == NULL)
+				mkey = malloc(KEYLEN);
+				if (UNLIKELY(mkey == NULL))
 				{
 					fputs("ERROR: Memory allocation failure.\n", stderr);
 					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
@@ -219,7 +226,8 @@ fastq_to_db(const char *filename)
 				pos = strcspn(buf[l - 2], "\n");
 				buf[l - 2][pos] = '\0';
 				strl = strlen(&buf[l - 2][0]);
-				if ((e->seq = malloc(strl + 1u)) == NULL)
+				e->seq = malloc(strl + 1u);
+				if (UNLIKELY(e->seq == NULL))
 				{
 					fputs("ERROR: Memory allocation failure.\n", stderr);
 					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
@@ -236,7 +244,8 @@ fastq_to_db(const char *filename)
 				pos = strcspn(buf[l], "\n");
 				buf[l][pos] = '\0';
 				strl = strlen(&buf[l][0]);
-				if ((e->qual = malloc(strl + 1u)) == NULL)
+				e->qual = malloc(strl + 1u);
+				if (UNLIKELY(e->qual == NULL))
 				{
 					fputs("ERROR: Memory allocation failure.\n", stderr);
 					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",

@@ -45,7 +45,8 @@ pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor, cons
 	get_timestr(&timestr[0]);
 
 	/* Allocate memory for buffer from heap */
-	if ((buf = malloc(BSIZE * sizeof(char*))) == NULL)
+	buf = malloc(BSIZE * sizeof(char*));
+	if (UNLIKELY(buf == NULL))
 	{
 		fputs("ERROR: Memory allocation failure.\n", stderr);
 		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
@@ -54,7 +55,8 @@ pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor, cons
 	}
 	for (i = 0; i < BSIZE; i++)
 	{
-		if ((buf[i] = malloc(MAX_LINE_LENGTH)) == NULL)
+		buf[i] = malloc(MAX_LINE_LENGTH);
+		if (UNLIKELY(buf[i] == NULL))
 		{
 			fputs("ERROR: Memory allocation failure.\n", stderr);
 			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
@@ -64,7 +66,8 @@ pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor, cons
 	}
 
 	/* Open the fastQ input stream */
-	if ((in = gzopen(filename, "rb")) == Z_NULL)
+	in = gzopen(filename, "rb");
+	if (in == Z_NULL)
 	{
 		fprintf(stderr, "ERROR: Failed to open input fastQ file \'%s\'.\n", filename);
 		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to open input fastQ file \'%s\'.\n",
@@ -73,7 +76,8 @@ pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor, cons
 	}
 
 	/* Open the output fastQ file streams */
-	 if ((fout = gzopen(ffor, "wb")) == Z_NULL)
+	fout = gzopen(ffor, "wb");
+	if (fout == Z_NULL)
 	{
 		fprintf(stderr, "ERROR: Failed to open forward output fastQ file \'%s\'.\n", ffor);
 		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to open forward output fastQ file \'%s\'.\n",
@@ -82,7 +86,8 @@ pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor, cons
 		return 1;
 	}
 
-	if ((rout = gzopen(frev, "wb")) == Z_NULL)
+	rout = gzopen(frev, "wb");
+	if (UNLIKELY(rout == Z_NULL))
 	{
 		fprintf(stderr, "ERROR: Failed to open reverse output fastQ file \'%s\'.\n", frev);
 		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to open reverse output fastQ file \'%s\'.\n",
@@ -117,7 +122,8 @@ pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor, cons
 				strl = strlen(&buf[l - 3][1]);
 
 				/* Construct fastQ hash key */
-				if ((idline = malloc(strl + 1u)) == NULL)
+				idline = malloc(strl + 1u);
+				if (UNLIKELY(idline == NULL))
 				{
 					fputs("ERROR: Memory allocation failure.\n", stderr);
 					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
@@ -179,7 +185,8 @@ pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor, cons
 				ypos = atoi(tok);
 
 				/* Construct hash key */
-				if ((mkey = malloc(KEYLEN)) == NULL)
+				mkey = malloc(KEYLEN);
+				if (UNLIKELY(mkey == NULL))
 				{
 					fputs("ERROR: Memory allocation failure.\n", stderr);
 					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",

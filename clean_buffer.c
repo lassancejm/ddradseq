@@ -18,8 +18,7 @@ clean_buffer(char *buff, size_t *nl)
 	size_t i = 0;
 
 	p = strpbrk(s, "\n");
-	if (p == NULL)
-		return NULL;
+	if (p == NULL) return NULL;
 	while (p)
 	{
 		if (i == (*nl - (*nl % 4)))

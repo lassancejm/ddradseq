@@ -32,8 +32,8 @@ trimend_main(CMD *cp)
 	        "sequences in \'%s\'.\n", timestr, cp->outdir);
 
 	/* Get list of all files */
-	if ((f = traverse_dirtree(cp->outdir, "pairs", &nfiles)) == NULL)
-		return 1;
+	f = traverse_dirtree(cp->outdir, "pairs", &nfiles);
+	if (f == NULL) return 1;
 
 	for (i = 0; i < nfiles; i += 2)
 	{
@@ -42,7 +42,8 @@ trimend_main(CMD *cp)
 		size_t spn = 0;
 
 		/* Construct output file names */
-		if ((ffor = malloc(strlen(f[i]) + 1u)) == NULL)
+		ffor = malloc(strlen(f[i]) + 1u);
+		if (UNLIKELY(ffor == NULL))
 		{
 			fputs("ERROR: Memory allocation failure.\n", stderr);
 			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
@@ -50,7 +51,8 @@ trimend_main(CMD *cp)
 			trimend_main_deallocate(f, NULL, NULL, nfiles);
 			return 1;
 		}
-		if ((frev = malloc(strlen(f[i + 1]) + 1u)) == NULL)
+		frev = malloc(strlen(f[i + 1]) + 1u);
+		if (UNLIKELY(frev == NULL))
 		{
 			fputs("ERROR: Memory allocation failure.\n", stderr);
 			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
@@ -79,7 +81,8 @@ trimend_main(CMD *cp)
 		        "\'%s\' and \'%s\'.\n", timestr, ffor, frev);
 
 		/* Align mated pairs and write to output file*/
-		if ((ret = align_mates(cp, f[i], f[i + 1], ffor, frev)) != 0)
+		ret = align_mates(cp, f[i], f[i + 1], ffor, frev);
+		if (ret != 0)
 		{
 			trimend_main_deallocate(f, ffor, frev, nfiles);
 			return 1;

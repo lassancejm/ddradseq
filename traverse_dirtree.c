@@ -71,7 +71,8 @@ traverse_dirtree(const char *dirpath, const char *pattern, unsigned int *x)
 	}
 
 	/* Get list of filenames */
-	if ((f = malloc(n * sizeof(char*))) == NULL)
+	f = malloc(n * sizeof(char*));
+	if (UNLIKELY(f == NULL))
 	{
 		fputs("ERROR: Memory allocation failure.\n", stderr);
 		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
