@@ -234,7 +234,7 @@ int parse_forwardbuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 					t = malloc(add_bytes + 1u);
 					if (!t)
 					{
-						error("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+						logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 						return 1;
 					}
 					sprintf (t, "%s\n%s\n+\n%s\n", idline, dna_sequence,
