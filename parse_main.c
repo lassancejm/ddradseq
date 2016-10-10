@@ -8,59 +8,42 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "khash.h"
 #include "ddradseq.h"
 
-/* Function prototypes */
-void parse_deallocate_mem(khash_t(pool_hash)*, khash_t(mates)*, char**, unsigned int, char*, char*);
-
-int
-parse_main(CMD *cp)
+int parse_main(CMD *cp)
 {
 	char **f = NULL;
 	int ret = 0;
 	unsigned int i = 0;
-	unsigned int nfiles = 0;
+	unsigned int n = 0;
 	khash_t(pool_hash) *h = NULL;
 	khash_t(mates) *m = NULL;
 
-	/* Update time string */
-	get_timestr(&timestr[0]);
-
 	/* Read CSV database into memory */
 	h = read_csv(cp);
-	if (h == NULL)
+	if (!h)
 	{
-		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to read CSV database "
-		        "into memory.\n", timestr, __func__, __LINE__);
+		logerror("%s:%d Failed to read CSV database into memory.\n",
+			     __func__, __LINE__);
 		return 1;
 	}
 
 	/* Check for write permissions on parent of output directory */
 	ret = check_directories(cp, h);
-	if (ret != 0)
-	{
-		parse_deallocate_mem(h, NULL, NULL, 0, NULL, NULL);
+	if (ret)
 		return 1;
-	}
 
 	/* Initialize hash for mate pair information */
 	m = kh_init(mates);
-	if (m == NULL)
-	{
-		parse_deallocate_mem(h, NULL, NULL, 0, NULL, NULL);
+	if (!m)
 		return 1;
-	}
 
 	/* Get list of all files */
-	f = traverse_dirtree(cp->parentdir, NULL, &nfiles);
-	if (f == NULL)
-	{
-		parse_deallocate_mem(h, m, NULL, 0, NULL, NULL);
+	f = traverse_dirtree(cp->parentdir, NULL, &n);
+	if (!f)
 		return 1;
-	}
 
-	for (i = 0; i < nfiles; i += 2)
+	for (i = 0; i < n; i += 2)
 	{
 		char *ffor = NULL;
 		char *frev = NULL;
@@ -68,34 +51,30 @@ parse_main(CMD *cp)
 
 		/* Construct output file names */
 		ffor = malloc(strlen(f[i]) + 1u);
-		if (UNLIKELY(ffor == NULL))
+		if (UNLIKELY(!ffor))
 		{
-			fputs("ERROR: Memory allocation failure.\n", stderr);
-			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
-			        timestr, __func__, __LINE__);
-			parse_deallocate_mem(h, m, f, nfiles, NULL, NULL);
+			logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 			return 1;
 		}
-		frev = malloc(strlen(f[i + 1]) + 1u);
-		if (UNLIKELY(frev == NULL))
+		frev = malloc(strlen(f[i+1]) + 1u);
+		if (UNLIKELY(!frev))
 		{
-			fputs("ERROR: Memory allocation failure.\n", stderr);
-			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
-			        timestr, __func__, __LINE__);
-			parse_deallocate_mem(h, m, f, nfiles, ffor, NULL);
+			logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 			return 1;
 		}
 		strcpy(ffor, f[i]);
-		strcpy(frev, f[i + 1]);
+		strcpy(frev, f[i+1]);
 		spn = strcspn(ffor, ".");
-		if (strncmp(ffor, frev, spn) != 0)
+		ret = strncmp(ffor, frev, spn);
+		if (ret)
 		{
-			fprintf(stderr, "ERROR: \'%s\' and \'%s\' do not appear to be mate pairs.\n", ffor, frev);
-			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Files \'%s\' and \'%s\' do not appear to be mate pairs.\n",
-			        timestr, __func__, __LINE__, ffor, frev);
-			parse_deallocate_mem(h, m, f, nfiles, ffor, frev);
+			logerror("%s:%d Files \'%s\' and \'%s\' do not appear to be mate "
+			         "pairs.\n", __func__, __LINE__, ffor, frev);
 			return 1;
 		}
+
+		/* Update time string */
+		get_timestr(&timestr[0]);
 
 		/* Print informational update to log file */
 		fprintf(lf, "[ddradseq: %s] INFO -- Attempting to align sequences in "
@@ -103,24 +82,23 @@ parse_main(CMD *cp)
 
 		/* Read the forward fastQ input file */
 		ret = parse_fastq(FORWARD, ffor, h, m, cp->dist);
-		if (ret != 0)
-		{
-			parse_deallocate_mem(h, m, f, nfiles, ffor, frev);
+		if (ret)
 			return 1;
-		}
 
 		/* Read the reverse fastQ input file */
 		ret = parse_fastq(REVERSE, frev, h, m, cp->dist);
-		if (ret != 0)
-		{
-			parse_deallocate_mem(h, m, f, nfiles, ffor, frev);
+		if (ret)
 			return 1;
-		}
-		parse_deallocate_mem(NULL, NULL, NULL, nfiles, ffor, frev);
+		free(ffor);
+		free(frev);
 	}
 
 	/* Deallocate memory from the heap */
-	parse_deallocate_mem(h, m, f, nfiles, NULL, NULL);
+	for (i = 0; i < n; i++)
+		free(f[i]);
+	free(f);
+	free_db(h);
+	free_matedb(m);
 
 	/* Update time string */
 	get_timestr(&timestr[0]);
@@ -130,19 +108,4 @@ parse_main(CMD *cp)
 	        timestr);
 
 	return 0;
-}
-
-void
-parse_deallocate_mem(khash_t(pool_hash) *h, khash_t(mates) *m, char **f, unsigned int n, char *r, char *s)
-{
-	if (f)
-	{
-		unsigned int i = 0;
-		for (i = 0; i < n; i++) free(f[i]);
-		free(f);
-	}
-	if (h) free_db(h);
-	if (m) free_matedb(m);
-	if (r) free(r);
-	if (s) free(s);
 }

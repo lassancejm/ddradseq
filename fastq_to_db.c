@@ -13,12 +13,7 @@
 #include "ddradseq.h"
 #include "khash.h"
 
-#define MAX_LINE_LENGTH 400
-#define BSIZE 4000
-#define KEYLEN 31
-
-khash_t(fastq) *
-fastq_to_db(const char *filename)
+khash_t(fastq) *fastq_to_db(const char *filename)
 {
 	char **buf = NULL;
 	char *idline = NULL;
@@ -46,21 +41,17 @@ fastq_to_db(const char *filename)
 
 	/* Allocate memory for buffer from heap */
 	buf = malloc(BSIZE * sizeof(char*));
-	if (UNLIKELY(buf == NULL))
+	if (UNLIKELY(!buf))
 	{
-		fputs("ERROR: Memory allocation failure.\n", stderr);
-		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
-		        timestr, __func__, __LINE__);
+		logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 		return NULL;
 	}
 	for (i = 0; i < BSIZE; i++)
 	{
 		buf[i] = malloc(MAX_LINE_LENGTH);
-		if (UNLIKELY(buf[i] == NULL))
+		if (UNLIKELY(!buf[i]))
 		{
-			fputs("ERROR: Memory allocation failure.\n", stderr);
-			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
-			        timestr, __func__, __LINE__);
+			logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 			return NULL;
 		}
 	}
@@ -70,11 +61,10 @@ fastq_to_db(const char *filename)
 
 	/* Open the fastQ input stream */
 	in = gzopen(filename, "rb");
-	if (in == Z_NULL)
+	if (!in)
 	{
-		fprintf(stderr, "ERROR: Failed to open input fastQ file %s.\n", filename);
-		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to open input fastQ file %s.\n",
-		        timestr, __func__, __LINE__, filename);
+		logerror("%s:%d Failed to open input fastQ file %s.\n", __func__,
+			     __LINE__, filename);
 		return NULL;
 	}
 
@@ -88,7 +78,8 @@ fastq_to_db(const char *filename)
 			memset(buf[lc], 0, MAX_LINE_LENGTH);
 
 			/* Get line from the fastQ input stream */
-			if (gzgets(in, buf[lc], MAX_LINE_LENGTH) == Z_NULL) break;
+			if (gzgets(in, buf[lc], MAX_LINE_LENGTH) == Z_NULL)
+				break;
 		}
 
 		/* Iterate through lines in the buffer */
@@ -99,162 +90,107 @@ fastq_to_db(const char *filename)
 			{
 				/* Allocate memory for new fastQ entry */
 				e = malloc(sizeof(FASTQ));
-				if (UNLIKELY(e == NULL))
+				if (UNLIKELY(!e))
 				{
-					fputs("ERROR: Memory allocation failure.\n", stderr);
-					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
-					        timestr, __func__, __LINE__);
-					kh_destroy(fastq, h);
+					logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 					return NULL;
 				}
 
 				/* Parse entry identifier */
-				pos = strcspn(buf[l - 3], "\n");
-				buf[l - 3][pos] = '\0';
-				strl = strlen(&buf[l - 3][1]);
+				pos = strcspn(buf[l-3], "\n");
+				buf[l-3][pos] = '\0';
+				strl = strlen(&buf[l-3][1]);
 				e->id = malloc(strl + 1u);
-				if (UNLIKELY(e->id == NULL))
+				if (UNLIKELY(!e->id))
 				{
-					fputs("ERROR: Memory allocation failure.\n", stderr);
-					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
-					        timestr, __func__, __LINE__);
-					free(e);
-					kh_destroy(fastq, h);
+					logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 					return NULL;
 				}
 				strcpy(e->id, &buf[l - 3][1]);
 
 				/* Construct fastQ hash key */
 				idline = malloc(strl + 1u);
-				if (UNLIKELY(idline == NULL))
+				if (UNLIKELY(!idline))
 				{
-					fputs("ERROR: Memory allocation failure.\n", stderr);
-					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
-					        timestr, __func__, __LINE__);
-					free(e->id);
-					free(e);
-					kh_destroy(fastq, h);
+					logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 					return NULL;
 				}
-				strcpy(idline, &buf[l - 3][1]);
+				strcpy(idline, &buf[l-3][1]);
 
 				/* Get instrument name */
-				if ((tok = strtok_r(idline, seps, &r)) == NULL)
+				tok = strtok_r(idline, seps, &r);
+				if (!tok)
 				{
-					fputs("ERROR: Parsing ID line failed.\n", stderr);
-					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
-					        timestr, __func__, __LINE__);
-					free(e->id);
-					free(e);
-					free(idline);
-					kh_destroy(fastq, h);
+					logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
 					return NULL;
 				}
 
 				/* Get run number, flow cell ID, and lane number */
 				for (z = 0; z < 3; z++)
 				{
-					if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+					tok = strtok_r(NULL, seps, &r);
+					if (!tok)
 					{
-						fputs("ERROR: Parsing ID line failed.\n", stderr);
-						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
-						        timestr, __func__, __LINE__);
-						free(e->id);
-						free(e);
-						free(idline);
-						kh_destroy(fastq, h);
+						logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
 						return NULL;
 					}
 				}
 
 				/* Get tile number, x, and y coordinate */
-				if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+				tok = strtok_r(NULL, seps, &r);
+				if (!tok)
 				{
-					fputs("ERROR: Parsing ID line failed.\n", stderr);
-					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
-					        timestr, __func__, __LINE__);
-					free(e->id);
-					free(e);
-					free(idline);
-					kh_destroy(fastq, h);
+					logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
 					return NULL;
 				}
 				tile = atoi(tok);
-				if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+				tok = strtok_r(NULL, seps, &r);
+				if (!tok)
 				{
-					fputs("ERROR: Parsing ID line failed.\n", stderr);
-					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
-					        timestr, __func__, __LINE__);
-					free(e->id);
-					free(e);
-					free(idline);
-					kh_destroy(fastq, h);
+					logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
 					return NULL;
 				}
 				xpos = atoi(tok);
-				if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+				tok = strtok_r(NULL, seps, &r);
+				if (!tok)
 				{
-					fputs("ERROR: Parsing ID line failed.\n", stderr);
-					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
-					        timestr, __func__, __LINE__);
-					free(e->id);
-					free(e);
-					free(idline);
-					kh_destroy(fastq, h);
+					logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
 					return NULL;
 				}
 				ypos = atoi(tok);
 
 				/* Construct the hash key */
 				mkey = malloc(KEYLEN);
-				if (UNLIKELY(mkey == NULL))
+				if (UNLIKELY(!mkey))
 				{
-					fputs("ERROR: Memory allocation failure.\n", stderr);
-					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
-					        timestr, __func__, __LINE__);
-					free(e->id);
-					free(e);
-					free(idline);
-					kh_destroy(fastq, h);
+					logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 					return NULL;
 				}
 				sprintf(mkey, "%010d%010d%010d", tile, xpos, ypos);
 				k = kh_put(fastq, h, mkey, &a);
-				if (!a) free(mkey);
+				if (!a)
+					free(mkey);
 
 				/* Parse DNA sequence */
-				pos = strcspn(buf[l - 2], "\n");
-				buf[l - 2][pos] = '\0';
-				strl = strlen(&buf[l - 2][0]);
+				pos = strcspn(buf[l-2], "\n");
+				buf[l-2][pos] = '\0';
+				strl = strlen(&buf[l-2][0]);
 				e->seq = malloc(strl + 1u);
-				if (UNLIKELY(e->seq == NULL))
+				if (UNLIKELY(!e->seq))
 				{
-					fputs("ERROR: Memory allocation failure.\n", stderr);
-					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
-					        timestr, __func__, __LINE__);
-					free(e->id);
-					free(e);
-					free(idline);
-					kh_destroy(fastq, h);
+					logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 					return NULL;
 				}
-				strcpy(e->seq, &buf[l - 2][0]);
+				strcpy(e->seq, &buf[l-2][0]);
 
 				/* Parse quality sequence */
 				pos = strcspn(buf[l], "\n");
 				buf[l][pos] = '\0';
 				strl = strlen(&buf[l][0]);
 				e->qual = malloc(strl + 1u);
-				if (UNLIKELY(e->qual == NULL))
+				if (UNLIKELY(!e->qual))
 				{
-					fputs("ERROR: Memory allocation failure.\n", stderr);
-					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
-					        timestr, __func__, __LINE__);
-					free(e->id);
-					free(e);
-					free(idline);
-					free(e->seq);
-					kh_destroy(fastq, h);
+					logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 					return NULL;
 				}
 				strcpy(e->qual, &buf[l][0]);
@@ -272,7 +208,8 @@ fastq_to_db(const char *filename)
 	}
 
 	/* Free memory for buffer to heap */
-	for (i = 0; i < BSIZE; i++) free(buf[i]);
+	for (i = 0; i < BSIZE; i++)
+		free(buf[i]);
 	free(buf);
 
 	/* Close input stream */

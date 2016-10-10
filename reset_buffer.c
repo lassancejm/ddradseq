@@ -9,8 +9,7 @@
 #include <stdlib.h>
 #include "ddradseq.h"
 
-size_t
-reset_buffer(char *buff, const char *r)
+size_t reset_buffer(char *buff, const char *r)
 {
 	size_t i = 0;
 	size_t br = 0;

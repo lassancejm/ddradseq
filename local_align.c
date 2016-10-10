@@ -27,9 +27,8 @@ ALIGN_RESULT smith_waterman(ALIGN_QUERY *q, int tlen, const char *target, int _g
 static void revseq(int l, char *s);
 
 
-ALIGN_RESULT
-local_align(int qlen, char *query, int tlen, char *target, const char *mat, int gapo,
-			int gape, int xtra)
+ALIGN_RESULT local_align(int qlen, char *query, int tlen, char *target,
+                         const char *mat, int gapo, int gape, int xtra)
 {
 	ALIGN_QUERY *q;
 	ALIGN_RESULT r;
@@ -58,8 +57,7 @@ local_align(int qlen, char *query, int tlen, char *target, const char *mat, int 
 	return r;
 }
 
-ALIGN_QUERY *
-align_init(int qlen, const char *query, const char *mat)
+ALIGN_QUERY *align_init(int qlen, const char *query, const char *mat)
 {
 	int slen = 0;
 	int a = 0;
@@ -76,7 +74,7 @@ align_init(int qlen, const char *query, const char *mat)
 	/* Allocate memory for query profile */
 	if ((q = malloc(sizeof(ALIGN_QUERY) + 256 + 16 * slen * (ALPHA_SIZE + 4))) == NULL)
 	{
-		fputs("Error: cannot allocate memory for query profile.\n", stderr);
+		logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 		return NULL;
 	}
 
@@ -123,8 +121,8 @@ align_init(int qlen, const char *query, const char *mat)
 	return q;
 }
 
-ALIGN_RESULT
-smith_waterman(ALIGN_QUERY *q, int tlen, const char *target, int _gapo, int _gape, int xtra)
+ALIGN_RESULT smith_waterman(ALIGN_QUERY *q, int tlen, const char *target,
+                            int _gapo, int _gape, int xtra)
 {
 	int slen = 0;
 	int i = 0;
@@ -279,7 +277,7 @@ end_loop16:
 					m_b = m_b ? m_b << 1 : 8;
 					if ((b = realloc(b, 8 * m_b)) == NULL)
 					{
-						fputs("Error: cannot allocate memory for b.\n", stderr);
+						logerror("%s:%d Memory reallocation failure.\n", __func__, __LINE__);
 						return r;
 					}
 				}
@@ -354,8 +352,7 @@ end_loop16:
 	return r;
 }
 
-static void
-revseq(int l, char *s)
+static void revseq(int l, char *s)
 {
 	int i = 0;
 	int t = 0;

@@ -14,8 +14,7 @@
 #include <libgen.h>
 #include "ddradseq.h"
 
-CMD *
-parse_cmdline(int argc, char *argv[])
+CMD *parse_cmdline(int argc, char *argv[])
 {
 	char *datec = NULL;
 	char *tmpdir = NULL;
@@ -29,9 +28,9 @@ parse_cmdline(int argc, char *argv[])
 
 	/* Allocate memory for command line option structure */
 	cp = malloc(sizeof(CMD));
-	if (UNLIKELY(cp == NULL))
+	if (UNLIKELY(!cp))
 	{
-		fputs("ERROR: Memory allocation failure.\n", stderr);
+		error("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 		return NULL;
 	}
 
@@ -64,7 +63,8 @@ parse_cmdline(int argc, char *argv[])
 		int option_index = 0;
 
 		c = getopt_long(argc, argv, "o:d:c:m:s:hv", long_options, &option_index);
-		if (c == -1) break;
+		if (c == -1)
+			break;
 
 		switch (c)
 		{
@@ -79,9 +79,9 @@ parse_cmdline(int argc, char *argv[])
 			case 'o':
 				/* Construct the date string for output directory */
 				datec = malloc(DATELEN + 3u);
-				if (UNLIKELY(datec == NULL))
+				if (UNLIKELY(!datec))
 				{
-					fputs("ERROR: Memory allocation failure.\n", stderr);
+					error("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 					return NULL;
 				}
 				time(&rawtime);
@@ -93,12 +93,9 @@ parse_cmdline(int argc, char *argv[])
 				{
 					strl += 22u;
 					cp->outdir = malloc(strl);
-					if (UNLIKELY(cp->outdir == NULL))
+					if (UNLIKELY(!cp->outdir))
 					{
-						fputs("ERROR: Memory allocation failure.\n", stderr);
-						free(datec);
-						free(tmpdir);
-						free_cmdline(cp);
+						error("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 						return NULL;
 					}
 					strcpy(cp->outdir, tmpdir);
@@ -108,12 +105,9 @@ parse_cmdline(int argc, char *argv[])
 				{
 					strl += 23u;
 					cp->outdir = malloc(strl);
-					if (UNLIKELY(cp->outdir == NULL))
+					if (UNLIKELY(!cp->outdir))
 					{
-						fputs("ERROR: Memory allocation failure.\n", stderr);
-						free(datec);
-						free(tmpdir);
-						free_cmdline(cp);
+						error("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 						return NULL;
 					}
 					strcpy(cp->outdir, tmpdir);
@@ -129,7 +123,6 @@ parse_cmdline(int argc, char *argv[])
 				    (r = strcmp(cp->mode, "trimend")) != 0)
 				{
 					fprintf(stderr, "ERROR: %s is not a valid mode.\n", cp->mode);
-					free_cmdline(cp);
 					return NULL;
 				}
 				break;
@@ -152,45 +145,35 @@ parse_cmdline(int argc, char *argv[])
 				fprintf(stdout, "%s\n", version_str);
 				exit(EXIT_SUCCESS);
 			case 'h':
-				free_cmdline(cp);
 				return NULL;
 			case '?':
-				free_cmdline(cp);
 				return NULL;
 			default:
-				free_cmdline(cp);
 				return NULL;
 		}
 	}
 
 	/* Do sanity check on command line options */
-	if (cp->mode == NULL)
+	if (!cp->mode)
 	{
 		cp->mode = malloc(4u);
 		strcpy(cp->mode, "all");
 	}
-	if (cp->csvfile == NULL &&
-	    ((r = strcmp(cp->mode, "parse")) == 0 ||
-	     (r = strcmp(cp->mode, "all")) == 0))
+	if (!cp->csvfile && ((r = strcmp(cp->mode, "parse")) == 0 || (r = strcmp(cp->mode, "all")) == 0))
 	{
 		fputs("ERROR: \'--csv\' switch is mandatory when running parse mode.\n", stderr);
-		free_cmdline(cp);
 		return NULL;
 	}
-	if (cp->outdir == NULL &&
-	    ((r = strcmp(cp->mode, "parse")) == 0 ||
-	     (r = strcmp(cp->mode, "all")) == 0))
+	if (!cp->outdir && ((r = strcmp(cp->mode, "parse")) == 0 || (r = strcmp(cp->mode, "all")) == 0))
 	{
 		fputs("ERROR: \'--out\' switch is mandatory when running parse mode.\n", stderr);
-		free_cmdline(cp);
 		return NULL;
 	}
 
 	/* Parse non-optioned arguments */
-	if ((optind + 1) > argc)
+	if (optind + 1 > argc)
 	{
 		fputs("ERROR: need the fastQ parent directory as input.\n", stderr);
-		free_cmdline(cp);
 		return NULL;
 	}
 	else

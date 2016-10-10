@@ -37,8 +37,7 @@ char seq_nt4_table[256] = {
 };
 char alpha[5] = "ACGTN";
 
-int
-align_mates(CMD *cp, const char *forin, const char *revin, const char *forout, const char *revout)
+int align_mates(CMD *cp, const char *forin, const char *revin, const char *forout, const char *revout)
 {
 	char **fbuf = NULL;
 	char **rbuf = NULL;
@@ -67,68 +66,56 @@ align_mates(CMD *cp, const char *forin, const char *revin, const char *forout, c
 	fbuf = malloc(BSIZE * sizeof(char*));
 	if (UNLIKELY(fbuf == NULL))
 	{
-		fputs("ERROR: Memory allocation failure.\n", stderr);
-		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
-		        timestr, __func__, __LINE__);
+		logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 		return 1;
 	}
 	rbuf = malloc(BSIZE * sizeof(char*));
 	if (UNLIKELY(rbuf == NULL))
 	{
-		fputs("ERROR: Memory allocation failure.\n", stderr);
-		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
-		        timestr, __func__, __LINE__);
-		free(fbuf);
+		logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 		return 1;
 	}
 	for (i = 0; i < BSIZE; i++)
 	{
 		fbuf[i] = malloc(MAX_LINE_LENGTH);
-		if (UNLIKELY(fbuf[i] == NULL))
+		if (UNLIKELY(!fbuf[i]))
 		{
-			fputs("ERROR: Memory allocation failure.\n", stderr);
-			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
-					timestr, __func__, __LINE__);
+			logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 			return 1;
 		}
 		rbuf[i] = malloc(MAX_LINE_LENGTH);
-		if (UNLIKELY(rbuf[i] == NULL))
+		if (UNLIKELY(!rbuf[i]))
 		{
-			fputs("ERROR: Memory allocation failure.\n", stderr);
-			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
-					timestr, __func__, __LINE__);
+			logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 			return 1;
 		}
 	}
 
 	/* Open input forward fastQ file stream */
 	fin = gzopen(forin, "rb");
-	if (fin == NULL)
+	if (!fin)
 	{
-		fprintf(stderr, "ERROR: Failed to open input forward fastQ file \'%s\'.\n", forin);
-		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to open input forward fastQ file \'%s\'.\n",
-		        timestr, __func__, __LINE__, forin);
+		logerror("%s:%d Failed to open input forward fastQ file \'%s\'.\n",
+		         __func__, __LINE__, forin);
 		return 1;
 	}
 
 	/* Open input reverse fastQ file stream */
 	rin = gzopen(revin, "rb");
-	if (rin == NULL)
+	if (!rin)
 	{
-		fprintf(stderr, "ERROR: Failed to open input reverse fastQ file \'%s\'.\n", revin);
-		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to open input reverse fastQ file \'%s\'.\n",
-		        timestr, __func__, __LINE__, revin);
+		logerror("%s:%d Failed to open input reverse fastQ file \'%s\'.\n",
+		         __func__, __LINE__, revin);
 		gzclose(fin);
 		return 1;
 	}
 
 	/* Open output forward fastQ file stream */
 	fout = gzopen(forout, "wb");
-	if (fout == NULL)
+	if (!fout)
 	{
-		fprintf(stderr, "ERROR: Failed to open forward output fastQ file \'%s\'.\n", forout);
-		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to open forward output fastQ file \'%s\'.\n",
-		        timestr, __func__, __LINE__, forout);
+		logerror("%s:%d Failed to open forward output fastQ file \'%s\'.\n",
+		         __func__, __LINE__, forout);
 		gzclose(fin);
 		gzclose(rin);
 		return 1;
@@ -136,11 +123,10 @@ align_mates(CMD *cp, const char *forin, const char *revin, const char *forout, c
 
 	/* Open output reverse fastQ file stream */
 	rout = gzopen(revout, "wb");
-	if (rout == NULL)
+	if (!rout)
 	{
-		fprintf(stderr, "ERROR: Failed to open reverse output fastQ file \'%s\'.\n", revout);
-		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to open reverse output fastQ file \'%s\'.\n",
-		        timestr, __func__, __LINE__, revout);
+		logerror("%s:%d Failed to open reverse output fastQ file \'%s\'.\n",
+		         __func__, __LINE__, revout);
 		gzclose(fin);
 		gzclose(rin);
 		gzclose(fout);
@@ -168,7 +154,8 @@ align_mates(CMD *cp, const char *forin, const char *revin, const char *forout, c
 			memset(fbuf[lc], 0, MAX_LINE_LENGTH);
 
 			/* Get line from the fastQ input stream */
-			if (gzgets(fin, fbuf[lc], MAX_LINE_LENGTH) == Z_NULL) break;
+			if (gzgets(fin, fbuf[lc], MAX_LINE_LENGTH) == Z_NULL)
+				break;
 		}
 
 		/* Fill up the reverse buffer */
@@ -178,7 +165,8 @@ align_mates(CMD *cp, const char *forin, const char *revin, const char *forout, c
 			memset(rbuf[lc], 0, MAX_LINE_LENGTH);
 
 			/* Get line from the fastQ input stream */
-			if (gzgets(rin, rbuf[lc], MAX_LINE_LENGTH) == Z_NULL) break;
+			if (gzgets(rin, rbuf[lc], MAX_LINE_LENGTH) == Z_NULL)
+				break;
 		}
 
 		/* Iterate through lines in the buffers */
@@ -190,8 +178,10 @@ align_mates(CMD *cp, const char *forin, const char *revin, const char *forout, c
 				ALIGN_RESULT r;
 				char *target = NULL;
 				char *query = NULL;
-				target = strdup(&fbuf[l - 2][0]);
-				query = revcom(&rbuf[l - 2][0]);
+				target = strdup(&fbuf[l-2][0]);
+				query = revcom(&rbuf[l-2][0]);
+				if (!target || !query)
+					return 1;
 				int tlen = (int)strlen(target);
 				target[tlen] = '\0';
 				int qlen = (int)strlen(query);
@@ -211,11 +201,10 @@ align_mates(CMD *cp, const char *forin, const char *revin, const char *forout, c
 				if (r.score >= min_score)
 				{
 					/* Test trimming criterion */
-					if (r.target_begin == 0 &&
-						r.query_begin > 0)
+					if (r.target_begin == 0 && r.query_begin > 0)
 					{
 						int new_end_pos = qlen - r.query_begin;
-						char *seq = &rbuf[l - 2][0];
+						char *seq = &rbuf[l-2][0];
 						char *qual = &rbuf[l][0];
 						seq[new_end_pos] = '\0';
 						qual[new_end_pos] = '\0';
@@ -224,13 +213,14 @@ align_mates(CMD *cp, const char *forin, const char *revin, const char *forout, c
 				}
 
 				/* Write sequences to file */
-				gzprintf(fout, "%s%s+\n%s", &fbuf[l - 3][0], &fbuf[l - 2][0], &fbuf[l][0]);
-				gzprintf(rout, "%s%s+\n%s", &rbuf[l - 3][0], &rbuf[l - 2][0], &rbuf[l][0]);
+				gzprintf(fout, "%s%s+\n%s", &fbuf[l-3][0], &fbuf[l-2][0], &fbuf[l][0]);
+				gzprintf(rout, "%s%s+\n%s", &rbuf[l-3][0], &rbuf[l-2][0], &rbuf[l][0]);
 			}
 		}
 
 		/* If we are at the end of the file */
-		if (lc < BSIZE) break;
+		if (lc < BSIZE)
+			break;
 	}
 
 	/* Print informational message to logfile */

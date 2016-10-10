@@ -18,37 +18,42 @@ extern int trimend_main(CMD*);
 extern int pair_main(CMD*);
 void usage(void);
 
-int
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
+	char *cwd = NULL;
 	char logfname[] = "/ddradseq.log\0";
 	int ret = 0;
 	CMD *cp = NULL;
 
 	/* Parse the command line options */
-	if ((cp = parse_cmdline(argc, argv)) == NULL)
+	cp = parse_cmdline(argc, argv);
+	if (!cp)
 	{
 		usage();
 		return 1;
 	}
 
 	/* Get current working directory */
-	if (getcwd(logfile, sizeof(logfile)) == NULL)
+	cwd = getcwd(logfile, sizeof(logfile));
+	if (!cwd)
 	{
-		fputs("ERROR: Failed to get current working directory.\n", stderr);
+		error("%s:%d Failed to get current working directory.\n", __func__, __LINE__);
 		return 1;
 	}
 	strcat(logfile, logfname);
 
 	/* Open log file for writing */
-	if ((lf = fopen(logfile, "a")) == NULL)
+	lf = fopen(logfile, "a");
+	if (!lf)
 	{
-		fputs("ERROR: Failed to open logfile", stderr);
+		error("%s:%d Failed to open logfile.\n", __func__, __LINE__);
 		return 1;
 	}
 
 	/* Initialize the log files */
 	ret = log_init(cp);
+	if (ret)
+		return 1;
 
 	/* Run the parse pipeline stage */
 	if ((ret = strcmp(cp->mode, "parse")) == 0 ||
@@ -77,8 +82,7 @@ main(int argc, char *argv[])
 	return 0;
 }
 
-void
-usage(void)
+void usage(void)
 {
 	fputs("Usage: ddradseq [OPTIONS] [INPUT DIRECTORY]\n\n", stderr);
 	fputs("Parse fastQ file into separate files by flow cell, barcode and/or index\n\n", stderr);

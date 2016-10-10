@@ -13,12 +13,8 @@
 #include "ddradseq.h"
 #include "khash.h"
 
-#define MAX_LINE_LENGTH 400
-#define BSIZE 4000
-#define KEYLEN 31
-
-int
-pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor, const char *frev)
+int pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor,
+               const char *frev)
 {
 	char **buf = NULL;
 	char *idline = NULL;
@@ -46,52 +42,45 @@ pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor, cons
 
 	/* Allocate memory for buffer from heap */
 	buf = malloc(BSIZE * sizeof(char*));
-	if (UNLIKELY(buf == NULL))
+	if (UNLIKELY(!buf))
 	{
-		fputs("ERROR: Memory allocation failure.\n", stderr);
-		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
-		        timestr, __func__, __LINE__);
+		logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 		return 1;
 	}
 	for (i = 0; i < BSIZE; i++)
 	{
 		buf[i] = malloc(MAX_LINE_LENGTH);
-		if (UNLIKELY(buf[i] == NULL))
+		if (UNLIKELY(!buf[i]))
 		{
-			fputs("ERROR: Memory allocation failure.\n", stderr);
-			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
-			        timestr, __func__, __LINE__);
+			logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 			return 1;
 		}
 	}
 
 	/* Open the fastQ input stream */
 	in = gzopen(filename, "rb");
-	if (in == Z_NULL)
+	if (!in)
 	{
-		fprintf(stderr, "ERROR: Failed to open input fastQ file \'%s\'.\n", filename);
-		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to open input fastQ file \'%s\'.\n",
-		        timestr, __func__, __LINE__, filename);
+		logerror("%s:%d Failed to open input fastQ file \'%s\'.\n", __func__, 
+		         __LINE__, filename);
 		return 1;
 	}
 
 	/* Open the output fastQ file streams */
 	fout = gzopen(ffor, "wb");
-	if (fout == Z_NULL)
+	if (!fout)
 	{
-		fprintf(stderr, "ERROR: Failed to open forward output fastQ file \'%s\'.\n", ffor);
-		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to open forward output fastQ file \'%s\'.\n",
-		        timestr, __func__, __LINE__, ffor);
+		logerror("%s:%d Failed to open forward output fastQ file \'%s\'.\n",
+		         __func__, __LINE__, ffor);
 		gzclose(in);
 		return 1;
 	}
 
 	rout = gzopen(frev, "wb");
-	if (UNLIKELY(rout == Z_NULL))
+	if (!rout)
 	{
-		fprintf(stderr, "ERROR: Failed to open reverse output fastQ file \'%s\'.\n", frev);
-		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to open reverse output fastQ file \'%s\'.\n",
-		        timestr, __func__, __LINE__, frev);
+		logerror("%s:%d Failed to open reverse output fastQ file \'%s\'.\n",
+		         __func__, __LINE__, frev);
 		gzclose(in);
 		gzclose(fout);
 		return 1;
@@ -107,7 +96,8 @@ pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor, cons
 			memset(buf[lc], 0, MAX_LINE_LENGTH);
 
 			/* Get line from the fastQ input stream */
-			if (gzgets(in, buf[lc], MAX_LINE_LENGTH) == Z_NULL) break;
+			if (gzgets(in, buf[lc], MAX_LINE_LENGTH) == Z_NULL)
+				break;
 		}
 
 		/* Iterate through lines in the buffer */
@@ -117,81 +107,66 @@ pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor, cons
 			if (l % 4 == 3)
 			{
 				/* Parse entry identifier */
-				pos = strcspn(buf[l - 3], "\n");
-				buf[l - 3][pos] = '\0';
-				strl = strlen(&buf[l - 3][1]);
+				pos = strcspn(buf[l-3], "\n");
+				buf[l-3][pos] = '\0';
+				strl = strlen(&buf[l-3][1]);
 
 				/* Construct fastQ hash key */
 				idline = malloc(strl + 1u);
-				if (UNLIKELY(idline == NULL))
+				if (UNLIKELY(!idline))
 				{
-					fputs("ERROR: Memory allocation failure.\n", stderr);
-					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
-					        timestr, __func__, __LINE__);
+					logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 					return 1;
 				}
-				strcpy(idline, &buf[l - 3][1]);
+				strcpy(idline, &buf[l-3][1]);
 
 				/* Get instrument name */
-				if ((tok = strtok_r(idline, seps, &r)) == NULL)
+				tok = strtok_r(idline, seps, &r);
+				if (!tok)
 				{
-					fputs("ERROR: Parsing ID line failed.\n", stderr);
-					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
-					        timestr, __func__, __LINE__);
-					free(idline);
+					logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
 					return 1;
 				}
 
 				/* Get run number, flow cell ID, and lane number */
 				for (z = 0; z < 3; z++)
 				{
-					if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+					tok = strtok_r(NULL, seps, &r);
+					if (!tok)
 					{
-						fputs("ERROR: Parsing ID line failed.\n", stderr);
-						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
-						        timestr, __func__, __LINE__);
-						free(idline);
+						logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
 						return 1;
 					}
 				}
 
 				/* Get tile number, x, and y coordinate */
-				if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+				tok = strtok_r(NULL, seps, &r);
+				if (!tok)
 				{
-					fputs("ERROR: Parsing ID line failed.\n", stderr);
-					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
-					        timestr, __func__, __LINE__);
-					free(idline);
+					logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
 					return 1;
 				}
 				tile = atoi(tok);
-				if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+				tok = strtok_r(NULL, seps, &r);
+				if (!tok)
 				{
-					fputs("ERROR: Parsing ID line failed.\n", stderr);
-					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
-					        timestr, __func__, __LINE__);
-					free(idline);
+					logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
 					return 1;
 				}
 				xpos = atoi(tok);
-				if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+				tok = strtok_r(NULL, seps, &r);
+				if (!tok)
 				{
-					fputs("ERROR: Parsing ID line failed.\n", stderr);
-					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
-					        timestr, __func__, __LINE__);
-					free(idline);
+					logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
 					return 1;
 				}
 				ypos = atoi(tok);
 
 				/* Construct hash key */
 				mkey = malloc(KEYLEN);
-				if (UNLIKELY(mkey == NULL))
+				if (UNLIKELY(!mkey))
 				{
-					fputs("ERROR: Memory allocation failure.\n", stderr);
-					fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
-					        timestr, __func__, __LINE__);
-					free(idline);
+					logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 					return 1;
 				}
 				sprintf(mkey, "%010d%010d%010d", tile, xpos, ypos);
@@ -204,8 +179,8 @@ pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor, cons
 				if (e != NULL)
 				{
 					/* Parse DNA sequence */
-					pos = strcspn(buf[l - 2], "\n");
-					buf[l - 2][pos] = '\0';
+					pos = strcspn(buf[l-2], "\n");
+					buf[l-2][pos] = '\0';
 
 					/* Parse quality sequence */
 					pos = strcspn(buf[l], "\n");
@@ -213,17 +188,19 @@ pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor, cons
 
 					/* Need to construct output file streams */
 					gzprintf(fout, "@%s\n%s\n+\n%s\n", e->id, e->seq, e->qual);
-					gzprintf(rout, "@%s\n%s\n+\n%s\n", &buf[l - 3][1], &buf[l - 2][0], &buf[l][0]);
+					gzprintf(rout, "@%s\n%s\n+\n%s\n", &buf[l-3][1], &buf[l-2][0], &buf[l][0]);
 				}
 			}
 		}
 
 		/* If we are at the end of the file */
-		if (lc < BSIZE) break;
+		if (lc < BSIZE)
+			break;
 	}
 
 	/* Free memory for buffer to heap */
-	for (i = 0; i < BSIZE; i++) free(buf[i]);
+	for (i = 0; i < BSIZE; i++)
+		free(buf[i]);
 	free(buf);
 
 	/* Close input stream */

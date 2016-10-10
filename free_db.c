@@ -10,8 +10,7 @@
 #include "khash.h"
 #include "ddradseq.h"
 
-int
-free_db(khash_t(pool_hash) *h)
+int free_db(khash_t(pool_hash) *h)
 {
 	const char *key;
 	khint_t i = 0;

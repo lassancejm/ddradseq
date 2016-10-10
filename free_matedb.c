@@ -10,13 +10,13 @@
 #include "khash.h"
 #include "ddradseq.h"
 
-int
-free_matedb(khash_t(mates) *m)
+int free_matedb(khash_t(mates) *m)
 {
 	const char *key;
-	char *v;
+	char *v = NULL;
 
-	if (m == NULL) return 1;
+	if (m == NULL)
+		return 1;
 	kh_foreach(m, key, v, free(v); free((void*)key););
 	kh_destroy(mates, m);
 	return 0;

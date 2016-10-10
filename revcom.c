@@ -19,11 +19,11 @@
 int reverse_string(char*);
 int complement_string(char*);
 
-char *
-revcom(const char *s)
+char *revcom(const char *s)
 {
 	char *str = NULL;
 	char *pch = NULL;
+	int ret = 0;
 	size_t strl = 0;
 	size_t i = 0;
 
@@ -33,7 +33,8 @@ revcom(const char *s)
 	/* Create local copy of DNA string */
 	str = strdup(s);
 	pch = strchr(str,'\n');
-	if (pch) *pch = '\0';
+	if (pch)
+		*pch = '\0';
 	strl = strlen(str);
 
 	/* Convert to upper-case characters */
@@ -46,9 +47,8 @@ revcom(const char *s)
 			continue;
 		else
 		{
-			fputs("ERROR: Reverse complementing sequence failed.\n", stderr);
-			fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Bad character '\%c\' at position %zu.\n",
-					timestr, __func__, __LINE__, str[i], i + 1u);
+			logerror("%s:%d Bad character '\%c\' at position %zu.\n", __func__,
+			         __LINE__, str[i], i + 1u);
 			return NULL;
 		}
 	}
@@ -58,16 +58,19 @@ revcom(const char *s)
 	if (str && strlen(str) > 1u)
 	{
 		/* Reverse the string */
-		reverse_string (str);
+		ret = reverse_string(str);
+		if (ret)
+			return NULL;
 
 		/* Complement string */
-		complement_string (str);
+		ret = complement_string(str);
+		if (ret)
+			return NULL;
 	}
 	return str;
 }
 
-int
-reverse_string(char *s)
+int reverse_string(char *s)
 {
 	char *p1 = s;
 	char *p2 = s + strlen(s) - 1;
@@ -84,10 +87,11 @@ reverse_string(char *s)
 	return 0;
 }
 
-int
-complement_string(char *s)
+int complement_string(char *s)
 {
-	char j = 0;
+	char c = 0;
+	char *pch1 = NULL;
+	char *pch2 = NULL;
 	char *iupac = "ACGTURYSWKMN-";
 	char *iupac_extend = "BDHV";
 	size_t i = 0;
@@ -101,29 +105,29 @@ complement_string(char *s)
 	/* Iterate through string and complement each base */
 	for (i = 0; i < strlen(s); i++)
 	{
-		j = s[i];
+		c = s[i];
 
 		/* Check that base is IUPAC representation */
-		if (strchr(iupac, j) == NULL)
+		pch1 = strchr(iupac, c);
+		if (!pch1)
 		{
-			if (strchr(iupac_extend, j) != NULL)
+			pch2 = strchr(iupac_extend, c);
+			if (pch2)
 			{
-				fputs("ERROR: Base complementing failed.\n", stderr);
-				fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d IUPAC codes with three "
-				        "bases at a site are not supported.\n", timestr, __func__, __LINE__);
+				logerror("%s:%d IUPAC codes with three bases at a site are not "
+				         "supported.\n", __func__, __LINE__);
 			}
 			else
 			{
-				fputs("ERROR: Base complementing failed.\n", stderr);
-				fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Bad character '\%c\' at position %zu.\n",
-					    timestr, __func__, __LINE__, s[i], i + 1u);
+				logerror("%s:%d Bad character '\%c\' at position %zu.\n",
+					     __func__, __LINE__, s[i], i + 1u);
 			}
 			return 1;
 		}
-		else if (j == '-')
+		else if (c == '-')
 			continue;
 		else
-			s[i] = (char)(lookup_table[(unsigned int)(j) - DNA_BEGIN] + DNA_BEGIN);
+			s[i] = (char)(lookup_table[(unsigned int)(c) - DNA_BEGIN] + DNA_BEGIN);
 	}
 	return 0;
 }

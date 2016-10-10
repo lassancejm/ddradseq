@@ -10,8 +10,7 @@
 
 #define LEN 80
 
-int
-get_timestr(char *s)
+int get_timestr(char *s)
 {
 	time_t rawtime;
 	struct tm *timeinfo;

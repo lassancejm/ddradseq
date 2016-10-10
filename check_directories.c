@@ -17,8 +17,7 @@
 #include "khash.h"
 #include "ddradseq.h"
 
-int
-check_directories(const CMD *cp, const khash_t(pool_hash) *h)
+int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 {
 	char *pooldir = NULL;
 	char *flowdir = NULL;
@@ -41,8 +40,8 @@ check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 	writable = access(cp->parentdir, W_OK);
 	if (writable != 0)
 	{
-		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Cannot write to directory "
-		        "\'%s\'.\n", timestr, __func__, __LINE__, cp->parentdir);
+		logerror("%s:%d Cannot write to directory \'%s\'.\n", __func__, __LINE__,
+			     cp->parentdir);
 		return 1;
 	}
 	else
@@ -59,8 +58,8 @@ check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 									   S_IROTH | S_IXOTH);
 			if (status < 0)
 			{
-				fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to create output "
-				        "directory \'%s\'.\n", timestr, __func__, __LINE__, cp->outdir);
+				logerror("%s:%d Failed to create output directory \'%s\'.\n",
+				         __func__, __LINE__, cp->outdir);
 				return 1;
 			}
 		}
@@ -72,9 +71,9 @@ check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 			{
 				strl = strlen(cp->outdir) + strlen(kh_key(h, i));
 				flowdir = malloc(strl + 1u);
-				if (UNLIKELY(flowdir == NULL))
+				if (UNLIKELY(!flowdir))
 				{
-					fputs("ERROR: Memory allocation failure.\n", stderr);
+					logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 					return 1;
 				}
 				strcpy(flowdir, cp->outdir);
@@ -88,9 +87,8 @@ check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 											S_IROTH | S_IXOTH);
 					if (status < 0)
 					{
-						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to create "
-						        "flowcell-level output directory \'%s\'.\n", timestr,
-						        __func__, __LINE__, flowdir);
+						logerror("%s:%d Failed to create flowcell-level output "
+						         "directory \'%s\'.\n", __func__, __LINE__, flowdir);
 						return 1;
 					}
 				}
@@ -114,17 +112,16 @@ check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 													S_IXGRP | S_IROTH | S_IXOTH);
 							if (status < 0)
 							{
-								fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to create "
-								        "pool-level directory \'%s\'.\n", timestr, __func__,
-								        __LINE__, pooldir);
+								logerror("%s:%d Failed to create pool-level "
+								         "directory \'%s\'.\n", __func__, __LINE__, pooldir);
 								return 1;
 							}
 						}
 						strl = strlen(pooldir);
 						parsedir = malloc(strl + 7u);
-						if (UNLIKELY(parsedir == NULL))
+						if (UNLIKELY(!parsedir))
 						{
-							fputs("ERROR: Memory allocation failure.\n", stderr);
+							logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 							return 1;
 						}
 						strcpy(parsedir, pooldir);
@@ -141,18 +138,17 @@ check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 													 S_IXGRP | S_IROTH | S_IXOTH);
 							if (status < 0)
 							{
-								fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to create "
-								        "output directory \'%s\'.\n", timestr, __func__,
-								        __LINE__, parsedir);
+								logerror("%s:%d Failed to create output directory "
+								         "\'%s\'.\n", __func__, __LINE__, parsedir);
 								return 1;
 							}
 						}
 						free(parsedir);
 						strl = strlen(pooldir);
 						pairdir = malloc(strl + 7u);
-						if (UNLIKELY(pairdir == NULL))
+						if (UNLIKELY(!pairdir))
 						{
-							fputs("ERROR: Memory allocation failure.\n", stderr);
+							logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 							return 1;
 						}
 						strcpy(pairdir, pooldir);
@@ -169,18 +165,17 @@ check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 													S_IXGRP | S_IROTH | S_IXOTH);
 							if (status < 0)
 							{
-								fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to create "
-								        "output directory \'%s\'.\n", timestr, __func__,
-								        __LINE__, pairdir);
+								logerror("%s:%d Failed to create output directory "
+								         "\'%s\'.\n", __func__, __LINE__, pairdir);
 								return 1;
 							}
 						}
 						free(pairdir);
 						strl = strlen(pooldir);
 						trimdir = malloc(strl + 7u);
-						if (UNLIKELY(trimdir == NULL))
+						if (UNLIKELY(!trimdir))
 						{
-							fputs("ERROR: Memory allocation failure.\n", stderr);
+							logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 							return 1;
 						}
 						strcpy(trimdir, pooldir);
@@ -197,9 +192,8 @@ check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 													S_IXGRP | S_IROTH | S_IXOTH);
 							if (status < 0)
 							{
-								fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Failed to create "
-								        "output directory \'%s\'.\n", timestr, __func__,
-								        __LINE__, trimdir);
+								logerror("%s:%d Failed to create output directory "
+								         "\'%s\'.\n", __func__, __LINE__, trimdir);
 								return 1;
 							}
 						}

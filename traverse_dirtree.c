@@ -38,8 +38,7 @@ int get_pairfiles(const char *filepath, const struct stat *info,
 				  const int typeflag, struct FTW *pathinfo);
 static int compare(const void * a, const void * b);
 
-char**
-traverse_dirtree(const char *dirpath, const char *pattern, unsigned int *x)
+char **traverse_dirtree(const char *dirpath, const char *pattern, unsigned int *x)
 {
 	int r = 0;
 
@@ -64,19 +63,15 @@ traverse_dirtree(const char *dirpath, const char *pattern, unsigned int *x)
 		errno = r;
 	if (errno)
 	{
-		fprintf(stderr, "%s.\n", strerror(errno));
-		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Directory traversal failed.\n",
-		        timestr, __func__, __LINE__);
+		logerror("%s:%d Directory traversal failed.\n", __func__, __LINE__);
 		return NULL;
 	}
 
 	/* Get list of filenames */
 	f = malloc(n * sizeof(char*));
-	if (UNLIKELY(f == NULL))
+	if (UNLIKELY(!f))
 	{
-		fputs("ERROR: Memory allocation failure.\n", stderr);
-		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
-		        timestr, __func__, __LINE__);
+		logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 		return NULL;
 	}
 	n = 0;
@@ -92,9 +87,7 @@ traverse_dirtree(const char *dirpath, const char *pattern, unsigned int *x)
 		errno = r;
 	if (errno)
 	{
-		fprintf(stderr, "%s.\n", strerror(errno));
-		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Directory traversal failed.\n",
-		        timestr, __func__, __LINE__);
+		logerror("%s:%d Directory traversal failed.\n", __func__, __LINE__);
 		return NULL;
 	}
 
@@ -107,9 +100,8 @@ traverse_dirtree(const char *dirpath, const char *pattern, unsigned int *x)
 	return f;
 }
 
-int
-count_fastqfiles(const char *filepath, const struct stat *info, const int typeflag,
-				 struct FTW *pathinfo)
+int count_fastqfiles(const char *filepath, const struct stat *info, const int typeflag,
+	    			 struct FTW *pathinfo)
 {
 	char *p = NULL;
 	char *q = NULL;
@@ -118,14 +110,14 @@ count_fastqfiles(const char *filepath, const struct stat *info, const int typefl
 	{
 		p = strstr(filepath, ".fq");
 		q = strstr(filepath, ".fastq");
-		if (p != NULL || q != NULL) n++;
+		if (p != NULL || q != NULL)
+			n++;
 	}
 	return 0;
 }
 
-int
-get_fastqfiles(const char *filepath, const struct stat *info, const int typeflag,
-			   struct FTW *pathinfo)
+int get_fastqfiles(const char *filepath, const struct stat *info, const int typeflag,
+	     		   struct FTW *pathinfo)
 {
 	char *p = NULL;
 	char *q = NULL;
@@ -147,9 +139,8 @@ get_fastqfiles(const char *filepath, const struct stat *info, const int typeflag
 }
 
 
-int
-count_parsefiles(const char *filepath, const struct stat *info, const int typeflag,
-				 struct FTW *pathinfo)
+int count_parsefiles(const char *filepath, const struct stat *info, const int typeflag,
+	    			 struct FTW *pathinfo)
 {
 	char *p = NULL;
 	char *q = NULL;
@@ -158,14 +149,14 @@ count_parsefiles(const char *filepath, const struct stat *info, const int typefl
 	{
 		p = strstr(filepath, ".fq.gz");
 		q = strstr(filepath, "parse");
-		if (p != NULL && q != NULL) n++;
+		if (p != NULL && q != NULL)
+			n++;
 	}
 	return 0;
 }
 
-int
-get_parsefiles(const char *filepath, const struct stat *info, const int typeflag,
-			   struct FTW *pathinfo)
+int get_parsefiles(const char *filepath, const struct stat *info, const int typeflag,
+	    		   struct FTW *pathinfo)
 {
 	char *p = NULL;
 	char *q = NULL;
@@ -186,9 +177,8 @@ get_parsefiles(const char *filepath, const struct stat *info, const int typeflag
 	return 0;
 }
 
-int
-count_pairfiles(const char *filepath, const struct stat *info, const int typeflag,
-				struct FTW *pathinfo)
+int count_pairfiles(const char *filepath, const struct stat *info, const int typeflag,
+	    			struct FTW *pathinfo)
 {
 	char *p = NULL;
 	char *q = NULL;
@@ -197,14 +187,14 @@ count_pairfiles(const char *filepath, const struct stat *info, const int typefla
 	{
 		p = strstr(filepath, ".fq.gz");
 		q = strstr(filepath, "pairs");
-		if (p != NULL && q != NULL) n++;
+		if (p != NULL && q != NULL)
+			n++;
 	}
 	return 0;
 }
 
-int
-get_pairfiles(const char *filepath, const struct stat *info, const int typeflag,
-			  struct FTW *pathinfo)
+int get_pairfiles(const char *filepath, const struct stat *info, const int typeflag,
+	    		  struct FTW *pathinfo)
 {
 	char *p = NULL;
 	char *q = NULL;
@@ -225,8 +215,7 @@ get_pairfiles(const char *filepath, const struct stat *info, const int typeflag,
 	return 0;
 }
 
-static int
-compare(const void * a, const void * b)
+static int compare(const void * a, const void * b)
 {
 	return strcmp(*(const char **) a, *(const char **) b);
 }

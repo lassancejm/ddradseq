@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 #include <limits.h>
 #include <emmintrin.h>
 #include "khash.h"
@@ -28,8 +29,17 @@
 #define UNLIKELY(x) (x)
 #endif
 
-/* Set file I/O buffer size */
+/* File I/O buffer size */
 #define BUFLEN 0x20000
+
+/* Maximum line length to read from input file */
+#define MAX_LINE_LENGTH 400
+
+/* Number of lines in individual parse buffers */
+#define BSIZE 4000
+
+/* Length of key string for fastQ hash table */
+#define KEYLEN 31
 
 /* Define for forward and reverse reads */
 #define FORWARD 1
@@ -385,7 +395,7 @@ extern int free_db(khash_t(pool_hash) *h);
  * Zero on success and non-zero on failure
  */
 
-extern int free_pairdb (khash_t(fastq) *h);
+extern int free_pairdb(khash_t(fastq) *h);
 
 
 /* int free_matedb(khash_t(mates) *m)
@@ -474,5 +484,22 @@ extern int log_init(const CMD *cp);
  */
 
 extern int get_timestr(char *s);
+
+/******************************************************
+ * Error reporting functions
+ ******************************************************/
+
+/* void error(const char *format)
+ * Report error to stderr only
+ */
+
+extern void error(const char *format, ...);
+
+
+/* void logerror(const char *format)
+ * Report error to both logfile and stderr
+ */
+
+extern void logerror(const char *format, ...);
 
 #endif

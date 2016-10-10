@@ -10,8 +10,7 @@
 #include <string.h>
 #include "ddradseq.h"
 
-size_t
-count_lines(const char *buff)
+size_t count_lines(const char *buff)
 {
 	char *p = NULL;
 	size_t nl = 0;
@@ -19,7 +18,7 @@ count_lines(const char *buff)
 	p = strchr(buff, '\n');
 	while (p)
 	{
-		p = strchr(p + 1, '\n');
+		p = strchr(p+1, '\n');
 		nl++;
 	}
 	return nl;

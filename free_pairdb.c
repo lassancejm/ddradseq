@@ -10,13 +10,13 @@
 #include "khash.h"
 #include "ddradseq.h"
 
-int
-free_pairdb(khash_t(fastq) *h)
+int free_pairdb(khash_t(fastq) *h)
 {
 	const char *key;
 	FASTQ *e = NULL;
 
-	if (h == NULL) return 1;
+	if (h == NULL)
+		return 1;
 	kh_foreach(h, key, e, free(e->id); free(e->seq); free(e->qual); free(e); free((void*)key););
 	kh_destroy(fastq, h);
 	return 0;

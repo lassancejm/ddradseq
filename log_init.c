@@ -14,8 +14,7 @@
 #include <sys/sysinfo.h>
 #include "ddradseq.h"
 
-int
-log_init(const CMD *cp)
+int log_init(const CMD *cp)
 {
 	char *user = NULL;
 	const double gigabyte = 1024 * 1024 * 1024;
@@ -32,7 +31,7 @@ log_init(const CMD *cp)
 	user = getenv("USER");
 
 	/* Get host info */
-    uname(&host);
+	uname(&host);
 
 	/* Get some system specs */
 	sysinfo (&si);
@@ -48,7 +47,8 @@ log_init(const CMD *cp)
 	        "%d base difference.\n", timestr, cp->dist);
 	fprintf(lf, "[ddradseq: %s] INFO -- program has started in %s mode ",
 	        timestr, cp->mode);
-	if (user) fprintf(lf, "by user \'%s\' ", user);
+	if (user)
+		fprintf(lf, "by user \'%s\' ", user);
 	fprintf(lf, "on host \'%s\' (%s)", host.nodename, host.release);
 	fputc('\n', lf);
 	fprintf(lf, "[ddradseq: %s] INFO -- host has %5.1f Gb total RAM and %5.1f Gb "

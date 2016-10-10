@@ -13,8 +13,8 @@
 #include "khash.h"
 #include "ddradseq.h"
 
-int
-parse_fastq(const int orient, const char *filename, khash_t(pool_hash) *h, khash_t(mates) *m, const int dist)
+int parse_fastq(const int orient, const char *filename, khash_t(pool_hash) *h,
+                khash_t(mates) *m, const int dist)
 {
 	char *r = NULL;
 	char *q = NULL;
@@ -41,10 +41,9 @@ parse_fastq(const int orient, const char *filename, khash_t(pool_hash) *h, khash
 
 	/* Open input file */
 	fin = gzopen(filename, "rb");
-	if (fin == NULL)
+	if (!fin)
 	{
-		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Unable to open file \'%s\'.\n",
-		        timestr, __func__, __LINE__, filename);
+		logerror("%s:%d Unable to open file \'%s\'.\n", __func__, __LINE__, filename);
 		return 1;
 	}
 
@@ -66,19 +65,16 @@ parse_fastq(const int orient, const char *filename, khash_t(pool_hash) *h, khash
 		numlines = count_lines(q);
 		r = clean_buffer(q, &numlines);
 		if (orient == FORWARD)
-		{
-			if ((ret = parse_forwardbuffer(q, numlines, h, m, dist)) != 0)
-				return 1;
-		}
+			ret = parse_forwardbuffer(q, numlines, h, m, dist);
 		else
-		{
-			if ((ret = parse_reversebuffer(q, numlines, h, m)) != 0)
-				return 1;
-		}
+			ret = parse_reversebuffer(q, numlines, h, m);
+		if (ret)
+			return 1;
 		buff_rem = reset_buffer(q, r);
 
 		/* Check if we are at the end of file */
-		if (gzeof(fin)) break;
+		if (gzeof(fin))
+			break;
 	}
 
 	/* Flush remaining data in buffers */
@@ -100,11 +96,11 @@ parse_fastq(const int orient, const char *filename, khash_t(pool_hash) *h, khash
 							bc = kh_value(b, k);
 							if (bc->curr_bytes > 0)
 							{
-								if ((ret = flush_buffer(orient, bc)) != 0)
+								ret = flush_buffer(orient, bc);
+								if (ret)
 								{
-									fputs("ERROR: Problem writing buffer to file.\n", stderr);
-									fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Problem writing buffer to file.\n",
-									        timestr, __func__, __LINE__);
+									logerror("%s:%d Problem writing buffer to file.\n",
+									         __func__, __LINE__);
 									return 1;
 								}
 							}

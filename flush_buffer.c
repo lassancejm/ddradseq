@@ -13,8 +13,7 @@
 #include "khash.h"
 #include "ddradseq.h"
 
-int
-flush_buffer(int orient, BARCODE *bc)
+int flush_buffer(int orient, BARCODE *bc)
 {
 	char *filename = NULL;
 	char *buffer = NULL;
@@ -44,22 +43,17 @@ flush_buffer(int orient, BARCODE *bc)
 
 	/* Open output fastQ file stream */
 	out = gzopen(filename, "ab");
-	if (out == NULL)
+	if (!out)
 	{
-		fprintf(stderr, "ERROR: Unable to open output file \'%s\'.\n", filename);
-		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Unable to open output file "
-		        "\'%s\'.\n", timestr, __func__, __LINE__, filename);
-		free(filename);
+		logerror("%s:%d Unable to open output file \'%s\'.\n", __func__, __LINE__, filename);
 		return 1;
 	}
 
 	/* Dump buffer to file */
-	if ((ret = gzwrite(out, buffer, len)) != (int)len)
+	ret = gzwrite(out, buffer, len);
+	if (ret != (int)len)
 	{
-		fprintf(stderr, "ERROR: Problem writing to output file \'%s\'.\n", filename);
-		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Problem writing to output file "
-		        "\'%s\'.\n", timestr, __func__, __LINE__, filename);
-		free(filename);
+		logerror("%s:%d Problem writing to output file \'%s\'.\n", __func__, __LINE__, filename);
 		return 1;
 	}
 

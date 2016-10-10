@@ -12,12 +12,8 @@
 #include "khash.h"
 #include "ddradseq.h"
 
-#define KEYLEN 31
-
-void parse_reversebuffer_deallocate(unsigned char*, char*, char*);
-
-int
-parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h, const khash_t(mates) *m)
+int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h,
+                        const khash_t(mates) *m)
 {
 	char *q = buff;
 	char *r = NULL;
@@ -53,80 +49,69 @@ parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h, co
 	/* Update time string */
 	get_timestr(&timestr[0]);
 
-	if ((skip = malloc(nl)) == NULL)
+	skip = malloc(nl);
+	if (!skip)
 	{
-		fputs("ERROR: Memory allocation failure.\n", stderr);
-		fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
-		        timestr, __func__, __LINE__);
+		logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 		return 1;
 	}
-	for (l = 0; l < nl; l++) skip[l] = 0;
+	for (l = 0; l < nl; l++)
+		skip[l] = 0;
 
 	for (l = 0; l < nl; l++)
 	{
 		ll = strlen(q);
-		if (skip[l] == 0)
+		if (!skip[l])
 		{
 			switch (l % 4)
 			{
 				case 0:
 					/* Illumina identifier line */
 					/* Make a copy of the Illumina identifier line */
-					if ((copy = malloc(ll + 1u)) == NULL)
+					copy = malloc(ll + 1u);
+					if (!copy)
 					{
-						fputs("ERROR: Memory allocation failure.\n", stderr);
-						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
-						        timestr, __func__, __LINE__);
-						parse_reversebuffer_deallocate(skip, NULL, NULL);
+						logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 						return 1;
 					}
-					if ((idline = malloc(ll + 1u)) == NULL)
+					idline = malloc(ll + 1u);
+					if (!idline)
 					{
-						fputs("ERROR: Memory allocation failure.\n", stderr);
-						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
-						        timestr, __func__, __LINE__);
-						parse_reversebuffer_deallocate(skip, copy, NULL);
+						logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 						return 1;
 					}
 					strcpy(idline, q);
 					strcpy(copy, q);
 
 					/* Get instrument name */
-					if ((tok = strtok_r(copy, seps, &r)) == NULL)
+					tok = strtok_r(copy, seps, &r);
+					if (!tok)
 					{
-						fputs("ERROR: Parsing ID line failed.\n", stderr);
-						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
-						        timestr, __func__, __LINE__);
-						parse_reversebuffer_deallocate(skip, copy, idline);
+						logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
 						return 1;
 					}
 
 					/* Get run number */
-					if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+					tok = strtok_r(NULL, seps, &r);
+					if (!tok)
 					{
-						fputs("ERROR: Parsing ID line failed.\n", stderr);
-						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
-						        timestr, __func__, __LINE__);
-						parse_reversebuffer_deallocate(skip, copy, idline);
+						logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
 						return 1;
 					}
 
 					/* Get flow cell ID */
-					if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+					tok = strtok_r(NULL, seps, &r);
+					if (!tok)
 					{
-						fputs("ERROR: Parsing ID line failed.\n", stderr);
-						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
-						        timestr, __func__, __LINE__);
-						parse_reversebuffer_deallocate(skip, copy, idline);
+						logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
 						return 1;
 					}
 					strl = strlen(tok);
-					if ((flowcell_ID = malloc(strl + 1u)) == NULL)
+					flowcell_ID = malloc(strl + 1u);
+					if (!flowcell_ID)
 					{
-						fputs("ERROR: Memory allocation failure.\n", stderr);
-						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
-						        timestr, __func__, __LINE__);
-						return EXIT_FAILURE;
+						logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+						return 1;
 					}
 					strcpy(flowcell_ID, tok);
 					i = kh_get(pool_hash, h, flowcell_ID);
@@ -134,9 +119,9 @@ parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h, co
 					{
 						fprintf(lf, "[ddradseq: %s] WARNING -- Hash lookup failure using key %s.\n", timestr, flowcell_ID);
 						fprintf(lf, "[ddradseq: %s] WARNING -- Skipping sequence: %s\n", timestr, idline);
-						skip[l + 1] = 1;
-						skip[l + 2] = 1;
-						skip[l + 3] = 1;
+						skip[l+1] = 1;
+						skip[l+2] = 1;
+						skip[l+3] = 1;
 						free(idline);
 						free(copy);
 						free(flowcell_ID);
@@ -145,50 +130,41 @@ parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h, co
 					p = kh_value(h, i);
 
 					/* Get lane number */
-					if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+					tok = strtok_r(NULL, seps, &r);
+					if (!tok)
 					{
-						fputs("ERROR: Parsing ID line failed.\n", stderr);
-						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
-						        timestr, __func__, __LINE__);
-						parse_reversebuffer_deallocate(skip, copy, idline);
+						logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
 						return 1;
 					}
 
 					/* Get tile number, x, and y coordinate */
-					if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+					tok = strtok_r(NULL, seps, &r);
+					if (!tok)
 					{
-						fputs("ERROR: Parsing ID line failed.\n", stderr);
-						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
-						        timestr, __func__, __LINE__);
-						parse_reversebuffer_deallocate(skip, copy, idline);
+						logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
 						return 1;
 					}
 					tile = atoi(tok);
-					if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+					tok = strtok_r(NULL, seps, &r);
+					if (!tok)
 					{
-						fputs("ERROR: Parsing ID line failed.\n", stderr);
-						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
-						        timestr, __func__, __LINE__);
-						parse_reversebuffer_deallocate(skip, copy, idline);
+						logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
 						return 1;
 					}
 					xpos = atoi(tok);
-					if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+					tok = strtok_r(NULL, seps, &r);
+					if (!tok)
 					{
-						fputs("ERROR: Parsing ID line failed.\n", stderr);
-						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
-						        timestr, __func__, __LINE__);
-						parse_reversebuffer_deallocate(skip, copy, idline);
+						logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
 						return 1;
 					}
 					ypos = atoi(tok);
 
 					/* Retrieve barcode sequence of mate */
-					if ((mkey = malloc(KEYLEN)) == NULL)
+					mkey = malloc(KEYLEN);
+					if (!mkey)
 					{
-						fputs("ERROR: Memory allocation failure.\n", stderr);
-						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
-						        timestr, __func__, __LINE__);
+						logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 						return 1;
 					}
 					sprintf(mkey, "%010d%010d%010d", tile, xpos, ypos);
@@ -197,9 +173,9 @@ parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h, co
 					{
 						fprintf(lf, "[ddradseq: %s] WARNING -- Hash lookup failure using key %s.\n", timestr, mkey);
 						fprintf(lf, "[ddradseq: %s] WARNING -- Skipping sequence: %s\n", timestr, idline);
-						skip[l + 1] = 1;
-						skip[l + 2] = 1;
-						skip[l + 3] = 1;
+						skip[l+1] = 1;
+						skip[l+2] = 1;
+						skip[l+3] = 1;
 						free(mkey);
 						free(idline);
 						free(copy);
@@ -212,32 +188,26 @@ parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h, co
 					/* Get read orientation, filtered flag and control number */
 					for (z = 0; z < 3; z++)
 					{
-						if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+						tok = strtok_r(NULL, seps, &r);
+						if (!tok)
 						{
-							fputs("ERROR: Parsing ID line failed.\n", stderr);
-							fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
-							        timestr, __func__, __LINE__);
-							parse_reversebuffer_deallocate(skip, copy, idline);
+							logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
 							return 1;
 						}
 					}
 
 					/* Get the index sequence */
-					if ((tok = strtok_r(NULL, seps, &r)) == NULL)
+					tok = strtok_r(NULL, seps, &r);
+					if (!tok)
 					{
-						fputs("ERROR: Parsing ID line failed.\n", stderr);
-						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Parsing ID line failed.\n",
-						        timestr, __func__, __LINE__);
-						parse_reversebuffer_deallocate(skip, copy, idline);
+						logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
 						return 1;
 					}
 					strl = strlen(tok);
-					if ((index_sequence = malloc(strl + 1u)) == NULL)
+					index_sequence = malloc(strl + 1u);
+					if (!index_sequence)
 					{
-						fputs("ERROR: Memory allocation failure.\n", stderr);
-						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
-						        timestr, __func__, __LINE__);
-						parse_reversebuffer_deallocate(skip, copy, idline);
+						logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 						return 1;
 					}
 					strcpy(index_sequence, tok);
@@ -251,9 +221,9 @@ parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h, co
 						bc = kh_value(b, k);
 					else
 					{
-						skip[l + 1] = 1;
-						skip[l + 2] = 1;
-						skip[l + 3] = 1;
+						skip[l+1] = 1;
+						skip[l+2] = 1;
+						skip[l+3] = 1;
 						free(idline);
 					}
 
@@ -264,11 +234,10 @@ parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h, co
 					break;
 				case 1:
 					/* Sequence line */
-					if ((dna_sequence = malloc(ll + 1u)) == NULL)
+					dna_sequence = malloc(ll + 1u);
+					if (!dna_sequence)
 					{
-						fputs("ERROR: Memory allocation failure.\n", stderr);
-						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
-						        timestr, __func__, __LINE__);
+						logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 						return 1;
 					}
 					strcpy(dna_sequence, q);
@@ -278,13 +247,10 @@ parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h, co
 					break;
 				case 3:
 					/* Quality sequence line */
-					if ((qual_sequence = malloc(ll + 1u)) == NULL)
+					qual_sequence = malloc(ll + 1u);
+					if (!qual_sequence)
 					{
-						fputs("ERROR: Memory allocation failure.\n", stderr);
-						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
-						        timestr, __func__, __LINE__);
-						free(idline);
-						free(dna_sequence);
+						logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 						return 1;
 					}
 					strcpy(qual_sequence, q);
@@ -293,26 +259,18 @@ parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h, co
 					char *t = NULL;
 					if ((bc->curr_bytes + add_bytes) >= BUFLEN)
 					{
-						if ((ret = flush_buffer(REVERSE, bc)) != 0)
+						ret = flush_buffer(REVERSE, bc);
+						if (ret)
 						{
-							fputs("ERROR: Problem writing to file.\n", stderr);
-							fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Problem writing to file.\n",
-							        timestr, __func__, __LINE__);
-							free(idline);
-							free(dna_sequence);
-							free(qual_sequence);
+							logerror("%s:%d Problem writing to file.\n", __func__, __LINE__);
 							return 1;
 						}
 					}
 					bc->curr_bytes += add_bytes;
-					if ((t = malloc(add_bytes + 1u)) == NULL)
+					t = malloc(add_bytes + 1u);
+					if (!t)
 					{
-						fputs("ERROR: Memory allocation failure.\n", stderr);
-						fprintf(lf, "[ddradseq: %s] ERROR -- %s:%d Memory allocation failure.\n",
-						        timestr, __func__, __LINE__);
-						free(idline);
-						free(dna_sequence);
-						free(qual_sequence);
+						logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 						return 1;
 					}
 					sprintf(t, "%s\n%s\n+\n%s\n", idline, dna_sequence, qual_sequence);
@@ -333,11 +291,4 @@ parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h, co
 	free(skip);
 
 	return 0;
-}
-
-void parse_reversebuffer_deallocate(unsigned char *s, char *c, char *i)
-{
-	if (s) free(s);
-	if (c) free(c);
-	if (i) free(i);
 }

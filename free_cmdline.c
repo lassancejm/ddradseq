@@ -9,8 +9,7 @@
 #include <stdlib.h>
 #include "ddradseq.h"
 
-int
-free_cmdline(CMD *cp)
+int free_cmdline(CMD *cp)
 {
 	free(cp->parentdir);
 	free(cp->outdir);
