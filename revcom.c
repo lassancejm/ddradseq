@@ -16,8 +16,8 @@
 #define DNA_BEGIN 65
 
 /* Function prototypes */
-int reverse_string(char*);
-int complement_string(char*);
+static int reverse_string(char*);
+static int complement_string(char*);
 
 char *revcom(const char *s)
 {
@@ -70,7 +70,7 @@ char *revcom(const char *s)
 	return str;
 }
 
-int reverse_string(char *s)
+static int reverse_string(char *s)
 {
 	char *p1 = s;
 	char *p2 = s + strlen(s) - 1;
@@ -87,7 +87,7 @@ int reverse_string(char *s)
 	return 0;
 }
 
-int complement_string(char *s)
+static int complement_string(char *s)
 {
 	char c = 0;
 	char *pch1 = NULL;

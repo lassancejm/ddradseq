@@ -502,4 +502,14 @@ extern void error(const char *format, ...);
 
 extern void logerror(const char *format, ...);
 
+
+/******************************************************
+ * Inline utility functions
+ ******************************************************/
+
+static inline int string_equal(char* a, char* b)
+{
+	return (strcmp(a, b) == 0);
+}
+
 #endif

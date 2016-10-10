@@ -26,7 +26,7 @@ khash_t(fastq) *fastq_to_db(const char *filename)
 	int tile = 0;
 	int xpos = 0;
 	int ypos = 0;
-	size_t z = 0;
+	size_t x = 0;
 	size_t l = 0;
 	size_t lc = 0;
 	size_t pos = 0;
@@ -117,47 +117,22 @@ khash_t(fastq) *fastq_to_db(const char *filename)
 				}
 				strcpy(idline, &buf[l-3][1]);
 
-				/* Get instrument name */
-				tok = strtok_r(idline, seps, &r);
-				if (!tok)
+				/* Parse Illumina identifier line */
+				for (tok = strtok_r(idline, seps, &r), x = 0; tok != NULL; tok = strtok_r(NULL, seps, &r), x++)
 				{
-					logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
-					return NULL;
-				}
-
-				/* Get run number, flow cell ID, and lane number */
-				for (z = 0; z < 3; z++)
-				{
-					tok = strtok_r(NULL, seps, &r);
-					if (!tok)
+					switch (x)
 					{
-						logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
-						return NULL;
+						case 4:
+							tile = atoi(tok);
+							break;
+						case 5:
+							xpos = atoi(tok);
+							break;
+						case 6:
+							ypos = atoi(tok);
+							break;
 					}
 				}
-
-				/* Get tile number, x, and y coordinate */
-				tok = strtok_r(NULL, seps, &r);
-				if (!tok)
-				{
-					logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
-					return NULL;
-				}
-				tile = atoi(tok);
-				tok = strtok_r(NULL, seps, &r);
-				if (!tok)
-				{
-					logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
-					return NULL;
-				}
-				xpos = atoi(tok);
-				tok = strtok_r(NULL, seps, &r);
-				if (!tok)
-				{
-					logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
-					return NULL;
-				}
-				ypos = atoi(tok);
 
 				/* Construct the hash key */
 				mkey = malloc(KEYLEN);

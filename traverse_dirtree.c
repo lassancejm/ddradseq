@@ -24,22 +24,23 @@ unsigned int n;
 char **f;
 
 /* Function prototypes */
-int count_fastqfiles(const char *filepath, const struct stat *info,
-                     const int typeflag, struct FTW *pathinfo);
-int get_fastqfiles(const char *filepath, const struct stat *info,
-                   const int typeflag, struct FTW *pathinfo);
-int count_parsefiles(const char *filepath, const struct stat *info,
-					 const int typeflag, struct FTW *pathinfo);
-int get_parsefiles(const char *filepath, const struct stat *info,
-				   const int typeflag, struct FTW *pathinfo);
-int count_pairfiles(const char *filepath, const struct stat *info,
-					const int typeflag, struct FTW *pathinfo);
-int get_pairfiles(const char *filepath, const struct stat *info,
-				  const int typeflag, struct FTW *pathinfo);
+static int count_fastqfiles(const char *filepath, const struct stat *info,
+                            const int typeflag, struct FTW *pathinfo);
+static int get_fastqfiles(const char *filepath, const struct stat *info,
+                          const int typeflag, struct FTW *pathinfo);
+static int count_parsefiles(const char *filepath, const struct stat *info,
+	                        const int typeflag, struct FTW *pathinfo);
+static int get_parsefiles(const char *filepath, const struct stat *info,
+                          const int typeflag, struct FTW *pathinfo);
+static int count_pairfiles(const char *filepath, const struct stat *info,
+                           const int typeflag, struct FTW *pathinfo);
+static int get_pairfiles(const char *filepath, const struct stat *info,
+                         const int typeflag, struct FTW *pathinfo);
 static int compare(const void * a, const void * b);
 
 char **traverse_dirtree(const char *dirpath, const char *pattern, unsigned int *x)
 {
+	char *p = (char*)pattern;
 	int r = 0;
 
 	/* Update time string */
@@ -51,11 +52,11 @@ char **traverse_dirtree(const char *dirpath, const char *pattern, unsigned int *
 
 	/* Count number of files in directory tree */
 	n = 0;
-	if (pattern == NULL)
+	if (!p)
 		r = nftw(dirpath, count_fastqfiles, USE_FDS, FTW_PHYS);
-	else if (strcmp(pattern, "parse") == 0)
+	else if (string_equal(p, "parse"))
 		r = nftw(dirpath, count_parsefiles, USE_FDS, FTW_PHYS);
-	else if (strcmp(pattern, "pairs") == 0)
+	else if (string_equal(p, "pairs"))
 		r = nftw(dirpath, count_pairfiles, USE_FDS, FTW_PHYS);
 
 	/* Check for errors */
@@ -75,11 +76,11 @@ char **traverse_dirtree(const char *dirpath, const char *pattern, unsigned int *
 		return NULL;
 	}
 	n = 0;
-	if (pattern == NULL)
+	if (!p)
 		r = nftw(dirpath, get_fastqfiles, USE_FDS, FTW_PHYS);
-	else if (strcmp(pattern, "parse") == 0)
+	else if (string_equal(p, "parse"))
 		r = nftw(dirpath, get_parsefiles, USE_FDS, FTW_PHYS);
-	else if (strcmp(pattern, "pairs") == 0)
+	else if (string_equal(p, "pairs"))
 		r = nftw(dirpath, get_pairfiles, USE_FDS, FTW_PHYS);
 
 	/* Check for errors */
@@ -100,8 +101,8 @@ char **traverse_dirtree(const char *dirpath, const char *pattern, unsigned int *
 	return f;
 }
 
-int count_fastqfiles(const char *filepath, const struct stat *info, const int typeflag,
-	    			 struct FTW *pathinfo)
+static int count_fastqfiles(const char *filepath, const struct stat *info,
+                            const int typeflag, struct FTW *pathinfo)
 {
 	char *p = NULL;
 	char *q = NULL;
@@ -116,8 +117,8 @@ int count_fastqfiles(const char *filepath, const struct stat *info, const int ty
 	return 0;
 }
 
-int get_fastqfiles(const char *filepath, const struct stat *info, const int typeflag,
-	     		   struct FTW *pathinfo)
+static int get_fastqfiles(const char *filepath, const struct stat *info,
+                          const int typeflag, struct FTW *pathinfo)
 {
 	char *p = NULL;
 	char *q = NULL;
@@ -139,8 +140,8 @@ int get_fastqfiles(const char *filepath, const struct stat *info, const int type
 }
 
 
-int count_parsefiles(const char *filepath, const struct stat *info, const int typeflag,
-	    			 struct FTW *pathinfo)
+static int count_parsefiles(const char *filepath, const struct stat *info,
+                            const int typeflag, struct FTW *pathinfo)
 {
 	char *p = NULL;
 	char *q = NULL;
@@ -155,8 +156,8 @@ int count_parsefiles(const char *filepath, const struct stat *info, const int ty
 	return 0;
 }
 
-int get_parsefiles(const char *filepath, const struct stat *info, const int typeflag,
-	    		   struct FTW *pathinfo)
+static int get_parsefiles(const char *filepath, const struct stat *info,
+                          const int typeflag, struct FTW *pathinfo)
 {
 	char *p = NULL;
 	char *q = NULL;
@@ -177,8 +178,8 @@ int get_parsefiles(const char *filepath, const struct stat *info, const int type
 	return 0;
 }
 
-int count_pairfiles(const char *filepath, const struct stat *info, const int typeflag,
-	    			struct FTW *pathinfo)
+static int count_pairfiles(const char *filepath, const struct stat *info,
+                           const int typeflag, struct FTW *pathinfo)
 {
 	char *p = NULL;
 	char *q = NULL;
@@ -193,8 +194,8 @@ int count_pairfiles(const char *filepath, const struct stat *info, const int typ
 	return 0;
 }
 
-int get_pairfiles(const char *filepath, const struct stat *info, const int typeflag,
-	    		  struct FTW *pathinfo)
+static int get_pairfiles(const char *filepath, const struct stat *info,
+                         const int typeflag, struct FTW *pathinfo)
 {
 	char *p = NULL;
 	char *q = NULL;

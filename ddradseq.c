@@ -16,7 +16,7 @@
 extern int parse_main(CMD*);
 extern int trimend_main(CMD*);
 extern int pair_main(CMD*);
-void usage(void);
+static void usage(void);
 
 int main(int argc, char *argv[])
 {
@@ -56,22 +56,28 @@ int main(int argc, char *argv[])
 		return 1;
 
 	/* Run the parse pipeline stage */
-	if ((ret = strcmp(cp->mode, "parse")) == 0 ||
-	    (ret = strcmp(cp->mode, "all")) == 0)
-		if ((ret = parse_main(cp)) != 0)
+	if (string_equal(cp->mode, "parse") || string_equal(cp->mode, "all"))
+	{
+		ret = parse_main(cp);
+		if (ret)
 			return 1;
+	}
 
 	/* Run the pair pipeline stage */
-	if ((ret = strcmp(cp->mode, "pair")) == 0 ||
-	    (ret = strcmp(cp->mode, "all")) == 0)
-		if ((ret = pair_main(cp)) != 0)
+	if (string_equal(cp->mode, "pair") || string_equal(cp->mode, "all"))
+	{
+		ret = pair_main(cp);
+		if (ret)
 			return 1;
+	}
 
 	/* Run the trimend pipeline stage */
-	if ((ret = strcmp(cp->mode, "trimend")) == 0 ||
-	    (ret = strcmp(cp->mode, "all")) == 0)
-		if ((ret = trimend_main(cp)) != 0)
+	if (string_equal(cp->mode, "trimend") || string_equal(cp->mode, "all"))
+	{
+		ret = trimend_main(cp);
+		if (ret)
 			return 1;
+	}
 
 	/* Close logfile output stream */
 	fclose(lf);
@@ -82,7 +88,7 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-void usage(void)
+static void usage(void)
 {
 	fputs("Usage: ddradseq [OPTIONS] [INPUT DIRECTORY]\n\n", stderr);
 	fputs("Parse fastQ file into separate files by flow cell, barcode and/or index\n\n", stderr);

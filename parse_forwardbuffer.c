@@ -30,13 +30,12 @@ int parse_forwardbuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 	char *qual_sequence = NULL;
 	unsigned char *skip = NULL;
 	int a = 0;
+	int x = 0;
 	int ret = 0;
-	int z = 0;
 	int tile = 0;
 	int xpos = 0;
 	int ypos = 0;
 	size_t add_bytes = 0;
-	size_t strl = 0;
 	size_t l = 0;
 	size_t ll = 0;
 	size_t sl = 0;
@@ -53,15 +52,15 @@ int parse_forwardbuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 	/* Update time string */
 	get_timestr(&timestr[0]);
 
-	skip = malloc(nl);
+	/* Indicator variable whether to skip processing a line */
+	skip = calloc(1, nl * sizeof(unsigned char));
 	if (!skip)
 	{
 		logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 		return 1;
 	}
-	for (l = 0; l < nl; l++)
-		skip[l] = 0;
 
+	/* Iterate through lines in the buffer */
 	for (l = 0; l < nl; l++)
 	{
 		ll = strlen(q);
@@ -70,114 +69,60 @@ int parse_forwardbuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 			switch (l % 4)
 			{
 				case 0:
-					/* Illumina identifier line */
 					/* Make a copy of the Illumina identifier line */
-					copy = malloc(ll + 1u);
+					copy = strdup(q);
 					if (!copy)
 					{
 						error("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 						return 1;
 					}
-					idline = malloc(ll + 1u);
+					idline = strdup(q);
 					if (!idline)
 					{
 						error("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 						return 1;
 					}
-					strcpy(idline, q);
-					strcpy(copy, q);
 
-					/* Get instrument name */
-					tok = strtok_r(copy, seps, &r);
-					if (!tok)
+					for (tok = strtok_r(copy, seps, &r), x = 0; tok != NULL; tok = strtok_r(NULL, seps, &r), x++)
 					{
-						logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
-						return 1;
-					}
-
-					/* Get run number */
-					tok = strtok_r(NULL, seps, &r);
-					if (!tok)
-					{
-						logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
-						return 1;
-					}
-
-					/* Get flow cell ID */
-					tok = strtok_r(NULL, seps, &r);
-					if (!tok)
-					{
-						logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
-						return 1;
-					}
-					strl = strlen(tok);
-					flowcell_ID = malloc(strl + 1u);
-					if (!flowcell_ID)
-					{
-						error("%s:%d Memory allocation failure.\n", __func__, __LINE__);
-						return 1;
-					}
-					strcpy(flowcell_ID, tok);
-					i = kh_get(pool_hash, h, flowcell_ID);
-					p = kh_value(h, i);
-
-					/* Get lane number */
-					tok = strtok_r(NULL, seps, &r);
-					if (!tok)
-					{
-						logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
-						return 1;
-					}
-
-					/* Get tile number, x, and y coordinate */
-					tok = strtok_r(NULL, seps, &r);
-					if (!tok)
-					{
-						logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
-						return 1;
-					}
-					tile = atoi(tok);
-					tok = strtok_r(NULL, seps, &r);
-					if (!tok)
-					{
-						logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
-						return 1;
-					}
-					xpos = atoi(tok);
-					tok = strtok_r(NULL, seps, &r);
-					if (!tok)
-					{
-						logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
-						return 1;
-					}
-					ypos = atoi(tok);
-
-					/* Get read orientation, filtered flag and control number */
-					for (z = 0; z < 3; z++)
-					{
-						tok = strtok_r(NULL, seps, &r);
-						if (!tok)
+						switch (x)
 						{
-							logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
-							return 1;
+							case 2:
+								flowcell_ID = strdup(tok);
+								break;
+							case 4:
+								tile = atoi(tok);
+								break;
+							case 5:
+								xpos = atoi(tok);
+								break;
+							case 6:
+								ypos = atoi(tok);
+								break;
+							case 10:
+								index_sequence = strdup(tok);
+								break;
 						}
 					}
 
-					/* Get the index sequence */
-					tok = strtok_r(NULL, seps, &r);
-					if (!tok)
+					/* Check parsing */
+					if (!flowcell_ID)
 					{
-						logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
+						error("%s:%d Illumina ID parsing failure.\n", __func__, __LINE__);
 						return 1;
 					}
-					strl = strlen(tok);
-					index_sequence = malloc(strl + 1u);
+
 					if (!index_sequence)
 					{
-						error("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+						error("%s:%d Illumina ID parsing failure.\n", __func__, __LINE__);
 						return 1;
 					}
-					strcpy(index_sequence, tok);
+
+					/* Lookup flow cell identifier */
+					i = kh_get(pool_hash, h, flowcell_ID);
+					p = kh_value(h, i);
+
+					/* Lookup pool identifier */
 					j = kh_get(pool, p, index_sequence);
 					pl = kh_value(p, j);
 					b = pl->b;

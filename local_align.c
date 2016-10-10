@@ -19,7 +19,7 @@
 const ALIGN_RESULT g_defr = { 0, -1, -1, -1, -1, -1, -1 };
 
 /* Function prototypes */
-ALIGN_QUERY* align_init(int qlen, const char *query, const char *mat);
+static ALIGN_QUERY* align_init(int qlen, const char *query, const char *mat);
 
 ALIGN_RESULT smith_waterman(ALIGN_QUERY *q, int tlen, const char *target, int _gapo,
                             int _gape, int xtra);
@@ -57,7 +57,7 @@ ALIGN_RESULT local_align(int qlen, char *query, int tlen, char *target,
 	return r;
 }
 
-ALIGN_QUERY *align_init(int qlen, const char *query, const char *mat)
+static ALIGN_QUERY *align_init(int qlen, const char *query, const char *mat)
 {
 	int slen = 0;
 	int a = 0;

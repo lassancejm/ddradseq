@@ -12,10 +12,6 @@
 #include <zlib.h>
 #include "ddradseq.h"
 
-/* Define some lengths*/
-#define MAX_LINE_LENGTH 400
-#define BSIZE 4000
-
 /*Globally scoped variables */
 char seq_nt4_table[256] = {
 	4, 4, 4, 4,	 4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,

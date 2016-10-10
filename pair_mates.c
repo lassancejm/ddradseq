@@ -26,7 +26,7 @@ int pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor,
 	int i = 0;
 	int xpos = 0;
 	int ypos = 0;
-	size_t z = 0;
+	size_t x = 0;
 	size_t l = 0;
 	size_t lc = 0;
 	size_t pos = 0;
@@ -61,7 +61,7 @@ int pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor,
 	in = gzopen(filename, "rb");
 	if (!in)
 	{
-		logerror("%s:%d Failed to open input fastQ file \'%s\'.\n", __func__, 
+		logerror("%s:%d Failed to open input fastQ file \'%s\'.\n", __func__,
 		         __LINE__, filename);
 		return 1;
 	}
@@ -120,47 +120,22 @@ int pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor,
 				}
 				strcpy(idline, &buf[l-3][1]);
 
-				/* Get instrument name */
-				tok = strtok_r(idline, seps, &r);
-				if (!tok)
+				/* Parse Illumina identifier line */
+				for (tok = strtok_r(idline, seps, &r), x = 0; tok != NULL; tok = strtok_r(NULL, seps, &r), x++)
 				{
-					logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
-					return 1;
-				}
-
-				/* Get run number, flow cell ID, and lane number */
-				for (z = 0; z < 3; z++)
-				{
-					tok = strtok_r(NULL, seps, &r);
-					if (!tok)
+					switch (x)
 					{
-						logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
-						return 1;
+						case 4:
+							tile = atoi(tok);
+							break;
+						case 5:
+							xpos = atoi(tok);
+							break;
+						case 6:
+							ypos = atoi(tok);
+							break;
 					}
 				}
-
-				/* Get tile number, x, and y coordinate */
-				tok = strtok_r(NULL, seps, &r);
-				if (!tok)
-				{
-					logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
-					return 1;
-				}
-				tile = atoi(tok);
-				tok = strtok_r(NULL, seps, &r);
-				if (!tok)
-				{
-					logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
-					return 1;
-				}
-				xpos = atoi(tok);
-				tok = strtok_r(NULL, seps, &r);
-				if (!tok)
-				{
-					logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
-					return 1;
-				}
-				ypos = atoi(tok);
 
 				/* Construct hash key */
 				mkey = malloc(KEYLEN);

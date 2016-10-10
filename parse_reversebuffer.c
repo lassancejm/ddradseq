@@ -29,12 +29,11 @@ int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 	char *qual_sequence = NULL;
 	unsigned char *skip = NULL;
 	int ret = 0;
-	int z = 0;
+	int x = 0;
 	int tile = 0;
 	int xpos = 0;
 	int ypos = 0;
 	size_t add_bytes = 0;
-	size_t strl = 0;
 	size_t l = 0;
 	size_t ll = 0;
 	khint_t i = 0;
@@ -49,15 +48,15 @@ int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 	/* Update time string */
 	get_timestr(&timestr[0]);
 
-	skip = malloc(nl);
+	/* Indicator variable whether to skip processing a line */
+	skip = calloc(1, nl * sizeof(unsigned char));
 	if (!skip)
 	{
 		logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 		return 1;
 	}
-	for (l = 0; l < nl; l++)
-		skip[l] = 0;
 
+	/* Iterate through lines in the buffer */
 	for (l = 0; l < nl; l++)
 	{
 		ll = strlen(q);
@@ -66,55 +65,59 @@ int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 			switch (l % 4)
 			{
 				case 0:
-					/* Illumina identifier line */
 					/* Make a copy of the Illumina identifier line */
-					copy = malloc(ll + 1u);
+					copy = strdup(q);
 					if (!copy)
 					{
 						logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 						return 1;
 					}
-					idline = malloc(ll + 1u);
+					idline = strdup(q);
 					if (!idline)
 					{
 						logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 						return 1;
 					}
-					strcpy(idline, q);
-					strcpy(copy, q);
 
-					/* Get instrument name */
-					tok = strtok_r(copy, seps, &r);
-					if (!tok)
+					/* Parse Illumina identifier line */
+					for (tok = strtok_r(copy, seps, &r), x = 0; tok != NULL; tok = strtok_r(NULL, seps, &r), x++)
 					{
-						logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
-						return 1;
+						switch (x)
+						{
+							case 2:
+								flowcell_ID = strdup(tok);
+								break;
+							case 4:
+								tile = atoi(tok);
+								break;
+							case 5:
+								xpos = atoi(tok);
+								break;
+							case 6:
+								ypos = atoi(tok);
+								break;
+							case 10:
+								index_sequence = strdup(tok);
+								break;
+						}
 					}
 
-					/* Get run number */
-					tok = strtok_r(NULL, seps, &r);
-					if (!tok)
-					{
-						logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
-						return 1;
-					}
-
-					/* Get flow cell ID */
-					tok = strtok_r(NULL, seps, &r);
-					if (!tok)
-					{
-						logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
-						return 1;
-					}
-					strl = strlen(tok);
-					flowcell_ID = malloc(strl + 1u);
+					/* Check parsing results */
 					if (!flowcell_ID)
 					{
 						logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 						return 1;
 					}
-					strcpy(flowcell_ID, tok);
+					if (!index_sequence)
+					{
+						logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+						return 1;
+					}
+
+					/* Lookup flow cell identifier */
 					i = kh_get(pool_hash, h, flowcell_ID);
+
+					/* Flow cell identifier is not present in database */
 					if (i == kh_end(h))
 					{
 						fprintf(lf, "[ddradseq: %s] WARNING -- Hash lookup failure using key %s.\n", timestr, flowcell_ID);
@@ -127,38 +130,13 @@ int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 						free(flowcell_ID);
 						break;
 					}
-					p = kh_value(h, i);
+					else
+						p = kh_value(h, i);
 
-					/* Get lane number */
-					tok = strtok_r(NULL, seps, &r);
-					if (!tok)
-					{
-						logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
-						return 1;
-					}
-
-					/* Get tile number, x, and y coordinate */
-					tok = strtok_r(NULL, seps, &r);
-					if (!tok)
-					{
-						logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
-						return 1;
-					}
-					tile = atoi(tok);
-					tok = strtok_r(NULL, seps, &r);
-					if (!tok)
-					{
-						logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
-						return 1;
-					}
-					xpos = atoi(tok);
-					tok = strtok_r(NULL, seps, &r);
-					if (!tok)
-					{
-						logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
-						return 1;
-					}
-					ypos = atoi(tok);
+					/* Lookup pool identifier */
+					j = kh_get(pool, p, index_sequence);
+					pl = kh_value(p, j);
+					b = pl->b;
 
 					/* Retrieve barcode sequence of mate */
 					mkey = malloc(KEYLEN);
@@ -185,36 +163,6 @@ int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 					barcode_sequence = kh_value(m, mk);
 					free(mkey);
 
-					/* Get read orientation, filtered flag and control number */
-					for (z = 0; z < 3; z++)
-					{
-						tok = strtok_r(NULL, seps, &r);
-						if (!tok)
-						{
-							logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
-							return 1;
-						}
-					}
-
-					/* Get the index sequence */
-					tok = strtok_r(NULL, seps, &r);
-					if (!tok)
-					{
-						logerror("%s:%d Parsing ID line failed.\n", __func__, __LINE__);
-						return 1;
-					}
-					strl = strlen(tok);
-					index_sequence = malloc(strl + 1u);
-					if (!index_sequence)
-					{
-						logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
-						return 1;
-					}
-					strcpy(index_sequence, tok);
-					j = kh_get(pool, p, index_sequence);
-					pl = kh_value(p, j);
-					b = pl->b;
-
 					/* Get the barcode entry of read's mate */
 					k = kh_get(barcode, b, barcode_sequence);
 					if (k != kh_end(b))
@@ -234,26 +182,24 @@ int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 					break;
 				case 1:
 					/* Sequence line */
-					dna_sequence = malloc(ll + 1u);
+					dna_sequence = strdup(q);
 					if (!dna_sequence)
 					{
 						logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 						return 1;
 					}
-					strcpy(dna_sequence, q);
 					break;
 				case 2:
 					/* Quality identifier line */
 					break;
 				case 3:
 					/* Quality sequence line */
-					qual_sequence = malloc(ll + 1u);
+					qual_sequence = strdup(q);
 					if (!qual_sequence)
 					{
 						logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 						return 1;
 					}
-					strcpy(qual_sequence, q);
 					add_bytes = strlen(idline) + strlen(dna_sequence) +
 								strlen(qual_sequence) + 5u;
 					char *t = NULL;
