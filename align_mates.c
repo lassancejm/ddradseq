@@ -10,7 +10,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <zlib.h>
+#include <errno.h>
 #include "ddradseq.h"
+
+#define NBASES 4
 
 /*Globally scoped variables */
 char seq_nt4_table[256] = {
@@ -32,11 +35,13 @@ char seq_nt4_table[256] = {
 	4, 4, 4, 4,	 4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4
 };
 char alpha[5] = "ACGTN";
+extern int errno;
 
 int align_mates(CMD *cp, const char *forin, const char *revin, const char *forout, const char *revout)
 {
 	char **fbuf = NULL;
 	char **rbuf = NULL;
+	char *errstr = NULL;
 	char mat[25];
 	int i = 0;
 	int j = 0;
@@ -91,8 +96,9 @@ int align_mates(CMD *cp, const char *forin, const char *revin, const char *forou
 	fin = gzopen(forin, "rb");
 	if (!fin)
 	{
-		logerror("%s:%d Failed to open input forward fastQ file \'%s\'.\n",
-		         __func__, __LINE__, forin);
+		errstr = strerror(errno);
+		logerror("%s:%d Failed to open input forward fastQ file \'%s\': %s.\n",
+		         __func__, __LINE__, forin, errstr);
 		return 1;
 	}
 
@@ -100,9 +106,9 @@ int align_mates(CMD *cp, const char *forin, const char *revin, const char *forou
 	rin = gzopen(revin, "rb");
 	if (!rin)
 	{
-		logerror("%s:%d Failed to open input reverse fastQ file \'%s\'.\n",
-		         __func__, __LINE__, revin);
-		gzclose(fin);
+		errstr = strerror(errno);
+		logerror("%s:%d Failed to open input reverse fastQ file \'%s\': %s.\n",
+		         __func__, __LINE__, revin, errstr);
 		return 1;
 	}
 
@@ -110,10 +116,8 @@ int align_mates(CMD *cp, const char *forin, const char *revin, const char *forou
 	fout = gzopen(forout, "wb");
 	if (!fout)
 	{
-		logerror("%s:%d Failed to open forward output fastQ file \'%s\'.\n",
-		         __func__, __LINE__, forout);
-		gzclose(fin);
-		gzclose(rin);
+		logerror("%s:%d Failed to open forward output fastQ file \'%s\': %s.\n",
+		         __func__, __LINE__, forout, errstr);
 		return 1;
 	}
 
@@ -121,24 +125,22 @@ int align_mates(CMD *cp, const char *forin, const char *revin, const char *forou
 	rout = gzopen(revout, "wb");
 	if (!rout)
 	{
-		logerror("%s:%d Failed to open reverse output fastQ file \'%s\'.\n",
-		         __func__, __LINE__, revout);
-		gzclose(fin);
-		gzclose(rin);
-		gzclose(fout);
+		errstr = strerror(errno);
+		logerror("%s:%d Failed to open reverse output fastQ file \'%s\': %s.\n",
+		         __func__, __LINE__, revout, errstr);
 		return 1;
 	}
 
 	/* Initialize the scoring matrix */
-	for (i = k = 0; i < 4; i++)
+	for (i = k = 0; i < NBASES; i++)
 	{
-		for (j = 0; j < 4; j++)
+		for (j = 0; j < NBASES; j++)
 			mat[k++] = (i == j) ? sa : -sb;
 
 		/* Ambiguous base */
 		mat[k++] = 0;
 	}
-	for (j = 0; j < 5; j++)
+	for (j = 0; j <= NBASES; j++)
 		mat[k++] = 0;
 
 	while (1)

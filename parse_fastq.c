@@ -10,14 +10,18 @@
 #include <stdlib.h>
 #include <string.h>
 #include <zlib.h>
+#include <errno.h>
 #include "khash.h"
 #include "ddradseq.h"
+
+extern int errno;
 
 int parse_fastq(const int orient, const char *filename, khash_t(pool_hash) *h,
                 khash_t(mates) *m, const int dist)
 {
 	char *r = NULL;
 	char *q = NULL;
+	char *errstr = NULL;
 	char buffer[BUFLEN];
 	int ret = 0;
 	size_t numlines = 0;
@@ -43,7 +47,9 @@ int parse_fastq(const int orient, const char *filename, khash_t(pool_hash) *h,
 	fin = gzopen(filename, "rb");
 	if (!fin)
 	{
-		logerror("%s:%d Unable to open file \'%s\'.\n", __func__, __LINE__, filename);
+		errstr = strerror(errno);
+		logerror("%s:%d Unable to open file \'%s\': %s.\n", __func__, __LINE__,
+		         filename, errstr);
 		return 1;
 	}
 
@@ -56,7 +62,12 @@ int parse_fastq(const int orient, const char *filename, khash_t(pool_hash) *h,
 	{
 		/* Read block from file into input buffer */
 		bytes_read = gzread(fin, &buffer[buff_rem], BUFLEN - buff_rem - 1);
-
+		if (bytes_read < 0)
+		{
+			logerror("%s:%d Failed to read data from file \'%s\': %s.\n",
+			         __func__, __LINE__, filename);
+			return 1;
+		}
 		/* Set null terminating character on input buffer */
 		buffer[bytes_read + buff_rem] = '\0';
 

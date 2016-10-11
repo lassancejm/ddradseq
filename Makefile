@@ -1,8 +1,8 @@
 # Makefile for the ddradseq program
 # Lummei Analytics LLC September 2016
 CC = gcc
-CFLAGS = -O2 -Wall -D_LARGEFILE64_SOURCE
-DEBUG_CFLAGS = -ggdb -Wall -D_LARGEFILE64_SOURCE
+CFLAGS = -O2 -Wall -D_FILE_OFFSET_BITS=64
+DEBUG_CFLAGS = -ggdb -Wall -D_FILE_OFFSET_BITS=64
 LDFLAGS = -lz
 TARGET = ddradseq
 SRCS = $(wildcard *.c)

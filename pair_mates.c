@@ -10,8 +10,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <zlib.h>
+#include <errno.h>
 #include "ddradseq.h"
 #include "khash.h"
+
+extern int errno;
 
 int pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor,
                const char *frev)
@@ -21,6 +24,7 @@ int pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor,
 	char seps[] = ": ";
 	char *tok = NULL;
 	char *mkey = NULL;
+	char *errstr = NULL;
 	char *r = NULL;
 	int tile = 0;
 	int i = 0;
@@ -61,8 +65,9 @@ int pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor,
 	in = gzopen(filename, "rb");
 	if (!in)
 	{
-		logerror("%s:%d Failed to open input fastQ file \'%s\'.\n", __func__,
-		         __LINE__, filename);
+		errstr = strerror(errno);
+		logerror("%s:%d Unable to open input file \'%s\': %s.\n", __func__, __LINE__,
+		         filename, errstr);
 		return 1;
 	}
 
@@ -70,19 +75,18 @@ int pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor,
 	fout = gzopen(ffor, "wb");
 	if (!fout)
 	{
-		logerror("%s:%d Failed to open forward output fastQ file \'%s\'.\n",
-		         __func__, __LINE__, ffor);
-		gzclose(in);
+		errstr = strerror(errno);
+		logerror("%s:%d Unable to forward output file \'%s\': %s.\n", __func__,
+		         __LINE__, ffor, errstr);
 		return 1;
 	}
 
 	rout = gzopen(frev, "wb");
 	if (!rout)
 	{
-		logerror("%s:%d Failed to open reverse output fastQ file \'%s\'.\n",
-		         __func__, __LINE__, frev);
-		gzclose(in);
-		gzclose(fout);
+		errstr = strerror(errno);
+		logerror("%s:%d Unable to reverse output file \'%s\': %s.\n", __func__,
+		         __LINE__, frev, errstr);
 		return 1;
 	}
 

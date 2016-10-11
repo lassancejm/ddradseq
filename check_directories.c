@@ -24,6 +24,8 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 	char *parsedir = NULL;
 	char *pairdir = NULL;
 	char *trimdir = NULL;
+	char *errstr = NULL;
+	char filepath[512];
 	int writable = 0;
 	int status = 0;
 	size_t strl = 0;
@@ -31,6 +33,7 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 	khint_t j = 0;
 	khash_t(pool) *p = NULL;
 	POOL *pl = NULL;
+	struct dirent *next_file;
 	DIR *d;
 
 	/* Update time string */
@@ -38,10 +41,11 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 
 	/* Check if parent output directory is writable */
 	writable = access(cp->parentdir, W_OK);
-	if (writable != 0)
+	if (writable < 0)
 	{
-		logerror("%s:%d Cannot write to directory \'%s\'.\n", __func__, __LINE__,
-			     cp->parentdir);
+		errstr = strerror(errno);
+		logerror("%s:%d Cannot write to directory \'%s\': %s.\n", __func__,
+		         __LINE__, cp->parentdir, errstr);
 		return 1;
 	}
 	else
@@ -52,16 +56,24 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 		/* If the directory doesn't already exist, create it */
 		if (d)
 			closedir(d);
-		else if (ENOENT == errno)
+		else if (errno == ENOENT)
 		{
 			status = mkdir(cp->outdir, S_IRWXU | S_IRGRP | S_IXGRP |
 									   S_IROTH | S_IXOTH);
 			if (status < 0)
 			{
-				logerror("%s:%d Failed to create output directory \'%s\'.\n",
-				         __func__, __LINE__, cp->outdir);
+				errstr = strerror(errno);
+				logerror("%s:%d Failed to create output directory \'%s\': %s.\n",
+				         __func__, __LINE__, cp->outdir, errstr);
 				return 1;
 			}
+		}
+		else
+		{
+			errstr = strerror(errno);
+			logerror("%s:%d Failed to create output directory \'%s\': %s.\n",
+						__func__, __LINE__, cp->outdir, errstr);
+			return 1;			
 		}
 
 		/* Check and create pool subdirectories */
@@ -81,16 +93,25 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 				d = opendir(flowdir);
 				if (d)
 					closedir(d);
-				else if (ENOENT == errno)
+				else if (errno == ENOENT)
 				{
 					status = mkdir(flowdir, S_IRWXU | S_IRGRP | S_IXGRP |
 											S_IROTH | S_IXOTH);
 					if (status < 0)
 					{
+						errstr = strerror(errno);
 						logerror("%s:%d Failed to create flowcell-level output "
-						         "directory \'%s\'.\n", __func__, __LINE__, flowdir);
+						         "directory \'%s\': %s.\n", __func__, __LINE__,
+								 flowdir, errstr);
 						return 1;
 					}
+				}
+				else
+				{
+					errstr = strerror(errno);
+					logerror("%s:%d Failed to create output directory \'%s\': %s.\n",
+								__func__, __LINE__, cp->outdir, errstr);
+					return 1;			
 				}
 				free(flowdir);
 				p = kh_value(h, i);
@@ -106,14 +127,16 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 						/* create it */
 						if (d)
 							closedir(d);
-						else if (ENOENT == errno)
+						else if (errno == ENOENT)
 						{
 							status = mkdir(pooldir, S_IRWXU | S_IRGRP |
 													S_IXGRP | S_IROTH | S_IXOTH);
 							if (status < 0)
 							{
+								char *errstr = strerror(errno);
 								logerror("%s:%d Failed to create pool-level "
-								         "directory \'%s\'.\n", __func__, __LINE__, pooldir);
+								         "directory \'%s\': %s.\n", __func__,
+										 __LINE__, pooldir, errstr);
 								return 1;
 							}
 						}
@@ -131,17 +154,34 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 						/* If the subsubdirectory doesn't already exist */
 						/* create it */
 						if (d)
+						{
+							/* If directory already exists-- delete all files */
+							while ((next_file = readdir(d)) != NULL)
+							{
+								sprintf(filepath, "%s/%s", parsedir, next_file->d_name);
+								remove(filepath);
+							}
 							closedir(d);
-						else if (ENOENT == errno)
+						}
+						else if (errno == ENOENT)
 						{
 							status = mkdir(parsedir, S_IRWXU | S_IRGRP |
 													 S_IXGRP | S_IROTH | S_IXOTH);
 							if (status < 0)
 							{
+								char *errstr = strerror(errno);
 								logerror("%s:%d Failed to create output directory "
-								         "\'%s\'.\n", __func__, __LINE__, parsedir);
+								         "\'%s\': %s.\n", __func__, __LINE__, parsedir,
+										 errstr);
 								return 1;
 							}
+						}
+						else
+						{
+							errstr = strerror(errno);
+							logerror("%s:%d Failed to create output directory \'%s\': %s.\n",
+										__func__, __LINE__, cp->outdir, errstr);
+							return 1;			
 						}
 						free(parsedir);
 						strl = strlen(pooldir);
@@ -158,17 +198,34 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 						/* If the subsubdirectory doesn't already exist */
 						/* create it */
 						if (d)
+						{
+							/* If directory already exists-- delete all files */
+							while ((next_file = readdir(d)) != NULL)
+							{
+								sprintf(filepath, "%s/%s", pairdir, next_file->d_name);
+								remove(filepath);
+							}
 							closedir(d);
-						else if (ENOENT == errno)
+						}
+						else if (errno == ENOENT)
 						{
 							status = mkdir(pairdir, S_IRWXU | S_IRGRP |
 													S_IXGRP | S_IROTH | S_IXOTH);
 							if (status < 0)
 							{
+								char *errstr = strerror(errno);
 								logerror("%s:%d Failed to create output directory "
-								         "\'%s\'.\n", __func__, __LINE__, pairdir);
+								         "\'%s\': %s.\n", __func__, __LINE__, pairdir,
+										 errstr);
 								return 1;
 							}
+						}
+						else
+						{
+							errstr = strerror(errno);
+							logerror("%s:%d Failed to create output directory \'%s\': %s.\n",
+										__func__, __LINE__, cp->outdir, errstr);
+							return 1;			
 						}
 						free(pairdir);
 						strl = strlen(pooldir);
@@ -185,17 +242,34 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 						/* If the subsubdirectory doesn't already exist */
 						/* create it */
 						if (d)
+						{
+							/* If directory already exists-- delete all files */
+							while ((next_file = readdir(d)) != NULL)
+							{
+								sprintf(filepath, "%s/%s", trimdir, next_file->d_name);
+								remove(filepath);
+							}
 							closedir(d);
-						else if (ENOENT == errno)
+						}
+						else if (errno == ENOENT)
 						{
 							status = mkdir(trimdir, S_IRWXU | S_IRGRP |
 													S_IXGRP | S_IROTH | S_IXOTH);
 							if (status < 0)
 							{
+								char *errstr = strerror(errno);
 								logerror("%s:%d Failed to create output directory "
-								         "\'%s\'.\n", __func__, __LINE__, trimdir);
+								         "\'%s\': %s.\n", __func__, __LINE__, trimdir,
+										 errstr);
 								return 1;
 							}
+						}
+						else
+						{
+							errstr = strerror(errno);
+							logerror("%s:%d Failed to create output directory \'%s\': %s.\n",
+										__func__, __LINE__, cp->outdir, errstr);
+							return 1;			
 						}
 						free(trimdir);
 					}
