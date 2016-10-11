@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
 #include "ddradseq.h"
 
 /* Function prototypes */
@@ -17,6 +18,8 @@ extern int parse_main(CMD*);
 extern int trimend_main(CMD*);
 extern int pair_main(CMD*);
 static void usage(void);
+
+extern int errno;
 
 int main(int argc, char *argv[])
 {
@@ -37,7 +40,7 @@ int main(int argc, char *argv[])
 	cwd = getcwd(logfile, sizeof(logfile));
 	if (!cwd)
 	{
-		error("%s:%d Failed to get current working directory.\n", __func__, __LINE__);
+		perror("Failed to get current working directory");
 		return 1;
 	}
 	strcat(logfile, logfname);
@@ -46,7 +49,7 @@ int main(int argc, char *argv[])
 	lf = fopen(logfile, "a");
 	if (!lf)
 	{
-		error("%s:%d Failed to open logfile.\n", __func__, __LINE__);
+		perror("Failed to open logfile");
 		return 1;
 	}
 

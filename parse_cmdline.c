@@ -12,7 +12,10 @@
 #include <time.h>
 #include <getopt.h>
 #include <libgen.h>
+#include <errno.h>
 #include "ddradseq.h"
+
+extern int errno;
 
 CMD *parse_cmdline(int argc, char *argv[])
 {
@@ -29,7 +32,7 @@ CMD *parse_cmdline(int argc, char *argv[])
 	cp = malloc(sizeof(CMD));
 	if (UNLIKELY(!cp))
 	{
-		error("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+		perror("Memory allocation failure");
 		return NULL;
 	}
 
@@ -81,7 +84,7 @@ CMD *parse_cmdline(int argc, char *argv[])
 				datec = malloc(DATELEN + 3u);
 				if (UNLIKELY(!datec))
 				{
-					error("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+					perror("Memory allocation failure");
 					return NULL;
 				}
 				time(&rawtime);
@@ -95,7 +98,7 @@ CMD *parse_cmdline(int argc, char *argv[])
 					cp->outdir = malloc(strl);
 					if (UNLIKELY(!cp->outdir))
 					{
-						error("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+						perror("Memory allocation failure");
 						return NULL;
 					}
 					strcpy(cp->outdir, tmpdir);
@@ -107,7 +110,7 @@ CMD *parse_cmdline(int argc, char *argv[])
 					cp->outdir = malloc(strl);
 					if (UNLIKELY(!cp->outdir))
 					{
-						error("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+						perror("Memory allocation failure");
 						return NULL;
 					}
 					strcpy(cp->outdir, tmpdir);

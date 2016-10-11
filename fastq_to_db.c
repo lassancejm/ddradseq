@@ -106,7 +106,7 @@ khash_t(fastq) *fastq_to_db(const char *filename)
 					logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 					return NULL;
 				}
-				strcpy(e->id, &buf[l - 3][1]);
+				strcpy(e->id, &buf[l-3][1]);
 
 				/* Construct fastQ hash key */
 				idline = malloc(strl + 1u);
