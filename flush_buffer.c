@@ -10,14 +10,18 @@
 #include <stdlib.h>
 #include <string.h>
 #include <zlib.h>
+#include <errno.h>
 #include "khash.h"
 #include "ddradseq.h"
+
+extern int errno;
 
 int flush_buffer(int orient, BARCODE *bc)
 {
 	char *filename = NULL;
 	char *buffer = NULL;
 	char *pch = NULL;
+	char *errstr = NULL;
 	int ret = 0;
 	size_t len = 0;
 	gzFile out;
@@ -45,15 +49,18 @@ int flush_buffer(int orient, BARCODE *bc)
 	out = gzopen(filename, "ab");
 	if (!out)
 	{
-		logerror("%s:%d Unable to open output file \'%s\'.\n", __func__, __LINE__, filename);
+		errstr = strerror(errno);
+		logerror("%s:%d Unable to open output file \'%s\': %s.\n", __func__,
+		         __LINE__, filename, errstr);
 		return 1;
 	}
 
 	/* Dump buffer to file */
 	ret = gzwrite(out, buffer, len);
-	if (ret != (int)len)
+	if (ret == 0)
 	{
-		logerror("%s:%d Problem writing to output file \'%s\'.\n", __func__, __LINE__, filename);
+		logerror("%s:%d Problem writing to output file \'%s\'.\n", __func__,
+		         __LINE__, filename);
 		return 1;
 	}
 

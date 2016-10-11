@@ -38,33 +38,33 @@ int trimend_main(CMD *cp)
 		size_t spn = 0;
 
 		/* Construct output file names */
-		ffor = malloc(strlen(f[i]) + 1u);
+		ffor = strdup(f[i]);
 		if (UNLIKELY(!ffor))
 		{
 			logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 			return 1;
 		}
-		frev = malloc(strlen(f[i+1]) + 1u);
+		frev = strdup(f[i+1]);
 		if (UNLIKELY(!frev))
 		{
 			logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 			return 1;
 		}
-		strcpy(ffor, f[i]);
-		strcpy(frev, f[i+1]);
 		pch = strstr(ffor, "pairs");
 		if (!pch)
 			return 1;
-		strncpy(pch, "final", 5);
+		strncpy(pch, "final", DNAME_LENGTH);
 		pch = strstr(frev, "pairs");
 		if (!pch)
 			return 1;
-		strncpy(pch, "final", 5);
+		strncpy(pch, "final", DNAME_LENGTH);
+
+		/* Double-check that files are mates */
 		spn = strcspn(ffor, ".");
 		ret = strncmp(ffor, frev, spn);
 		if (ret)
 		{
-			logerror("%s:%d Files \'%s\' and \'%s\' do not appear to be mate "
+			logerror("%s:%d Files \'%s\' and \'%s\' do not appear to be mate-"
 				     "pairs.\n", __func__, __LINE__, ffor, frev);
 			return 1;
 		}

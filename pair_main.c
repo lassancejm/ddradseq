@@ -33,41 +33,35 @@ int pair_main(CMD *cp)
 		char *ffor = NULL;
 		char *frev = NULL;
 		size_t spn = 0;
-		size_t strl = 0;
 
 		/* Construct output file names */
-		strl = strlen(f[i]);
-		ffor = malloc(strl + 1u);
+		ffor = strdup(f[i]);
 		if (UNLIKELY(!ffor))
 		{
 			logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 			return 1;
 		}
-		strl = strlen(f[i + 1]);
-		frev = malloc(strl + 1u);
+		frev = strdup(f[i+1]);
 		if (UNLIKELY(!frev))
 		{
 			logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 			return 1;
 		}
-		strcpy(ffor, f[i]);
-		strcpy(frev, f[i + 1]);
 		pch = strstr(ffor, "parse");
 		if (!pch)
 			return 1;
-		strncpy(pch, "pairs", 5);
+		strncpy(pch, "pairs", DNAME_LENGTH);
 		pch = strstr(frev, "parse");
 		if (!pch)
 			return 1;
-		strncpy(pch, "pairs", 5);
+		strncpy(pch, "pairs", DNAME_LENGTH);
 
-		/* Double check that files are mates */
+		/* Double-check that files are mates */
 		spn = strcspn(ffor, ".");
 		ret = strncmp(ffor, frev, spn);
-		if (ret)
 		{
-			logerror("%s:%d Pairing files \'%s\' and \'%s\' failed.\n", __func__,
-			         __LINE__, ffor, frev);
+			logerror("%s:%d Files \'%s\' and \'%s\' do not appear to be mate-"
+				     "pairs.\n", __func__, __LINE__, ffor, frev);
 			return 1;
 		}
 
