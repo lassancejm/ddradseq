@@ -23,7 +23,10 @@ int pair_main(CMD *cp)
 	get_timestr(&timestr[0]);
 
 	/* Get list of all files */
-	f = traverse_dirtree(cp->outdir, "parse", &n);
+	if (string_equal(cp->mode, "pair"))
+		f = traverse_dirtree(cp->parentdir, "parse", &n);
+	else
+		f = traverse_dirtree(cp->outdir, "parse", &n);
 	if (!f)
 		return 1;
 

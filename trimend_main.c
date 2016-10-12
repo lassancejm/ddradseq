@@ -27,7 +27,10 @@ int trimend_main(CMD *cp)
 	        "sequences in \'%s\'.\n", timestr, cp->outdir);
 
 	/* Get list of all files */
-	f = traverse_dirtree(cp->outdir, "pairs", &n);
+	if (string_equal(cp->mode, "trimend"))
+		f = traverse_dirtree(cp->parentdir, "pairs", &n);
+	else
+		f = traverse_dirtree(cp->outdir, "pairs", &n);
 	if (!f)
 		return 1;
 
