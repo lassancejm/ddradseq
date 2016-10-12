@@ -62,6 +62,7 @@ int pair_main(CMD *cp)
 		/* Double-check that files are mates */
 		spn = strcspn(ffor, ".");
 		ret = strncmp(ffor, frev, spn);
+		if (ret)
 		{
 			logerror("%s:%d Files \'%s\' and \'%s\' do not appear to be mate-"
 				     "pairs.\n", __func__, __LINE__, ffor, frev);
