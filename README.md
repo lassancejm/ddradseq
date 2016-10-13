@@ -167,6 +167,31 @@ the user will find a pair of fastQ files for each individual sample. This means 
 fastQ files will be found in the "final/" folders. These names of the resulting individual sample files will have the form
 "smpl_&lt;sample ID&gt;.R1.fq.gz" for forward sequences and "smpl_&lt;sample ID&gt;.R2.fq.gz" for reverse sequences.
 
+## Python helper script
+The script "ddradseq-bwa.py" is provided to assist in read assembly of the files output by the **ddradseq** program.
+The script will invoke "bwa mem" to map the reads and will convert sam to bam using samtools.
+```
+% ./ddradseq-bwa.py --help
+usage: use "python ./ddradseq-bwa.py --help" for more information
+
+Control script for read assembly stage of the ddRadSeq pipeline
+
+optional arguments:
+  -h, --help           show this help message and exit
+  -d DIR, --dir DIR    Directory containing input fastQ files
+  -r FILE, --ref FILE  Name of file with reference sequence for read mapping
+  -m N, --map N        Number of threads available for bwa read mapping
+  -t N, --threads N    Number of threads available for concurrency
+  -v, --version        show program's version number and exit
+
+For more detailed information on how to run this script, see the overview document.
+```
+For example, to assemble all the processed reads in pool "JNW1b", with a reference sequence in file
+"Pman_1.0_genomic.fa" using 4 threads, the following command can be used,
+```
+% ./ddradseq-bwa --dir ~/ddradseq/output/ddradseq-2016-09-28/C4R08ANXX/JNW1b --map 4 --ref ~/reference/Pman_1.0_genomic.fa
+```
+
 ## Compiling
 
 A simple Makefile is provided with the **ddradseq** program. The only dependency is the zlib runtime library and headers.
