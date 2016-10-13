@@ -97,19 +97,19 @@ different directories, to insure that **ddradseq** does not consider fastQ files
 
 ### Example
 ```
-% ./ddradseq -c out.csv.gz -s 130 -o ~/ddradseq/output ~/data/ddradseq
+% ./ddradseq -c rad48.csv.gz -s 130 -o ~/ddradseq/output ~/data/ddradseq
 ```
 or, the same command using long option switches
 
 ```
-% ./ddradseq --csv out.csv.gz --score 130 --out ~/ddradseq/output ~/data/ddradseq
+% ./ddradseq --csv rad48.csv.gz --score 130 --out ~/ddradseq/output ~/data/ddradseq
 ```
 
 ## The CSV database file
 
-Below is an example of the comma-separated database text file:
+Below is an example of the comma-separated database text file ("rad48.csv.gz"):
 ```
-% zcat out.csv.gz | head
+% zcat rad48.csv.gz | head
 C4R08ANXX,CGATGT,JNW1b,AAGGA,1755
 C4R08ANXX,CGATGT,JNW1b,AATTA,1716
 C4R08ANXX,CGATGT,JNW1b,ACACA,1816
