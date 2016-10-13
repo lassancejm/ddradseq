@@ -21,7 +21,7 @@ CMD *parse_cmdline(int argc, char *argv[])
 {
 	char *datec = NULL;
 	char *tmpdir = NULL;
-	char version_str[] = "ddradseq v1.1-beta";
+	char version_str[] = "ddradseq v1.2-beta";
 	int c = 0;
 	size_t strl = 0;
 	time_t rawtime;

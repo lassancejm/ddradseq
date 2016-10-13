@@ -305,7 +305,7 @@ def getCommandLine(args):
                         )
     parser.add_argument('-v', '--version',
                         action='version',
-                        version='ddradseq-bwa v1.1-beta'
+                        version='ddradseq-bwa v1.2-beta'
                         )
     parameters = parser.parse_args(args)
     # Check if there are enough available CPU threads
