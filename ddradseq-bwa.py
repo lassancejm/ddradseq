@@ -316,15 +316,14 @@ def getCommandLine(args):
             'FATAL ERROR: {:d} threads requested, only {:d} threads available on host'.format(
                 requestedCores, availableCores))
     # Check if reference genome file is needed
-    if parameters.stage in stageBWA:
-        if not parameters.referenceFile:
+    if not parameters.referenceFile:
+        parser.error(
+            'FATAL ERROR: reference genome fastA file needed as input')
+    else:
+        if not os.path.isfile(parameters.referenceFile):
             parser.error(
-                'FATAL ERROR: reference genome fastA file needed as input')
-        else:
-            if not os.path.isfile(parameters.referenceFile):
-                parser.error(
-                    'FATAL ERROR: reference fastA file {} not found'.format(
-                        parameters.referenceFile))
+                'FATAL ERROR: reference fastA file {} not found'.format(
+                    parameters.referenceFile))
     return parameters
 if __name__ == '__main__':
     main(sys.argv[1:])
