@@ -240,7 +240,7 @@ extern int pair_mates(const char *filename, const khash_t(fastq) *h, const char 
  * Zero on success and non-zero on failure
  */
 
-extern int align_mates(CMD *cp, const char *fin, const char *rin, const char *fout, const char *rout);
+extern int align_mates(const CMD *cp, const char *fin, const char *rin, const char *fout, const char *rout);
 
 
 /******************************************************

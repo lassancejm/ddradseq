@@ -9,20 +9,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include <zlib.h>
 #include "khash.h"
 #include "ddradseq.h"
 
 khash_t(pool_hash) *read_csv (const CMD *cp)
 {
-	char *csvfile = cp->csvfile;  /* Pointer to CSV database file name */
-	char *outpath = cp->outdir;	  /* Pointer to parent of output directories */
+	const char *csvfile = cp->csvfile;  /* Pointer to CSV database file name */
+	const char *outpath = cp->outdir;	/* Pointer to parent of output directories */
 	char buf[MAX_LINE_LENGTH];    /* File input buffer */
 	char seps[] = ",";			  /* CSV entry separator character */
 	char *tok = NULL;			  /* Holds parsed CSV tokens */
 	char *r = NULL;				  /* Residual pointer for strtok_r */
 	char *tmp = NULL;			  /* Temporary pointer */
-	unsigned char trail = 0;	  /* Boolean indicator of trailing slash */
+	bool trail = false;           /* Boolean indicator of trailing slash */
 	int a = 0;					  /* Return value for database entry */
 	size_t strl = 0;			  /* Generic string length holder */
 	size_t pathl = 0;			  /* Length of path string */
@@ -46,7 +47,7 @@ khash_t(pool_hash) *read_csv (const CMD *cp)
 	/* Check for trailing slash on outpath */
 	pathl = strlen(outpath);
 	if (outpath[pathl - 1u] == '/')
-		trail = 1;
+		trail = true;
 
 	/* Open input database text file stream */
 	in = gzopen(csvfile, "rb");

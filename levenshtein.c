@@ -6,8 +6,6 @@
  * note: Code is from https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#C
 */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "ddradseq.h"
 

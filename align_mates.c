@@ -16,7 +16,7 @@
 #define NBASES 4
 
 /*Globally scoped variables */
-char seq_nt4_table[256] = {
+const char seq_nt4_table[256] = {
 	4, 4, 4, 4,	 4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
 	4, 4, 4, 4,	 4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
 	4, 4, 4, 4,	 4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
@@ -34,10 +34,10 @@ char seq_nt4_table[256] = {
 	4, 4, 4, 4,	 4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,
 	4, 4, 4, 4,	 4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4
 };
-char alpha[5] = "ACGTN";
+const char alpha[5] = "ACGTN";
 extern int errno;
 
-int align_mates(CMD *cp, const char *forin, const char *revin, const char *forout, const char *revout)
+int align_mates(const CMD *cp, const char *forin, const char *revin, const char *forout, const char *revout)
 {
 	char **fbuf = NULL;
 	char **rbuf = NULL;
@@ -47,12 +47,12 @@ int align_mates(CMD *cp, const char *forin, const char *revin, const char *forou
 	int j = 0;
 	int k = 0;
 	int xtra = KSW_XSTART;
-	int sa = 1;
-	int sb = 3;
-	int gap_open = cp->gapo;
-	int gap_extend = cp->gape;
-	int min_score = cp->score;
-	int count = 0;
+	const int sa = 1;
+	const int sb = 3;
+	const int gap_open = cp->gapo;
+	const int gap_extend = cp->gape;
+	const int min_score = cp->score;
+	unsigned int count = 0;
 	size_t l = 0;
 	size_t lc = 0;
 	gzFile fin;
@@ -223,7 +223,7 @@ int align_mates(CMD *cp, const char *forin, const char *revin, const char *forou
 
 	/* Print informational message to logfile */
 	get_timestr(&timestr[0]);
-	fprintf(lf, "[ddradseq: %s] INFO -- %d sequences trimmed.\n", timestr, count);
+	fprintf(lf, "[ddradseq: %s] INFO -- %u sequences trimmed.\n", timestr, count);
 
 	/* Free memory from the heap */
 	for (i = 0; i < BSIZE; i++)
