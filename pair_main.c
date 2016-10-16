@@ -11,7 +11,7 @@
 #include <string.h>
 #include "ddradseq.h"
 
-int pair_main(CMD *cp)
+int pair_main(const CMD *cp)
 {
 	char *pch = NULL;
 	char **f = NULL;

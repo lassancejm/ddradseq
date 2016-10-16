@@ -11,7 +11,7 @@
 #include <string.h>
 #include "ddradseq.h"
 
-int trimend_main(CMD *cp)
+int trimend_main(const CMD *cp)
 {
 	char *pch = NULL;
 	char **f = NULL;

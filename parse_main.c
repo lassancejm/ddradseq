@@ -11,7 +11,7 @@
 #include <string.h>
 #include "ddradseq.h"
 
-int parse_main(CMD *cp)
+int parse_main(const CMD *cp)
 {
 	char **f = NULL;
 	int ret = 0;

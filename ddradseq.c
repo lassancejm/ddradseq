@@ -14,9 +14,9 @@
 #include "ddradseq.h"
 
 /* Function prototypes */
-extern int parse_main(CMD*);
-extern int trimend_main(CMD*);
-extern int pair_main(CMD*);
+extern int parse_main(const CMD*);
+extern int trimend_main(const CMD*);
+extern int pair_main(const CMD*);
 static void usage(void);
 
 extern int errno;
