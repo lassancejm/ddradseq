@@ -493,7 +493,7 @@ extern int get_timestr(char *s);
  ******************************************************/
 
 /* void error(const char *format)
- * Report error to stderr only
+ * Report error to stderr
  */
 
 extern void error(const char *format, ...);

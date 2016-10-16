@@ -11,7 +11,6 @@
 #include <string.h>
 #include <time.h>
 #include <getopt.h>
-#include <libgen.h>
 #include <errno.h>
 #include "ddradseq.h"
 
@@ -158,10 +157,7 @@ CMD *parse_cmdline(int argc, char *argv[])
 
 	/* Do sanity check on command line options */
 	if (!cp->mode)
-	{
-		cp->mode = malloc(4u);
-		strcpy(cp->mode, "all");
-	}
+		cp->mode = strdup("all");
 	if (!cp->csvfile && (string_equal(cp->mode, "parse") || string_equal(cp->mode, "all")))
 	{
 		fputs("ERROR: \'--csv\' switch is mandatory when running parse mode.\n", stderr);

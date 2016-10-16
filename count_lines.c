@@ -6,9 +6,7 @@
  * copyright: MIT license
  */
 
-#include <stdlib.h>
 #include <string.h>
-#include "ddradseq.h"
 
 size_t count_lines(const char *buff)
 {

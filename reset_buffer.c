@@ -6,16 +6,11 @@
  * copyright: MIT license
  */
 
-#include <stdlib.h>
-#include "ddradseq.h"
+#include <string.h>
 
 size_t reset_buffer(char *buff, const char *r)
 {
-	size_t i = 0;
-	size_t br = 0;
-
-	br = strlen(r);
-	for (i = 0; i < br; i++)
-		buff[i] = *(r + i);
+	size_t br = strlen(r);
+	memmove(buff, r, br);
 	return br;
 }

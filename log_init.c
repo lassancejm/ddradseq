@@ -8,8 +8,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <time.h>
 #include <sys/utsname.h>
 #include <sys/sysinfo.h>
 #include "ddradseq.h"
@@ -34,7 +32,7 @@ int log_init(const CMD *cp)
 	uname(&host);
 
 	/* Get some system specs */
-	sysinfo (&si);
+	sysinfo(&si);
 
 	/* Print information on starting parameters */
 	fprintf(lf, "[ddradseq: %s] INFO -- user specified directory %s "

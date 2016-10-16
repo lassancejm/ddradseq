@@ -6,9 +6,7 @@
  * copyright: MIT license
  */
 
-#include <stdlib.h>
 #include <string.h>
-#include "ddradseq.h"
 
 char *clean_buffer(char *buff, size_t *nl)
 {
