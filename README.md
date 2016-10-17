@@ -66,6 +66,7 @@ Mandatory arguments to long options are mandatory for short options too.
  -s, --score          Alignment score to consider mates as overlapping       [default: 100]
  -g, --gapo           Penalty for opening a gap                              [default: 5]
  -e, --gape           Penalty for extending an open gap                      [default: 2]
+ -a, --across         Pool sequences across flow cells                       [default: false]
  -h, --help           Display this help message
  -v, --version        Print software version number and exit
 
@@ -84,6 +85,7 @@ each of the parameters in more detail:
 | `-s, --score` | Integer              | The number of matching bases for mate-pairs to be considered as overlapping. |
 | `-g, --gapo`  | Integer              | The gap penalty invoked during the alignment in the **trimend** stage. |
 | `-e, --gape`  | Integer              | The gap extension penalty invoked during the alignment in the **trimend** stage. |
+| `-a, --across` | None                | Pool all sequences across all specified input flow cells. |
 
 The program will write all of its activity to the logfile "ddradseq.log". The log file will be written to the user's
 current working directory.
@@ -166,6 +168,9 @@ will contain the output files from the three different stages of the pipeline. F
 the user will find a pair of fastQ files for each individual sample. This means that the final individual sample paired
 fastQ files will be found in the "final/" folders. These names of the resulting individual sample files will have the form
 "smpl_&lt;sample ID&gt;.R1.fq.gz" for forward sequences and "smpl_&lt;sample ID&gt;.R2.fq.gz" for reverse sequences.
+
+Note that if the "--across" switch is used, then there will be no higher-level flow cell directory and all the samples
+will be pooled across input files from all specified flow cells.
 
 ## Python helper script
 The script "ddradseq-bwa.py" is provided to assist in read assembly of the files output by the **ddradseq** program.
