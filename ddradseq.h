@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <limits.h>
 #include <emmintrin.h>
 #include "khash.h"
@@ -65,6 +66,7 @@
 /* Data structure to hold command line parameters */
 typedef struct cmdparam
 {
+	bool across;
 	char *parentdir;
 	char *outdir;
 	char *csvfile;

@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <stdbool.h>
 #include <getopt.h>
 #include <errno.h>
 #include "ddradseq.h"
@@ -20,7 +21,7 @@ CMD *parse_cmdline(int argc, char *argv[])
 {
 	char *datec = NULL;
 	char *tmpdir = NULL;
-	char version_str[] = "ddradseq v1.2-beta";
+	char version_str[] = "ddradseq v1.3-beta";
 	int c = 0;
 	size_t strl = 0;
 	time_t rawtime;
@@ -36,6 +37,7 @@ CMD *parse_cmdline(int argc, char *argv[])
 	}
 
 	/* Initialize default values on command line data structure */
+	cp->across = false;
 	cp->parentdir = NULL;
 	cp->outdir = NULL;
 	cp->csvfile = NULL;
@@ -52,6 +54,7 @@ CMD *parse_cmdline(int argc, char *argv[])
 		{
 			{"help",    no_argument,       0, 'h'},
 			{"version", no_argument,       0, 'v'},
+			{"across",  no_argument,       0, 'a'},
 			{"mode",    required_argument, 0, 'm'},
 			{"dist",    required_argument, 0, 'd'},
 			{"out",	    required_argument, 0, 'o'},
@@ -127,6 +130,9 @@ CMD *parse_cmdline(int argc, char *argv[])
 					fprintf(stderr, "ERROR: %s is not a valid mode.\n", cp->mode);
 					return NULL;
 				}
+				break;
+			case 'a':
+				cp->across = true;
 				break;
 			case 's':
 				cp->score = atoi(optarg);

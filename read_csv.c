@@ -82,7 +82,8 @@ khash_t(pool_hash) *read_csv (const CMD *cp)
 			logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 			return NULL;
 		}
-		pathl += strl + 1u;
+		if (!cp->across)
+			pathl += strl + 1u;
 		strcpy(tmp, tok);
 
 		/* Put flowcell string as key in top-level hash */
@@ -169,9 +170,19 @@ khash_t(pool_hash) *read_csv (const CMD *cp)
 			return NULL;
 		}
 		if (trail)
-			sprintf(tmp, "%s%s/%s", outpath, kh_key(h, i), pl->poolID);
+		{
+			if (cp->across)
+				sprintf(tmp, "%s%s", outpath, pl->poolID);
+			else
+				sprintf(tmp, "%s%s/%s", outpath, kh_key(h, i), pl->poolID);
+		}
 		else
-			sprintf(tmp, "%s/%s/%s", outpath, kh_key(h, i), pl->poolID);
+		{
+			if (cp->across)
+				sprintf(tmp, "%s/%s", outpath, pl->poolID);
+			else
+				sprintf(tmp, "%s/%s/%s", outpath, kh_key(h, i), pl->poolID);
+		}
 		if (a)
 			pl->poolpath = tmp;
 		else

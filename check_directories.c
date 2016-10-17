@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <unistd.h>
 #include <errno.h>
 #include <dirent.h>
@@ -73,7 +74,7 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 			errstr = strerror(errno);
 			logerror("%s:%d Failed to create output directory \'%s\': %s.\n",
 						__func__, __LINE__, cp->outdir, errstr);
-			return 1;			
+			return 1;
 		}
 
 		/* Check and create pool subdirectories */
@@ -81,39 +82,42 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 		{
 			if (kh_exist(h, i))
 			{
-				strl = strlen(cp->outdir) + strlen(kh_key(h, i));
-				flowdir = malloc(strl + 1u);
-				if (UNLIKELY(!flowdir))
+				if (!cp->across)
 				{
-					logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
-					return 1;
-				}
-				strcpy(flowdir, cp->outdir);
-				strcat(flowdir, kh_key(h, i));
-				d = opendir(flowdir);
-				if (d)
-					closedir(d);
-				else if (errno == ENOENT)
-				{
-					status = mkdir(flowdir, S_IRWXU | S_IRGRP | S_IXGRP |
-											S_IROTH | S_IXOTH);
-					if (status < 0)
+					strl = strlen(cp->outdir) + strlen(kh_key(h, i));
+					flowdir = malloc(strl + 1u);
+					if (UNLIKELY(!flowdir))
 					{
-						errstr = strerror(errno);
-						logerror("%s:%d Failed to create flowcell-level output "
-						         "directory \'%s\': %s.\n", __func__, __LINE__,
-								 flowdir, errstr);
+						logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 						return 1;
 					}
+					strcpy(flowdir, cp->outdir);
+					strcat(flowdir, kh_key(h, i));
+					d = opendir(flowdir);
+					if (d)
+						closedir(d);
+					else if (errno == ENOENT)
+					{
+						status = mkdir(flowdir, S_IRWXU | S_IRGRP | S_IXGRP |
+												S_IROTH | S_IXOTH);
+						if (status < 0)
+						{
+							errstr = strerror(errno);
+							logerror("%s:%d Failed to create flowcell-level output "
+							         "directory \'%s\': %s.\n", __func__, __LINE__,
+									 flowdir, errstr);
+							return 1;
+						}
+					}
+					else
+					{
+						errstr = strerror(errno);
+						logerror("%s:%d Failed to create flowcell-level directory \'%s\': %s.\n",
+									__func__, __LINE__, flowdir, errstr);
+						return 1;
+					}
+					free(flowdir);
 				}
-				else
-				{
-					errstr = strerror(errno);
-					logerror("%s:%d Failed to create output directory \'%s\': %s.\n",
-								__func__, __LINE__, cp->outdir, errstr);
-					return 1;			
-				}
-				free(flowdir);
 				p = kh_value(h, i);
 				for (j = kh_begin(p); j != kh_end(p); j++)
 				{
@@ -170,7 +174,7 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 							if (status < 0)
 							{
 								char *errstr = strerror(errno);
-								logerror("%s:%d Failed to create output directory "
+								logerror("%s:%d Failed to create parse directory "
 								         "\'%s\': %s.\n", __func__, __LINE__, parsedir,
 										 errstr);
 								return 1;
@@ -179,9 +183,9 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 						else
 						{
 							errstr = strerror(errno);
-							logerror("%s:%d Failed to create output directory \'%s\': %s.\n",
-										__func__, __LINE__, cp->outdir, errstr);
-							return 1;			
+							logerror("%s:%d Failed to create parse directory \'%s\': %s.\n",
+										__func__, __LINE__, parsedir, errstr);
+							return 1;
 						}
 						free(parsedir);
 						strl = strlen(pooldir);
@@ -214,7 +218,7 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 							if (status < 0)
 							{
 								char *errstr = strerror(errno);
-								logerror("%s:%d Failed to create output directory "
+								logerror("%s:%d Failed to create pairs directory "
 								         "\'%s\': %s.\n", __func__, __LINE__, pairdir,
 										 errstr);
 								return 1;
@@ -223,9 +227,9 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 						else
 						{
 							errstr = strerror(errno);
-							logerror("%s:%d Failed to create output directory \'%s\': %s.\n",
-										__func__, __LINE__, cp->outdir, errstr);
-							return 1;			
+							logerror("%s:%d Failed to create pairs directory \'%s\': %s.\n",
+										__func__, __LINE__, pairdir, errstr);
+							return 1;
 						}
 						free(pairdir);
 						strl = strlen(pooldir);
@@ -258,7 +262,7 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 							if (status < 0)
 							{
 								char *errstr = strerror(errno);
-								logerror("%s:%d Failed to create output directory "
+								logerror("%s:%d Failed to create final directory "
 								         "\'%s\': %s.\n", __func__, __LINE__, trimdir,
 										 errstr);
 								return 1;
@@ -267,9 +271,9 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 						else
 						{
 							errstr = strerror(errno);
-							logerror("%s:%d Failed to create output directory \'%s\': %s.\n",
-										__func__, __LINE__, cp->outdir, errstr);
-							return 1;			
+							logerror("%s:%d Failed to create final directory \'%s\': %s.\n",
+										__func__, __LINE__, trimdir, errstr);
+							return 1;
 						}
 						free(trimdir);
 					}
