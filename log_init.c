@@ -42,7 +42,7 @@ int log_init(const CMD *cp)
 	fprintf(lf, "[ddradseq: %s] INFO -- user specified \'%s\' as output "
 	        "directory.\n", timestr, cp->parent_outdir);
 	fprintf(lf, "[ddradseq: %s] INFO -- output will be written to \'%s\'.\n",
-	        timestr, cp->parent_outdir);
+	        timestr, cp->outdir);
 	fprintf(lf, "[ddradseq: %s] INFO -- program will use edit distance of "
 	        "%d base difference.\n", timestr, cp->dist);
 	fprintf(lf, "[ddradseq: %s] INFO -- program has started in %s mode ",
