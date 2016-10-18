@@ -1,5 +1,5 @@
 /* file: read_csv.c
- * description: Function to read CSV file into hash database
+ * description: Read the input CSV file into hash database
  * author: Daniel Garrigan Lummei Analytics LLC
  * updated: October 2016
  * email: dgarriga@lummei.net

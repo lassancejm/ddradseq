@@ -20,6 +20,15 @@ int parse_main(const CMD *cp)
 	khash_t(pool_hash) *h = NULL;
 	khash_t(mates) *m = NULL;
 
+	/* Check the integrity of the CSV input database file */
+	ret = check_csv(cp->csvfile);
+	if (ret)
+	{
+		logerror("%s:%d Problem with the format of the CSV database file.\n",
+			     __func__, __LINE__);
+		return 1;
+	}
+
 	/* Read CSV database into memory */
 	h = read_csv(cp);
 	if (!h)

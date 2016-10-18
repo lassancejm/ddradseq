@@ -277,6 +277,17 @@ extern CMD* parse_cmdline(int argc, char *argv[]);
 extern khash_t(pool_hash)* read_csv(const CMD *cp);
 
 
+/* int check_csv(char *csvfile)
+ * Check the integrity of the input CSV file
+ * Arguments:
+ * cp -- Pointer to the CSV input file name (read-only)
+ * Returns:
+ * Zero on pass, non-zero on fail integrity test
+ */
+
+extern int check_csv(const char *csvfile);
+
+
 /* khash_t(fastq)* fastq_to_db(const char *filename)
  * Populates a fastQ database from fastQ input file
  * Arguments:
