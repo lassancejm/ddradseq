@@ -11,18 +11,89 @@
 #include <string.h>
 #include <time.h>
 #include <stdbool.h>
-#include <getopt.h>
+#include <argp.h>
 #include <errno.h>
 #include "ddradseq.h"
 
 extern int errno;
 
+const char *argp_program_version = "ddradseq v1.3-beta";
+
+const char *argp_program_bug_address = "<dgarriga@lummei.net>";
+
+static struct argp_option options[] =
+{
+  {"across", 'a', 0, 0, "Pool sequences across flow cells"},
+  {"mode",   'm', "STR", 0, "Run mode of ddradseq program"},
+  {"out",    'o', "DIR", 0, "Parent directory to write output"},
+  {"csv",    'c', "FILE", 0, "CSV file with index and barcode"},
+  {"dist",   'd', "INT", 0, "Edit distance for barcode matching"},
+  {"score",  's', "INT", 0, "Alignment score to consider mates properly paired"},
+  {"gapo",   'g', "INT", 0, "Penalty for opening a gap"},
+  {"gape",   'e', "INT", 0, "Penalty for extending open gap"},
+  {0}
+};
+
+static error_t parse_opt(int key, char *arg, struct argp_state *state)
+{
+  CMD *cp = state->input;
+
+  switch (key)
+    {
+    case 'a':
+      cp->across = true;
+      break;
+    case 'm':
+      cp->mode = strdup(arg);
+      break;
+    case 'd':
+       cp->dist = atoi(arg);
+      break;
+    case 'o':
+      cp->outdir = strdup(arg);
+      break;
+    case 's':
+      cp->score = atoi(arg);
+      break;
+    case 'g':
+      cp->gapo = atoi(arg);
+      break;
+    case 'e':
+      cp->gape = atoi(arg);
+      break;
+    case 'c':
+      cp->csvfile = strdup(arg);
+      break;
+    case ARGP_KEY_ARG:
+      if (state->arg_num >= 1)
+	  {
+	    argp_usage(state);
+	  }
+      cp->parentdir = strdup(arg);
+      break;
+    case ARGP_KEY_END:
+      if (state->arg_num < 1)
+	  {
+	    argp_usage(state);
+	  }
+      break;
+    default:
+      return ARGP_ERR_UNKNOWN;
+    }
+  return 0;
+}
+
+static char args_doc[] = "INPUT DIRECTORY";
+
+static char doc[] =
+"ddradseq -- Parse fastQ file into separate files by flow cell, barcode and/or index.";
+
+static struct argp argp = {options, parse_opt, args_doc, doc};
+
 CMD *parse_cmdline(int argc, char *argv[])
 {
 	char *datec = NULL;
 	char *tmpdir = NULL;
-	char version_str[] = "ddradseq v1.3-beta";
-	int c = 0;
 	size_t strl = 0;
 	time_t rawtime;
 	struct tm *timeinfo;
@@ -36,7 +107,7 @@ CMD *parse_cmdline(int argc, char *argv[])
 		return NULL;
 	}
 
-	/* Initialize default values on command line data structure */
+	/* Set argument defaults */
 	cp->across = false;
 	cp->parentdir = NULL;
 	cp->outdir = NULL;
@@ -45,125 +116,19 @@ CMD *parse_cmdline(int argc, char *argv[])
 	cp->dist = 1;
 	cp->score = 100;
 	cp->gapo = 5;
-	cp->gape = 2;
+	cp->gape = 1;
 
-	/* Iterate through command line options */
-	while (1)
-	{
-		static struct option long_options[] =
-		{
-			{"help",    no_argument,       0, 'h'},
-			{"version", no_argument,       0, 'v'},
-			{"across",  no_argument,       0, 'a'},
-			{"mode",    required_argument, 0, 'm'},
-			{"dist",    required_argument, 0, 'd'},
-			{"out",	    required_argument, 0, 'o'},
-			{"score",   required_argument, 0, 's'},
-			{"gapo",    required_argument, 0, 'g'},
-			{"gape",    required_argument, 0, 'e'},
-			{"csv",	    required_argument, 0, 'c'},
-			{0, 0, 0, 0}
-		};
+	argp_parse(&argp, argc, argv, 0, 0, cp);
 
-		int option_index = 0;
-
-		c = getopt_long(argc, argv, "o:d:c:m:s:hv", long_options, &option_index);
-		if (c == -1)
-			break;
-
-		switch (c)
-		{
-			case 0:
-				if (long_options[option_index].flag != 0)
-					break;
-				printf("option %s", long_options[option_index].name);
-				if (optarg)
-					printf(" with arg %s", optarg);
-				printf("\n");
-				break;
-			case 'o':
-				/* Construct the date string for output directory */
-				datec = malloc(DATELEN + 3u);
-				if (UNLIKELY(!datec))
-				{
-					perror("Memory allocation failure");
-					return NULL;
-				}
-				time(&rawtime);
-				timeinfo = localtime(&rawtime);
-				strftime(datec, DATELEN + 3u, "/ddradseq-%F/", timeinfo);
-				tmpdir = strdup(optarg);
-				strl = strlen(tmpdir);
-				if (tmpdir[strl - 1] == '/')
-				{
-					strl += 22u;
-					cp->outdir = malloc(strl);
-					if (UNLIKELY(!cp->outdir))
-					{
-						perror("Memory allocation failure");
-						return NULL;
-					}
-					strcpy(cp->outdir, tmpdir);
-					strcat(cp->outdir, datec + 1);
-				}
-				else
-				{
-					strl += 23u;
-					cp->outdir = malloc(strl);
-					if (UNLIKELY(!cp->outdir))
-					{
-						perror("Memory allocation failure");
-						return NULL;
-					}
-					strcpy(cp->outdir, tmpdir);
-					strcat(cp->outdir, datec);
-				}
-				free(tmpdir);
-				free(datec);
-				break;
-			case 'm':
-				cp->mode = strdup(optarg);
-				if (!string_equal(cp->mode, "parse") &&
-				    !string_equal(cp->mode, "pair")  &&
-				    !string_equal(cp->mode, "trimend"))
-				{
-					fprintf(stderr, "ERROR: %s is not a valid mode.\n", cp->mode);
-					return NULL;
-				}
-				break;
-			case 'a':
-				cp->across = true;
-				break;
-			case 's':
-				cp->score = atoi(optarg);
-				break;
-			case 'g':
-				cp->gapo = atoi(optarg);
-				break;
-			case 'e':
-				cp->gape = atoi(optarg);
-				break;
-			case 'c':
-				cp->csvfile = strdup(optarg);
-				break;
-			case 'd':
-				cp->dist = atoi(optarg);
-				break;
-			case 'v':
-				fprintf(stdout, "%s\n", version_str);
-				exit(EXIT_SUCCESS);
-			case 'h':
-				return NULL;
-			case '?':
-				return NULL;
-			default:
-				return NULL;
-		}
-	}
-
-	/* Do sanity check on command line options */
+	/* Sanity check */
 	if (!cp->mode)
 		cp->mode = strdup("all");
+	else if (!string_equal(cp->mode, "parse") && !string_equal(cp->mode, "pair")  &&
+	    !string_equal(cp->mode, "trimend"))
+	{
+		fprintf(stderr, "ERROR: %s is not a valid mode.\n", cp->mode);
+		return NULL;
+	}
 	if (!cp->csvfile && (string_equal(cp->mode, "parse") || string_equal(cp->mode, "all")))
 	{
 		fputs("ERROR: \'--csv\' switch is mandatory when running parse mode.\n", stderr);
@@ -175,15 +140,42 @@ CMD *parse_cmdline(int argc, char *argv[])
 		return NULL;
 	}
 
-	/* Parse non-optioned arguments */
-	if (optind + 1 > argc)
+	datec = malloc(DATELEN + 3u);
+	if (UNLIKELY(!datec))
 	{
-		fputs("ERROR: need the fastQ parent directory as input.\n", stderr);
+		perror("Memory allocation failure");
 		return NULL;
+	}
+	time(&rawtime);
+	timeinfo = localtime(&rawtime);
+	strftime(datec, DATELEN + 3u, "/ddradseq-%F/", timeinfo);
+	tmpdir = cp->outdir;
+	strl = strlen(tmpdir);
+	if (tmpdir[strl - 1] == '/')
+	{
+		strl += 22u;
+		cp->outdir = malloc(strl);
+		if (UNLIKELY(!cp->outdir))
+		{
+			perror("Memory allocation failure");
+			return NULL;
+		}
+		strcpy(cp->outdir, tmpdir);
+		strcat(cp->outdir, datec + 1);
 	}
 	else
 	{
-		cp->parentdir = strdup(argv[optind]);
-		return cp;
+		strl += 23u;
+		cp->outdir = malloc(strl);
+		if (UNLIKELY(!cp->outdir))
+		{
+			perror("Memory allocation failure");
+			return NULL;
+		}
+		strcpy(cp->outdir, tmpdir);
+		strcat(cp->outdir, datec);
 	}
+	cp->parentdir = tmpdir;
+	free(datec);
+	return cp;
 }
