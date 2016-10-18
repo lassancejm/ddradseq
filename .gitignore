@@ -1,5 +1,6 @@
 ddradseq
 ddradseq.log
 *.o
+Doxyfile
 /.c9/*
 /.vscode/*
