@@ -149,7 +149,7 @@ CMD *parse_cmdline(int argc, char *argv[])
 	time(&rawtime);
 	timeinfo = localtime(&rawtime);
 	strftime(datec, DATELEN + 3u, "/ddradseq-%F/", timeinfo);
-	tmpdir = cp->outdir;
+	tmpdir = strdup(cp->parentdir);
 	strl = strlen(tmpdir);
 	if (tmpdir[strl - 1] == '/')
 	{
@@ -175,7 +175,7 @@ CMD *parse_cmdline(int argc, char *argv[])
 		strcpy(cp->outdir, tmpdir);
 		strcat(cp->outdir, datec);
 	}
-	cp->parentdir = tmpdir;
+	free(tmpdir);
 	free(datec);
 	return cp;
 }
