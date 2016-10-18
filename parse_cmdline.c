@@ -50,7 +50,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
        cp->dist = atoi(arg);
       break;
     case 'o':
-      cp->outdir = strdup(arg);
+      cp->parent_outdir = strdup(arg);
       break;
     case 's':
       cp->score = atoi(arg);
@@ -69,7 +69,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
 	  {
 	    argp_usage(state);
 	  }
-      cp->parentdir = strdup(arg);
+      cp->parent_indir = strdup(arg);
       break;
     case ARGP_KEY_END:
       if (state->arg_num < 1)
@@ -93,7 +93,6 @@ static struct argp argp = {options, parse_opt, args_doc, doc};
 CMD *parse_cmdline(int argc, char *argv[])
 {
 	char *datec = NULL;
-	char *tmpdir = NULL;
 	size_t strl = 0;
 	time_t rawtime;
 	struct tm *timeinfo;
@@ -109,7 +108,8 @@ CMD *parse_cmdline(int argc, char *argv[])
 
 	/* Set argument defaults */
 	cp->across = false;
-	cp->parentdir = NULL;
+	cp->parent_indir = NULL;
+	cp->parent_outdir = NULL;
 	cp->outdir = NULL;
 	cp->csvfile = NULL;
 	cp->mode = NULL;
@@ -134,7 +134,7 @@ CMD *parse_cmdline(int argc, char *argv[])
 		fputs("ERROR: \'--csv\' switch is mandatory when running parse mode.\n", stderr);
 		return NULL;
 	}
-	if (!cp->outdir && (string_equal(cp->mode, "parse") || string_equal(cp->mode, "all")))
+	if (!cp->parent_outdir && (string_equal(cp->mode, "parse") || string_equal(cp->mode, "all")))
 	{
 		fputs("ERROR: \'--out\' switch is mandatory when running parse mode.\n", stderr);
 		return NULL;
@@ -149,9 +149,8 @@ CMD *parse_cmdline(int argc, char *argv[])
 	time(&rawtime);
 	timeinfo = localtime(&rawtime);
 	strftime(datec, DATELEN + 3u, "/ddradseq-%F/", timeinfo);
-	tmpdir = strdup(cp->parentdir);
-	strl = strlen(tmpdir);
-	if (tmpdir[strl - 1] == '/')
+	strl = strlen(cp->parent_outdir);
+	if (cp->parent_outdir[strl - 1] == '/')
 	{
 		strl += 22u;
 		cp->outdir = malloc(strl);
@@ -160,7 +159,7 @@ CMD *parse_cmdline(int argc, char *argv[])
 			perror("Memory allocation failure");
 			return NULL;
 		}
-		strcpy(cp->outdir, tmpdir);
+		strcpy(cp->outdir, cp->parent_outdir);
 		strcat(cp->outdir, datec + 1);
 	}
 	else
@@ -172,10 +171,9 @@ CMD *parse_cmdline(int argc, char *argv[])
 			perror("Memory allocation failure");
 			return NULL;
 		}
-		strcpy(cp->outdir, tmpdir);
+		strcpy(cp->outdir, cp->parent_outdir);
 		strcat(cp->outdir, datec);
 	}
-	free(tmpdir);
 	free(datec);
 	return cp;
 }

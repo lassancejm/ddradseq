@@ -28,7 +28,7 @@ int trimend_main(const CMD *cp)
 
 	/* Get list of all files */
 	if (string_equal(cp->mode, "trimend"))
-		f = traverse_dirtree(cp->parentdir, "pairs", &n);
+		f = traverse_dirtree(cp->parent_indir, "pairs", &n);
 	else
 		f = traverse_dirtree(cp->outdir, "pairs", &n);
 	if (!f)
@@ -90,8 +90,12 @@ int trimend_main(const CMD *cp)
 	get_timestr(&timestr[0]);
 
 	/* Print informational message to log file */
+	if (string_equal(cp->mode, "trimend"))
 	fprintf(lf, "[ddradseq: %s] INFO -- Done trimming 3\' end of reverse "
-	        "sequences in \'%s\'.\n", timestr, cp->outdir);
+		        "sequences in \'%s\'.\n", timestr, cp->parent_indir);
+	else
+		fprintf(lf, "[ddradseq: %s] INFO -- Done trimming 3\' end of reverse "
+		        "sequences in \'%s\'.\n", timestr, cp->outdir);
 
 	/* Deallocate memory */
 	for (i = 0; i < n; i++)

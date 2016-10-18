@@ -41,12 +41,12 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 	get_timestr(&timestr[0]);
 
 	/* Check if parent output directory is writable */
-	writable = access(cp->parentdir, W_OK);
+	writable = access(cp->parent_outdir, W_OK);
 	if (writable < 0)
 	{
 		errstr = strerror(errno);
 		logerror("%s:%d Cannot write to directory \'%s\': %s.\n", __func__,
-		         __LINE__, cp->parentdir, errstr);
+		         __LINE__, cp->parent_outdir, errstr);
 		return 1;
 	}
 	else

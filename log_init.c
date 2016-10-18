@@ -36,11 +36,13 @@ int log_init(const CMD *cp)
 
 	/* Print information on starting parameters */
 	fprintf(lf, "[ddradseq: %s] INFO -- user specified directory %s "
-	        "for input.\n", timestr, cp->parentdir);
+	        "for input.\n", timestr, cp->parent_indir);
 	fprintf(lf, "[ddradseq: %s] INFO -- user specified \'%s\' as database "
 	        "file.\n", timestr, cp->csvfile);
 	fprintf(lf, "[ddradseq: %s] INFO -- user specified \'%s\' as output "
-	        "directory.\n", timestr, cp->outdir);
+	        "directory.\n", timestr, cp->parent_outdir);
+	fprintf(lf, "[ddradseq: %s] INFO -- output will be written to \'%s\'.\n",
+	        timestr, cp->parent_outdir);
 	fprintf(lf, "[ddradseq: %s] INFO -- program will use edit distance of "
 	        "%d base difference.\n", timestr, cp->dist);
 	fprintf(lf, "[ddradseq: %s] INFO -- program has started in %s mode ",

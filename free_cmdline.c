@@ -11,7 +11,8 @@
 
 int free_cmdline(CMD *cp)
 {
-	free(cp->parentdir);
+	free(cp->parent_indir);
+	free(cp->parent_outdir);
 	free(cp->outdir);
 	free(cp->mode);
 	free(cp->csvfile);

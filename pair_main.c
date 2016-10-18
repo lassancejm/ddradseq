@@ -24,7 +24,7 @@ int pair_main(const CMD *cp)
 
 	/* Get list of all files */
 	if (string_equal(cp->mode, "pair"))
-		f = traverse_dirtree(cp->parentdir, "parse", &n);
+		f = traverse_dirtree(cp->parent_indir, "parse", &n);
 	else
 		f = traverse_dirtree(cp->outdir, "parse", &n);
 	if (!f)
@@ -92,8 +92,12 @@ int pair_main(const CMD *cp)
 	get_timestr(&timestr[0]);
 
 	/* Print informational message to logfile */
-	fprintf(lf, "[ddradseq: %s] INFO -- Done pairing all fastQ files in \'%s\'.\n",
-	        timestr, cp->outdir);
+	if (string_equal(cp->mode, "pair"))
+		fprintf(lf, "[ddradseq: %s] INFO -- Done pairing all fastQ files in \'%s\'.\n",
+		        timestr, cp->parent_indir);
+	else
+		fprintf(lf, "[ddradseq: %s] INFO -- Done pairing all fastQ files in \'%s\'.\n",
+		        timestr, cp->outdir);
 
 	/* Deallocate memory */
 	for (i = 0; i < n; i++)

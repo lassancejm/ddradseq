@@ -67,7 +67,8 @@
 typedef struct cmdparam
 {
 	bool across;
-	char *parentdir;
+	char *parent_indir;
+	char *parent_outdir;
 	char *outdir;
 	char *csvfile;
 	char *mode;
