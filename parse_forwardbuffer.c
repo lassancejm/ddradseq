@@ -39,6 +39,7 @@ int parse_forwardbuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 	size_t l = 0;
 	size_t ll = 0;
 	size_t sl = 0;
+	size_t strl = 0;
 	khint_t i = 0;
 	khint_t j = 0;
 	khint_t k = 0;
@@ -128,7 +129,6 @@ int parse_forwardbuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 					b = pl->b;
 
 					/* Free memory */
-					free(flowcell_ID);
 					free(index_sequence);
 					free(copy);
 					break;
@@ -196,12 +196,14 @@ int parse_forwardbuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 						error("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 						return 1;
 					}
-					sprintf(mkey, "%010d%010d%010d", tile, xpos, ypos);
+					strl = strlen(flowcell_ID);
+					sprintf(mkey, "%.*s%s%05d%06d%08d", strl >= 11 ? 0 : (int)(11-strl), "000000000000", flowcell_ID, tile, xpos, ypos);
 					mk = kh_put(mates, m, mkey, &a);
 					if (a)
 						kh_value(m, mk) = strdup(barcode_sequence);
 					else
 						free(mkey);
+					free(flowcell_ID);
 					break;
 				case 2:
 					/* Quality identifier line */

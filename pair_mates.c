@@ -25,6 +25,7 @@ int pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor,
 	char *tok = NULL;
 	char *mkey = NULL;
 	char *errstr = NULL;
+	char *flowcell = NULL;
 	char *r = NULL;
 	int tile = 0;
 	int i = 0;
@@ -129,6 +130,9 @@ int pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor,
 				{
 					switch (x)
 					{
+						case 2:
+							flowcell = strdup(tok);
+							break;
 						case 4:
 							tile = atoi(tok);
 							break;
@@ -148,12 +152,14 @@ int pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor,
 					logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 					return 1;
 				}
-				sprintf(mkey, "%010d%010d%010d", tile, xpos, ypos);
+				strl = strlen(flowcell);
+				sprintf(mkey, "%.*s%s%05d%06d%08d", strl >= 11 ? 0 : (int)(11-strl), "000000000000", flowcell, tile, xpos, ypos);
 				k = kh_get(fastq, h, mkey);
 				if (k != kh_end(h))
 					e = kh_value(h, k);
 				free(mkey);
 				free(idline);
+				free(flowcell);
 
 				if (e != NULL)
 				{

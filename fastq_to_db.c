@@ -21,6 +21,7 @@ khash_t(fastq) *fastq_to_db(const char *filename)
 	char *tok = NULL;
 	char *mkey = NULL;
 	char *r = NULL;
+	char *flowcell = NULL;
 	int a = 0;
 	int i = 0;
 	int tile = 0;
@@ -122,6 +123,9 @@ khash_t(fastq) *fastq_to_db(const char *filename)
 				{
 					switch (x)
 					{
+						case 2:
+							flowcell = strdup(tok);
+							break;
 						case 4:
 							tile = atoi(tok);
 							break;
@@ -141,7 +145,8 @@ khash_t(fastq) *fastq_to_db(const char *filename)
 					logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 					return NULL;
 				}
-				sprintf(mkey, "%010d%010d%010d", tile, xpos, ypos);
+				strl = strlen(flowcell);
+				sprintf(mkey, "%.*s%s%05d%06d%08d", strl >= 11 ? 0 : (int)(11-strl), "000000000000", flowcell, tile, xpos, ypos);
 				k = kh_put(fastq, h, mkey, &a);
 				if (!a)
 					free(mkey);

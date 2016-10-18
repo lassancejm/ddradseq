@@ -36,6 +36,7 @@ int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 	size_t add_bytes = 0;
 	size_t l = 0;
 	size_t ll = 0;
+	size_t strl = 0;
 	khint_t i = 0;
 	khint_t j = 0;
 	khint_t k = 0;
@@ -145,7 +146,8 @@ int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 						logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 						return 1;
 					}
-					sprintf(mkey, "%010d%010d%010d", tile, xpos, ypos);
+					strl = strlen(flowcell_ID);
+					sprintf(mkey, "%.*s%s%05d%06d%08d", strl >= 11 ? 0 : (int)(11-strl), "000000000000", flowcell_ID, tile, xpos, ypos);
 					mk = kh_get(mates, m, mkey);
 					if (mk == kh_end(m))
 					{
