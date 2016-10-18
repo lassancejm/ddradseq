@@ -50,28 +50,29 @@ Running the base **ddradseq** program with no additional command line arguments 
 message:
 ```
 % ./ddradseq
-Usage: ddradseq [OPTIONS] [INPUT DIRECTORY]
+Usage: ddradseq [OPTION...] INPUT DIRECTORY
+ddradseq -- Parse fastQ file into separate files by flow cell, barcode and/or
+index.
 
-Parse fastQ file into separate files by flowcell, barcode and/or index
+  -a, --across               Pool sequences across flow cells
+  -c, --csv=FILE             CSV file with index and barcode
+  -d, --dist=INT             Edit distance for barcode matching
+  -e, --gape=INT             Penalty for extending open gap
+  -g, --gapo=INT             Penalty for opening a gap
+  -m, --mode=STR             Run mode of ddradseq program
+  -o, --out=DIR              Parent directory to write output
+  -s, --score=INT            Alignment score to consider mates properly paired
+  -?, --help                 Give this help list
+      --usage                Give a short usage message
+  -V, --version              Print program version
 
-Mandatory arguments to long options are mandatory for short options too.
- -m  --mode=STR       Run mode of ddradseq program                          [default: all]
-                      Valid modes are:
-                      parse     Parses input fastQ by standard Illumina and custom adapter
-                      pair      Aligns mated pairs in two fastQ input files
-                      trimend   Trims the 3' end of fastQ reverse sequences
- -c, --csv=FILE       CSV file with index and barcode labels
- -o, --out=DIR        Parent directory to write output files
- -d, --dist           Edit distance for barcode matching                     [default: 1]
- -s, --score          Alignment score to consider mates as overlapping       [default: 100]
- -g, --gapo           Penalty for opening a gap                              [default: 5]
- -e, --gape           Penalty for extending an open gap                      [default: 2]
- -a, --across         Pool sequences across flow cells                       [default: false]
- -h, --help           Display this help message
- -v, --version        Print software version number and exit
+Mandatory or optional arguments to long options are also mandatory or optional
+for any corresponding short options.
 
-For development information, see https://github.com/dgarriga/ddradseq
-Contact dgarriga@lummei.net for support.
+Valid run-time modes are 'parse', 'pair', and 'trimend'. See
+https://github.com/dgarriga/ddradseq for documentation
+
+Report bugs to <dgarriga@lummei.net>.
 ```
 The program *requires* that both the "--out" and "--csv" options are specified by the user. The following table explains
 each of the parameters in more detail:
