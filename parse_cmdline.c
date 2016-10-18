@@ -16,77 +16,71 @@
 #include "ddradseq.h"
 
 extern int errno;
-
 const char *argp_program_version = "ddradseq v1.3-beta";
-
 const char *argp_program_bug_address = "<dgarriga@lummei.net>";
-
 static struct argp_option options[] =
 {
-  {"across", 'a', 0, 0, "Pool sequences across flow cells"},
-  {"mode",   'm', "STR", 0, "Run mode of ddradseq program"},
-  {"out",    'o', "DIR", 0, "Parent directory to write output"},
+  {"across", 'a', 0,      0, "Pool sequences across flow cells"},
+  {"mode",   'm', "STR",  0, "Run mode of ddradseq program"},
+  {"out",    'o', "DIR",  0, "Parent directory to write output"},
   {"csv",    'c', "FILE", 0, "CSV file with index and barcode"},
-  {"dist",   'd', "INT", 0, "Edit distance for barcode matching"},
-  {"score",  's', "INT", 0, "Alignment score to consider mates properly paired"},
-  {"gapo",   'g', "INT", 0, "Penalty for opening a gap"},
-  {"gape",   'e', "INT", 0, "Penalty for extending open gap"},
+  {"dist",   'd', "INT",  0, "Edit distance for barcode matching"},
+  {"score",  's', "INT",  0, "Alignment score to consider mates properly paired"},
+  {"gapo",   'g', "INT",  0, "Penalty for opening a gap"},
+  {"gape",   'e', "INT",  0, "Penalty for extending open gap"},
   {0}
 };
 
 static error_t parse_opt(int key, char *arg, struct argp_state *state)
 {
-  CMD *cp = state->input;
+	CMD *cp = state->input;
 
-  switch (key)
-    {
-    case 'a':
-      cp->across = true;
-      break;
-    case 'm':
-      cp->mode = strdup(arg);
-      break;
-    case 'd':
-       cp->dist = atoi(arg);
-      break;
-    case 'o':
-      cp->parent_outdir = strdup(arg);
-      break;
-    case 's':
-      cp->score = atoi(arg);
-      break;
-    case 'g':
-      cp->gapo = atoi(arg);
-      break;
-    case 'e':
-      cp->gape = atoi(arg);
-      break;
-    case 'c':
-      cp->csvfile = strdup(arg);
-      break;
-    case ARGP_KEY_ARG:
-      if (state->arg_num >= 1)
-	  {
-	    argp_usage(state);
-	  }
-      cp->parent_indir = strdup(arg);
-      break;
-    case ARGP_KEY_END:
-      if (state->arg_num < 1)
-	  {
-	    argp_usage(state);
-	  }
-      break;
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
+	switch (key)
+	{
+		case 'a':
+			cp->across = true;
+			break;
+		case 'm':
+			cp->mode = strdup(arg);
+			break;
+		case 'd':
+			cp->dist = atoi(arg);
+			break;
+		case 'o':
+			cp->parent_outdir = strdup(arg);
+			break;
+		case 's':
+			cp->score = atoi(arg);
+			break;
+		case 'g':
+			cp->gapo = atoi(arg);
+			break;
+		case 'e':
+			cp->gape = atoi(arg);
+			break;
+		case 'c':
+			cp->csvfile = strdup(arg);
+			break;
+		case ARGP_KEY_ARG:
+			if (state->arg_num >= 1)
+				argp_usage(state);
+			cp->parent_indir = strdup(arg);
+			break;
+		case ARGP_KEY_END:
+			if (state->arg_num < 1)
+				argp_usage(state);
+			break;
+		default:
+			return ARGP_ERR_UNKNOWN;
+	}
+	return 0;
 }
 
 static char args_doc[] = "INPUT DIRECTORY";
 
 static char doc[] =
-"ddradseq -- Parse fastQ file into separate files by flow cell, barcode and/or index.";
+"ddradseq -- Parse fastQ file into separate files by flow cell, barcode and/or index.\v"
+"Valid run-time modes are \'parse\', \'pair\', and \'trimend\'. See https://github.com/dgarriga/ddradseq for documentation";
 
 static struct argp argp = {options, parse_opt, args_doc, doc};
 
