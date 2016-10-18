@@ -91,7 +91,7 @@ int trimend_main(const CMD *cp)
 
 	/* Print informational message to log file */
 	if (string_equal(cp->mode, "trimend"))
-	fprintf(lf, "[ddradseq: %s] INFO -- Done trimming 3\' end of reverse "
+		fprintf(lf, "[ddradseq: %s] INFO -- Done trimming 3\' end of reverse "
 		        "sequences in \'%s\'.\n", timestr, cp->parent_indir);
 	else
 		fprintf(lf, "[ddradseq: %s] INFO -- Done trimming 3\' end of reverse "

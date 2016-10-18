@@ -47,7 +47,7 @@ char *revcom(const char *s)
 			continue;
 		else
 		{
-			logerror("%s:%d Bad character '\%c\' at position %zu.\n", __func__,
+			logerror("%s:%d Bad character \'%c\' at position %zu.\n", __func__,
 			         __LINE__, str[i], i + 1u);
 			return NULL;
 		}
@@ -119,7 +119,7 @@ static int complement_string(char *s)
 			}
 			else
 			{
-				logerror("%s:%d Bad character '\%c\' at position %zu.\n",
+				logerror("%s:%d Bad character \'%c\' at position %zu.\n",
 					     __func__, __LINE__, s[i], i + 1u);
 			}
 			return 1;
