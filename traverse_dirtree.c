@@ -67,7 +67,7 @@ char **traverse_dirtree(const char *dirpath, const char *pattern, unsigned int *
 		errstr = strerror(errno);
 		logerror("%s:%d Directory traversal on %s failed: %s.\n", __func__, __LINE__,
 		         dirpath, errstr);
-		return NULL;	
+		return NULL;
 	}
 	else if (r > 0)
 	{
@@ -96,7 +96,7 @@ char **traverse_dirtree(const char *dirpath, const char *pattern, unsigned int *
 		errstr = strerror(errno);
 		logerror("%s:%d Directory traversal failed: %s.\n", __func__, __LINE__,
 		         errstr);
-		return NULL;	
+		return NULL;
 	}
 	else if (r > 0)
 	{

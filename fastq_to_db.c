@@ -179,7 +179,8 @@ khash_t(fastq) *fastq_to_db(const char *filename)
 		}
 
 		/* If we are at the end of the file */
-		if (lc < BSIZE) break;
+		if (lc < BSIZE)
+			break;
 	}
 
 	/* Free memory for buffer to heap */
