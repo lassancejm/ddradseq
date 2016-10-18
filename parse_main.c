@@ -85,7 +85,7 @@ int parse_main(const CMD *cp)
 		get_timestr(&timestr[0]);
 
 		/* Print informational update to log file */
-		fprintf(lf, "[ddradseq: %s] INFO -- Attempting to align sequences in "
+		fprintf(lf, "[ddradseq: %s] INFO -- Deciphering mate-pair information for "
 		        "\'%s\' and \'%s\'.\n", timestr, ffor, frev);
 
 		/* Read the forward fastQ input file */
