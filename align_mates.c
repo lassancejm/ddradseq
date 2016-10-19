@@ -207,7 +207,7 @@ int align_mates(const CMD *cp, const char *forin, const char *revin, const char 
 						seq[new_end_pos] = '\n';
 						seq[new_end_pos+1] = '\0';
 						qual[new_end_pos] = '\n';
-						qual[new_end_pos+1] = '\n';
+						qual[new_end_pos+1] = '\0';
 						count++;
 					}
 				}
