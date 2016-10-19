@@ -29,11 +29,11 @@ int flush_buffer(int orient, BARCODE *bc)
 	unsigned char *cbuffer = NULL;
 	int ret = 0;
 	int fd;
-	int window_bits = 15;
-	int GZIP_ENCODING = 16;
+	const int window_bits = 15;
+	const int GZIP_ENCODING = 16;
 	size_t len = bc->curr_bytes;
 	ssize_t w = 0;
-	struct flock fl = {F_WRLCK, SEEK_SET,   0,      0,     0 };
+	struct flock fl = {F_WRLCK, SEEK_SET, 0, 0, 0};
 	struct flock fl2;
 	z_stream strm;
 	mode_t mode;
@@ -42,7 +42,8 @@ int flush_buffer(int orient, BARCODE *bc)
 	strm.zalloc = Z_NULL;
 	strm.zfree = Z_NULL;
 	strm.opaque = Z_NULL;
-	ret = deflateInit2(&strm, 4, Z_DEFLATED, window_bits | GZIP_ENCODING, 8, Z_FILTERED);
+	ret = deflateInit2(&strm, 4, Z_DEFLATED, window_bits | GZIP_ENCODING,
+	                   8, Z_FILTERED);
 	if (ret != Z_OK)
 		return 1;
 
@@ -76,8 +77,9 @@ int flush_buffer(int orient, BARCODE *bc)
 	fcntl(fd, F_GETLK, &fl2);
 	if (fl2.l_type != F_UNLCK)
 	{
-		logerror("%s:%d File \'%s\' is locked for writing.\n", __func__,
-		         __LINE__, filename);
+		errstr = strerror(errno);
+		logerror("%s:%d File \'%s\' is locked for writing by process %zu: %s.\n",
+		         __func__, __LINE__, filename, fl.l_pid, errstr);
 		return 1;
 	}
 	else
