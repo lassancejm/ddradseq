@@ -204,8 +204,10 @@ int align_mates(const CMD *cp, const char *forin, const char *revin, const char 
 						int new_end_pos = qlen - r.query_begin;
 						char *seq = &rbuf[l-2][0];
 						char *qual = &rbuf[l][0];
-						seq[new_end_pos] = '\0';
-						qual[new_end_pos] = '\0';
+						seq[new_end_pos] = '\n';
+						seq[new_end_pos+1] = '\0';
+						qual[new_end_pos] = '\n';
+						qual[new_end_pos+1] = '\n';
 						count++;
 					}
 				}
