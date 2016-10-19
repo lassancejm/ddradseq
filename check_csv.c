@@ -15,7 +15,7 @@
 
 static int compare(const void * a, const void * b);
 
-int check_csv(const char *csvfile)
+int check_csv(const char * csvfile)
 {
 	char buf[MAX_LINE_LENGTH];
 	char **list = NULL;
@@ -61,8 +61,7 @@ int check_csv(const char *csvfile)
 	gzrewind(in);
 
 	/* Populate the list of lines */
-	while (gzgets(in, list[i], MAX_LINE_LENGTH) != Z_NULL)
-		i++;
+	while (gzgets(in, list[i++], MAX_LINE_LENGTH) != Z_NULL);
 
 	/* Sort the list */
 	qsort(list, nlines, sizeof(char *), compare);
