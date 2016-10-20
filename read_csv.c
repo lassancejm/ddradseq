@@ -18,24 +18,24 @@ khash_t(pool_hash) *read_csv (const CMD *cp)
 {
 	const char *csvfile = cp->csvfile;  /* Pointer to CSV database file name */
 	const char *outpath = cp->outdir;	/* Pointer to parent of output directories */
-	char buf[MAX_LINE_LENGTH];    /* File input buffer */
-	char seps[] = ",";			  /* CSV entry separator character */
-	char *tok = NULL;			  /* Holds parsed CSV tokens */
-	char *r = NULL;				  /* Residual pointer for strtok_r */
-	char *tmp = NULL;			  /* Temporary pointer */
-	bool trail = false;           /* Boolean indicator of trailing slash */
-	int a = 0;					  /* Return value for database entry */
-	size_t strl = 0;			  /* Generic string length holder */
-	size_t pathl = 0;			  /* Length of path string */
-	gzFile in;					  /* Input file stream */
-	khint_t i = 0;                /* Generic hash iterator */
-	khint_t j = 0;                /* Generic hash iterator */
-	khint_t k = 0;                /* Generic hash iterator */
-	khash_t(barcode) *b = NULL;   /* Pointer to barcode hash table */
-	khash_t(pool) *p = NULL;      /* Pointer to pool hash table */
-	khash_t(pool_hash) *h = NULL; /* Pointer to flow hash table */
-	BARCODE *bc = NULL;           /* Pointer barcode data structure */
-	POOL *pl = NULL;              /* Pointer to pool data structure */
+	char buf[MAX_LINE_LENGTH];          /* File input buffer */
+	char seps[] = ",";			        /* CSV entry separator character */
+	char *tok = NULL;			        /* Holds parsed CSV tokens */
+	char *r = NULL;				        /* Residual pointer for strtok_r */
+	char *tmp = NULL;			        /* Temporary pointer */
+	bool trail = false;                 /* Boolean indicator of trailing slash */
+	int a = 0;					        /* Return value for database entry */
+	size_t strl = 0;			        /* Generic string length holder */
+	size_t pathl = 0;			        /* Length of path string */
+	gzFile in;					        /* Input file stream */
+	khint_t i = 0;                      /* Generic hash iterator */
+	khint_t j = 0;                      /* Generic hash iterator */
+	khint_t k = 0;                      /* Generic hash iterator */
+	khash_t(barcode) *b = NULL;         /* Pointer to barcode hash table */
+	khash_t(pool) *p = NULL;            /* Pointer to pool hash table */
+	khash_t(pool_hash) *h = NULL;       /* Pointer to flow hash table */
+	BARCODE *bc = NULL;                 /* Pointer barcode data structure */
+	POOL *pl = NULL;                    /* Pointer to pool data structure */
 
 	/* Get time string */
 	get_timestr(&timestr[0]);

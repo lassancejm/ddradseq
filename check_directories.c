@@ -184,7 +184,7 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 						{
 							errstr = strerror(errno);
 							logerror("%s:%d Failed to create parse directory \'%s\': %s.\n",
-										__func__, __LINE__, parsedir, errstr);
+									 __func__, __LINE__, parsedir, errstr);
 							return 1;
 						}
 						free(parsedir);

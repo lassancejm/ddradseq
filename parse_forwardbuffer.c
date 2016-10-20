@@ -112,7 +112,6 @@ int parse_forwardbuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 						error("%s:%d Illumina ID parsing failure.\n", __func__, __LINE__);
 						return 1;
 					}
-
 					if (!index_sequence)
 					{
 						error("%s:%d Illumina ID parsing failure.\n", __func__, __LINE__);
