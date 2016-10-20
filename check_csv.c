@@ -64,7 +64,7 @@ int check_csv(const char * csvfile)
 	while (gzgets(in, list[i++], MAX_LINE_LENGTH) != Z_NULL);
 
 	/* Sort the list */
-	qsort(list, nlines, sizeof(char *), compare);
+	qsort(list, nlines, sizeof(char*), compare);
 
 	/* Iterate through CSV lines */
 	for (i = 1; i < nlines; i++)
@@ -72,7 +72,8 @@ int check_csv(const char * csvfile)
 		/* Look for duplicate lines */
 		if (strcmp(list[i], list[i-1]) == 0)
 		{
-			logerror("%s:%d: CSV database file contains identical lines.\n", __func__, __LINE__);
+			logerror("%s:%d: CSV database file contains identical lines.\n",
+			         __func__, __LINE__);
 			return 1;
 		}
 
@@ -89,7 +90,8 @@ int check_csv(const char * csvfile)
 			{
 				if (strcmp(p+1, q+1) != 0)
 				{
-					logerror("%s:%d: Different individuals have the same key pattern.\n", __func__, __LINE__);
+					logerror("%s:%d: Different individuals have the same key "
+					         "pattern.\n", __func__, __LINE__);
 					return 1;
 				}
 			}
