@@ -23,29 +23,16 @@ extern int errno;
 int flush_buffer(int orient, BARCODE *bc)
 {
 	char *filename = strdup(bc->outfile);
+	char *buffer = bc->buffer;
 	char *pch = NULL;
 	char *errstr = NULL;
-	unsigned char *buffer = (unsigned char*)bc->buffer;
-	unsigned char *cbuffer = NULL;
 	int ret = 0;
 	int fd;
-	const int window_bits = 15;
-	const int GZIP_ENCODING = 16;
 	size_t len = bc->curr_bytes;
-	ssize_t w = 0;
 	struct flock fl = {F_WRLCK, SEEK_SET, 0, 0, 0};
 	struct flock fl2;
-	z_stream strm;
 	mode_t mode;
-
-	/* Allocate deflate state */
-	strm.zalloc = Z_NULL;
-	strm.zfree = Z_NULL;
-	strm.opaque = Z_NULL;
-	ret = deflateInit2(&strm, 4, Z_DEFLATED, window_bits | GZIP_ENCODING,
-	                   8, Z_FILTERED);
-	if (ret != Z_OK)
-		return 1;
+	gzFile gzf;
 
 	fl.l_pid = getpid();
 	memset(&fl2, 0, sizeof(struct flock));
@@ -94,42 +81,20 @@ int flush_buffer(int orient, BARCODE *bc)
 		}
 	}
 
-	/* Deflate buffer */
-	cbuffer = malloc(len);
-	if (UNLIKELY(!cbuffer))
+	gzf = gzdopen(fd, "ab");
+	ret = gzwrite(gzf, buffer, len);
+	if (ret <= 0)
 	{
-		logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
-		return 1;
-	}
-
-	strm.avail_in = len;
-	strm.next_in = buffer;
-	strm.avail_out = len;
-	strm.next_out = cbuffer;
-	ret = deflate(&strm, Z_FINISH);
-	if (ret == Z_STREAM_ERROR)
-		return 1;
-
-	/* Dump compressed buffer to file */
-	w = write(fd, cbuffer, len);
-	if (w < 0)
-	{
-		errstr = strerror(errno);
 		logerror("%s:%d Problem writing to output file \'%s\': %s.\n", __func__,
-		         __LINE__, filename, errstr);
+		         __LINE__, filename);
 		return 1;
 	}
-
-	/* Deallocate deflate state */
-	(void)deflateEnd(&strm);
+	gzclose(gzf);
 
 	/* Reset buffer */
 	bc->curr_bytes = 0;
 	memset(bc->buffer, 0, BUFLEN);
 	bc->buffer[0] = '\0';
-
-	/* Deallocate memory for compressed buffer */
-	free(cbuffer);
 
 	/* Unlock output file */
 	fl.l_type = F_UNLCK;

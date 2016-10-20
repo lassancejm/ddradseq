@@ -23,7 +23,7 @@ int parse_forwardbuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 	char seps[] = ": ";
 	char *tok = NULL;
 	char *mkey = NULL;
-	char *flowcell_ID = NULL;
+	char *flowcell = NULL;
 	char *index_sequence = NULL;
 	char *barcode_sequence = NULL;
 	char *dna_sequence = NULL;
@@ -89,7 +89,7 @@ int parse_forwardbuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 						switch (x)
 						{
 							case 2:
-								flowcell_ID = strdup(tok);
+								flowcell = strdup(tok);
 								break;
 							case 4:
 								tile = atoi(tok);
@@ -107,7 +107,7 @@ int parse_forwardbuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 					}
 
 					/* Check parsing */
-					if (!flowcell_ID)
+					if (!flowcell)
 					{
 						error("%s:%d Illumina ID parsing failure.\n", __func__, __LINE__);
 						return 1;
@@ -120,7 +120,7 @@ int parse_forwardbuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 					}
 
 					/* Lookup flow cell identifier */
-					i = kh_get(pool_hash, h, flowcell_ID);
+					i = kh_get(pool_hash, h, flowcell);
 					p = kh_value(h, i);
 
 					/* Lookup pool identifier */
@@ -196,14 +196,14 @@ int parse_forwardbuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 						error("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 						return 1;
 					}
-					strl = strlen(flowcell_ID);
-					sprintf(mkey, "%.*s%s%05d%06d%08d", strl >= 11 ? 0 : (int)(11-strl), "000000000000", flowcell_ID, tile, xpos, ypos);
+					strl = strlen(flowcell);
+					sprintf(mkey, "%.*s%s%05d%06d%08d", strl >= 11 ? 0 : (int)(11-strl), "000000000000", flowcell, tile, xpos, ypos);
 					mk = kh_put(mates, m, mkey, &a);
 					if (a)
 						kh_value(m, mk) = strdup(barcode_sequence);
 					else
 						free(mkey);
-					free(flowcell_ID);
+					free(flowcell);
 					break;
 				case 2:
 					/* Quality identifier line */

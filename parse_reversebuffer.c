@@ -22,7 +22,7 @@ int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 	char seps[] = ": ";
 	char *tok = NULL;
 	char *mkey = NULL;
-	char *flowcell_ID = NULL;
+	char *flowcell = NULL;
 	char *barcode_sequence = NULL;
 	char *index_sequence = NULL;
 	char *dna_sequence = NULL;
@@ -86,7 +86,7 @@ int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 						switch (x)
 						{
 							case 2:
-								flowcell_ID = strdup(tok);
+								flowcell = strdup(tok);
 								break;
 							case 4:
 								tile = atoi(tok);
@@ -104,7 +104,7 @@ int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 					}
 
 					/* Check parsing results */
-					if (!flowcell_ID)
+					if (!flowcell)
 					{
 						logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 						return 1;
@@ -116,19 +116,19 @@ int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 					}
 
 					/* Lookup flow cell identifier */
-					i = kh_get(pool_hash, h, flowcell_ID);
+					i = kh_get(pool_hash, h, flowcell);
 
 					/* Flow cell identifier is not present in database */
 					if (i == kh_end(h))
 					{
-						fprintf(lf, "[ddradseq: %s] WARNING -- Hash lookup failure using key %s.\n", timestr, flowcell_ID);
+						fprintf(lf, "[ddradseq: %s] WARNING -- Hash lookup failure using key %s.\n", timestr, flowcell);
 						fprintf(lf, "[ddradseq: %s] WARNING -- Skipping sequence: %s\n", timestr, idline);
 						skip[l+1] = 1;
 						skip[l+2] = 1;
 						skip[l+3] = 1;
 						free(idline);
 						free(copy);
-						free(flowcell_ID);
+						free(flowcell);
 						break;
 					}
 					else
@@ -146,8 +146,8 @@ int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 						logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 						return 1;
 					}
-					strl = strlen(flowcell_ID);
-					sprintf(mkey, "%.*s%s%05d%06d%08d", strl >= 11 ? 0 : (int)(11-strl), "000000000000", flowcell_ID, tile, xpos, ypos);
+					strl = strlen(flowcell);
+					sprintf(mkey, "%.*s%s%05d%06d%08d", strl >= 11 ? 0 : (int)(11-strl), "000000000000", flowcell, tile, xpos, ypos);
 					mk = kh_get(mates, m, mkey);
 					if (mk == kh_end(m))
 					{
@@ -159,7 +159,7 @@ int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 						free(mkey);
 						free(idline);
 						free(copy);
-						free(flowcell_ID);
+						free(flowcell);
 						break;
 					}
 					barcode_sequence = kh_value(m, mk);
@@ -178,7 +178,7 @@ int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 					}
 
 					/* Free memory */
-					free(flowcell_ID);
+					free(flowcell);
 					free(index_sequence);
 					free(copy);
 					break;
