@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stddef.h>
 #include <string.h>
 #include "khash.h"
 #include "ddradseq.h"
@@ -16,12 +17,11 @@ int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
                         const khash_t(mates) *m)
 {
 	char *q = buff;
-	char *r = NULL;
 	char *copy = NULL;
 	char *idline = NULL;
-	char seps[] = ": ";
-	char *tok = NULL;
 	char *mkey = NULL;
+	char *pstart = NULL;
+	char *pend = NULL;
 	char *flowcell = NULL;
 	char *barcode_sequence = NULL;
 	char *index_sequence = NULL;
@@ -29,14 +29,10 @@ int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 	char *qual_sequence = NULL;
 	unsigned char *skip = NULL;
 	int ret = 0;
-	int x = 0;
-	int tile = 0;
-	int xpos = 0;
-	int ypos = 0;
 	size_t add_bytes = 0;
 	size_t l = 0;
 	size_t ll = 0;
-	size_t strl = 0;
+	ptrdiff_t plen = 0;
 	khint_t i = 0;
 	khint_t j = 0;
 	khint_t k = 0;
@@ -80,38 +76,32 @@ int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 						return 1;
 					}
 
-					/* Parse Illumina identifier line */
-					for (tok = strtok_r(copy, seps, &r), x = 0; tok != NULL; tok = strtok_r(NULL, seps, &r), x++)
+					/* Parse Illumina identifier line and construct fastQ hash key */
+					pstart = strchr(idline, ':');
+					pend = strchr(idline, ' ');
+					plen = pend - pstart;
+					mkey = strndup(pstart+1, plen - 1);
+					if (UNLIKELY(!mkey))
 					{
-						switch (x)
-						{
-							case 2:
-								flowcell = strdup(tok);
-								break;
-							case 4:
-								tile = atoi(tok);
-								break;
-							case 5:
-								xpos = atoi(tok);
-								break;
-							case 6:
-								ypos = atoi(tok);
-								break;
-							case 10:
-								index_sequence = strdup(tok);
-								break;
-						}
-					}
-
-					/* Check parsing results */
-					if (!flowcell)
-					{
-						logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+						logerror("%s:%d fastQ header parsing error.\n", __func__, __LINE__);
 						return 1;
 					}
+					/* Parse flowcell identifier */
+					pstart = strchr(pstart+1, ':');
+					pend = strchr(pstart+1, ':');
+					plen = pend - pstart;
+					flowcell = strndup(pstart+1, plen - 1);
+					if (!flowcell)
+					{
+						error("%s:%d Illumina ID parsing failure.\n", __func__, __LINE__);
+						return 1;
+					}
+					/* Parse index sequence */
+					pstart = strrchr(idline, ':');
+					index_sequence = strdup(pstart+1);
 					if (!index_sequence)
 					{
-						logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+						error("%s:%d Illumina ID parsing failure.\n", __func__, __LINE__);
 						return 1;
 					}
 
@@ -140,14 +130,6 @@ int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 					b = pl->b;
 
 					/* Retrieve barcode sequence of mate */
-					mkey = malloc(KEYLEN);
-					if (!mkey)
-					{
-						logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
-						return 1;
-					}
-					strl = strlen(flowcell);
-					sprintf(mkey, "%.*s%s%05d%06d%08d", strl >= 11 ? 0 : (int)(11-strl), "000000000000", flowcell, tile, xpos, ypos);
 					mk = kh_get(mates, m, mkey);
 					if (mk == kh_end(m))
 					{
@@ -159,7 +141,6 @@ int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 						free(mkey);
 						free(idline);
 						free(copy);
-						free(flowcell);
 						break;
 					}
 					barcode_sequence = kh_value(m, mk);

@@ -39,9 +39,6 @@
 /* Number of lines in individual parse buffers */
 #define BSIZE 4000
 
-/* Length of key string for fastQ hash table */
-#define KEYLEN 31
-
 /* Length of terminal output directory name */
 #define DNAME_LENGTH 5
 

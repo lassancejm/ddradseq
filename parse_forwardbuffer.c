@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stddef.h>
 #include <string.h>
 #include "khash.h"
 #include "ddradseq.h"
@@ -17,12 +18,11 @@ int parse_forwardbuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 {
 	char *q = buff;
 	char *s = NULL;
-	char *r = NULL;
 	char *copy = NULL;
 	char *idline = NULL;
-	char seps[] = ": ";
-	char *tok = NULL;
 	char *mkey = NULL;
+	char *pstart = NULL;
+	char *pend = NULL;
 	char *flowcell = NULL;
 	char *index_sequence = NULL;
 	char *barcode_sequence = NULL;
@@ -30,16 +30,12 @@ int parse_forwardbuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 	char *qual_sequence = NULL;
 	unsigned char *skip = NULL;
 	int a = 0;
-	int x = 0;
 	int ret = 0;
-	int tile = 0;
-	int xpos = 0;
-	int ypos = 0;
 	size_t add_bytes = 0;
 	size_t l = 0;
 	size_t ll = 0;
 	size_t sl = 0;
-	size_t strl = 0;
+	ptrdiff_t plen = 0;
 	khint_t i = 0;
 	khint_t j = 0;
 	khint_t k = 0;
@@ -84,34 +80,29 @@ int parse_forwardbuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 						return 1;
 					}
 
-					for (tok = strtok_r(copy, seps, &r), x = 0; tok != NULL; tok = strtok_r(NULL, seps, &r), x++)
+					/* Parse Illumina identifier line and construct fastQ hash key */
+					pstart = strchr(idline, ':');
+					pend = strchr(idline, ' ');
+					plen = pend - pstart;
+					mkey = strndup(pstart+1, plen - 1);
+					if (UNLIKELY(!mkey))
 					{
-						switch (x)
-						{
-							case 2:
-								flowcell = strdup(tok);
-								break;
-							case 4:
-								tile = atoi(tok);
-								break;
-							case 5:
-								xpos = atoi(tok);
-								break;
-							case 6:
-								ypos = atoi(tok);
-								break;
-							case 10:
-								index_sequence = strdup(tok);
-								break;
-						}
+						logerror("%s:%d fastQ header parsing error.\n", __func__, __LINE__);
+						return 1;
 					}
-
-					/* Check parsing */
+					/* Parse flowcell identifier */
+					pstart = strchr(pstart+1, ':');
+					pend = strchr(pstart+1, ':');
+					plen = pend - pstart;
+					flowcell = strndup(pstart+1, plen - 1);
 					if (!flowcell)
 					{
 						error("%s:%d Illumina ID parsing failure.\n", __func__, __LINE__);
 						return 1;
 					}
+					/* Parse index sequence */
+					pstart = strrchr(idline, ':');
+					index_sequence = strdup(pstart+1);
 					if (!index_sequence)
 					{
 						error("%s:%d Illumina ID parsing failure.\n", __func__, __LINE__);
@@ -128,6 +119,7 @@ int parse_forwardbuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 					b = pl->b;
 
 					/* Free memory */
+					free(flowcell);
 					free(index_sequence);
 					free(copy);
 					break;
@@ -188,21 +180,12 @@ int parse_forwardbuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 						break;
 					}
 
-					/* Constrcut key for mate pair hash */
-					mkey = malloc(KEYLEN);
-					if (!mkey)
-					{
-						error("%s:%d Memory allocation failure.\n", __func__, __LINE__);
-						return 1;
-					}
-					strl = strlen(flowcell);
-					sprintf(mkey, "%.*s%s%05d%06d%08d", strl >= 11 ? 0 : (int)(11-strl), "000000000000", flowcell, tile, xpos, ypos);
+					/* Lookup key in mate pair hash */
 					mk = kh_put(mates, m, mkey, &a);
 					if (a)
 						kh_value(m, mk) = strdup(barcode_sequence);
 					else
 						free(mkey);
-					free(flowcell);
 					break;
 				case 2:
 					/* Quality identifier line */

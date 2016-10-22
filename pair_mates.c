@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stddef.h>
 #include <string.h>
 #include <zlib.h>
 #include <errno.h>
@@ -21,21 +22,16 @@ int pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor,
 {
 	char **buf = NULL;
 	char *idline = NULL;
-	char seps[] = ": ";
-	char *tok = NULL;
 	char *mkey = NULL;
+	char *pstart = NULL;
+	char *pend = NULL;
 	char *errstr = NULL;
-	char *flowcell = NULL;
-	char *r = NULL;
-	int tile = 0;
 	int i = 0;
-	int xpos = 0;
-	int ypos = 0;
-	size_t x = 0;
 	size_t l = 0;
 	size_t lc = 0;
 	size_t pos = 0;
 	size_t strl = 0;
+	ptrdiff_t plen = 0;
 	khint_t k = 0;
 	gzFile in;
 	gzFile fout;
@@ -125,41 +121,21 @@ int pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor,
 				}
 				strcpy(idline, &buf[l-3][1]);
 
-				/* Parse Illumina identifier line */
-				for (tok = strtok_r(idline, seps, &r), x = 0; tok != NULL; tok = strtok_r(NULL, seps, &r), x++)
-				{
-					switch (x)
-					{
-						case 2:
-							flowcell = strdup(tok);
-							break;
-						case 4:
-							tile = atoi(tok);
-							break;
-						case 5:
-							xpos = atoi(tok);
-							break;
-						case 6:
-							ypos = atoi(tok);
-							break;
-					}
-				}
-
-				/* Construct hash key */
-				mkey = malloc(KEYLEN);
+				/* Parse Illumina identifier line and construct hash key */
+				pstart = strchr(idline, ':');
+				pend = strchr(idline, ' ');
+				plen = pend - pstart;
+				mkey = strndup(pstart+1, plen - 1);
 				if (UNLIKELY(!mkey))
 				{
-					logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+					logerror("%s:%d fastQ header parsing error.\n", __func__, __LINE__);
 					return 1;
 				}
-				strl = strlen(flowcell);
-				sprintf(mkey, "%.*s%s%05d%06d%08d", strl >= 11 ? 0 : (int)(11-strl), "000000000000", flowcell, tile, xpos, ypos);
 				k = kh_get(fastq, h, mkey);
 				if (k != kh_end(h))
 					e = kh_value(h, k);
 				free(mkey);
 				free(idline);
-				free(flowcell);
 
 				if (e != NULL)
 				{

@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stddef.h>
 #include <zlib.h>
 #include "ddradseq.h"
 #include "khash.h"
@@ -17,21 +18,16 @@ khash_t(fastq) *fastq_to_db(const char *filename)
 {
 	char **buf = NULL;
 	char *idline = NULL;
-	char seps[] = ": ";
-	char *tok = NULL;
 	char *mkey = NULL;
-	char *r = NULL;
-	char *flowcell = NULL;
+	char *pstart = NULL;
+	char *pend = NULL;
 	int a = 0;
 	int i = 0;
-	int tile = 0;
-	int xpos = 0;
-	int ypos = 0;
-	size_t x = 0;
 	size_t l = 0;
 	size_t lc = 0;
 	size_t pos = 0;
 	size_t strl = 0;
+	ptrdiff_t plen = 0;
 	khint_t k = 0;
 	gzFile in;
 	FASTQ *e = NULL;
@@ -119,34 +115,15 @@ khash_t(fastq) *fastq_to_db(const char *filename)
 				strcpy(idline, &buf[l-3][1]);
 
 				/* Parse Illumina identifier line */
-				for (tok = strtok_r(idline, seps, &r), x = 0; tok != NULL; tok = strtok_r(NULL, seps, &r), x++)
-				{
-					switch (x)
-					{
-						case 2:
-							flowcell = strdup(tok);
-							break;
-						case 4:
-							tile = atoi(tok);
-							break;
-						case 5:
-							xpos = atoi(tok);
-							break;
-						case 6:
-							ypos = atoi(tok);
-							break;
-					}
-				}
-
-				/* Construct the hash key */
-				mkey = malloc(KEYLEN);
+				pstart = strchr(idline, ':');
+				pend = strchr(idline, ' ');
+				plen = pend - pstart;
+				mkey = strndup(pstart+1, plen - 1);
 				if (UNLIKELY(!mkey))
 				{
-					logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+					logerror("%s:%d fastQ header parsing error.\n", __func__, __LINE__);
 					return NULL;
 				}
-				strl = strlen(flowcell);
-				sprintf(mkey, "%.*s%s%05d%06d%08d", strl >= 11 ? 0 : (int)(11-strl), "000000000000", flowcell, tile, xpos, ypos);
 				k = kh_put(fastq, h, mkey, &a);
 				if (!a)
 					free(mkey);
