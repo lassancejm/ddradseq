@@ -115,6 +115,12 @@ int parse_forwardbuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 
 					/* Lookup pool identifier */
 					j = kh_get(pool, p, index_sequence);
+					if (j == kh_end(p))
+					{
+						logerror("%s:%d Pool sequence %s not found in association with flow cell %s. Possible incomplete CSV database file.\n",
+						__func__, __LINE__, index_sequence, flowcell);
+						return 1;
+					}
 					pl = kh_value(p, j);
 					b = pl->b;
 
