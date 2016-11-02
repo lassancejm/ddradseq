@@ -57,11 +57,11 @@ int check_csv(const char * csvfile)
 	}
 
 	/* Rewind input stream */
-	i = 0;
 	gzrewind(in);
 
 	/* Populate the list of lines */
-	while (gzgets(in, list[i++], MAX_LINE_LENGTH) != Z_NULL);
+	for (i = 0; i < nlines; i++)
+		gzgets(in, list[i], MAX_LINE_LENGTH);
 
 	/* Sort the list */
 	qsort(list, nlines, sizeof(char*), compare);
