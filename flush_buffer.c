@@ -28,6 +28,7 @@ int flush_buffer(int orient, BARCODE *bc)
 	char *errstr = NULL;
 	int ret = 0;
 	int fd;
+	int ntry = 0;
 	size_t len = bc->curr_bytes;
 	struct flock fl = {F_WRLCK, SEEK_SET, 0, 0, 0};
 	struct flock fl2;
@@ -60,25 +61,33 @@ int flush_buffer(int orient, BARCODE *bc)
 		return 1;
 	}
 
-	/* Test if output file has lock */
+	/* Test if output file has lock in 30 second intervals */
+	/* Will timeout after 100 attempts */
 	fcntl(fd, F_GETLK, &fl2);
-	if (fl2.l_type != F_UNLCK)
+	ntry++;
+	while (fl2.l_type != F_UNLCK)
 	{
-		errstr = strerror(errno);
-		logerror("%s:%d File \'%s\' is locked for writing by process %zu: %s.\n",
-		         __func__, __LINE__, filename, fl.l_pid, errstr);
-		return 1;
-	}
-	else
-	{
-		/* Set lock on output file */
-	    if (fcntl(fd, F_SETLKW, &fl) == -1)
+		if (ntry > 100)
 		{
-			errstr = strerror(errno);
-			logerror("%s:%d Failed to set lock on file \'%s\': %s.\n", __func__,
-			         __LINE__, filename, errstr);
+			logerror("%s:%d File \'%s\' is still locked after 100 attempts... exiting.\n", __func__,
+			         __LINE__, filename);
 			return 1;
 		}
+		else
+		{
+			sleep(30);
+			fcntl(fd, F_GETLK, &fl2);
+			ntry++;
+		}
+	}
+
+	/* Set lock on output file */
+	if (fcntl(fd, F_SETLKW, &fl) == -1)
+	{
+		errstr = strerror(errno);
+		logerror("%s:%d Failed to set lock on file \'%s\': %s.\n", __func__,
+		         __LINE__, filename, errstr);
+		return 1;
 	}
 
 	gzf = gzdopen(fd, "ab");
