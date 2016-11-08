@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
+#include <stdbool.h>
 #include <string.h>
 #include "khash.h"
 #include "ddradseq.h"
@@ -16,6 +17,7 @@
 int parse_reversebuffer(const CMD *cp, char *buff, const size_t nl, const khash_t(pool_hash) *h,
                         const khash_t(mates) *m)
 {
+	bool *skip = NULL;
 	char *q = buff;
 	char *copy = NULL;
 	char *idline = NULL;
@@ -27,7 +29,6 @@ int parse_reversebuffer(const CMD *cp, char *buff, const size_t nl, const khash_
 	char *index_sequence = NULL;
 	char *dna_sequence = NULL;
 	char *qual_sequence = NULL;
-	unsigned char *skip = NULL;
 	int ret = 0;
 	size_t add_bytes = 0;
 	size_t l = 0;
@@ -44,7 +45,7 @@ int parse_reversebuffer(const CMD *cp, char *buff, const size_t nl, const khash_
 	FILE *lf = cp->lf;
 
 	/* Indicator variable whether to skip processing a line */
-	skip = calloc(1, nl * sizeof(unsigned char));
+	skip = calloc(nl, sizeof(bool));
 	if (!skip)
 	{
 		logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
@@ -111,9 +112,9 @@ int parse_reversebuffer(const CMD *cp, char *buff, const size_t nl, const khash_
 					{
 						logwarn(lf, "Hash lookup failure using key %s.\n", flowcell);
 						logwarn(lf, "Skipping sequence: %s\n", idline);
-						skip[l+1] = 1;
-						skip[l+2] = 1;
-						skip[l+3] = 1;
+						skip[l+1] = true;
+						skip[l+2] = true;
+						skip[l+3] = true;
 						free(idline);
 						free(copy);
 						free(flowcell);
@@ -133,9 +134,9 @@ int parse_reversebuffer(const CMD *cp, char *buff, const size_t nl, const khash_
 					{
 						logwarn(lf, "Hash lookup failure using key %s.\n", mkey);
 						logwarn(lf, "Skipping sequence: %s\n", idline);
-						skip[l+1] = 1;
-						skip[l+2] = 1;
-						skip[l+3] = 1;
+						skip[l+1] = true;
+						skip[l+2] = true;
+						skip[l+3] = true;
 						free(mkey);
 						free(idline);
 						free(copy);
@@ -150,9 +151,9 @@ int parse_reversebuffer(const CMD *cp, char *buff, const size_t nl, const khash_
 						bc = kh_value(b, k);
 					else
 					{
-						skip[l+1] = 1;
-						skip[l+2] = 1;
-						skip[l+3] = 1;
+						skip[l+1] = true;
+						skip[l+2] = true;
+						skip[l+3] = true;
 						free(idline);
 					}
 

@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
+#include <stdbool.h>
 #include <string.h>
 #include "khash.h"
 #include "ddradseq.h"
@@ -16,6 +17,7 @@
 int parse_forwardbuffer(const CMD *cp, char *buff, const size_t nl, const khash_t(pool_hash) *h,
                         khash_t(mates) *m)
 {
+	bool *skip = NULL;
 	char *q = buff;
 	char *s = NULL;
 	char *copy = NULL;
@@ -28,7 +30,6 @@ int parse_forwardbuffer(const CMD *cp, char *buff, const size_t nl, const khash_
 	char *barcode_sequence = NULL;
 	char *dna_sequence = NULL;
 	char *qual_sequence = NULL;
-	unsigned char *skip = NULL;
 	int a = 0;
 	int ret = 0;
 	const int dist = cp->dist;
@@ -49,7 +50,7 @@ int parse_forwardbuffer(const CMD *cp, char *buff, const size_t nl, const khash_
 	FILE *lf = cp->lf;
 
 	/* Indicator variable whether to skip processing a line */
-	skip = calloc(1, nl * sizeof(unsigned char));
+	skip = calloc(nl, sizeof(bool));
 	if (!skip)
 	{
 		logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
@@ -177,8 +178,8 @@ int parse_forwardbuffer(const CMD *cp, char *buff, const size_t nl, const khash_
 					/* If barcode still not found-- skip sequence */
 					if (!bc)
 					{
-						skip[l+1] = 1;
-						skip[l+2] = 1;
+						skip[l+1] = true;
+						skip[l+2] = true;
 						free(idline);
 						free(dna_sequence);
 						free(barcode_sequence);
