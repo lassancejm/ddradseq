@@ -153,8 +153,8 @@ KHASH_MAP_INIT_STR(mates, char*)
  * Parsing functions
  ******************************************************/
 
-/* int parse_fastq(const int orient, const char *filename, khash_t(pool_hash) *h,
- *                 khash_t(mates) *m, const int dist)
+/* int parse_fastq(const CMD *cp, const int orient, const char *filename, khash_t(pool_hash) *h,
+ *                 khash_t(mates) *m)
  * Parses a fastQ file by index sequence
  * Arguments:
  * cp -- Pointer to command line data structure (read-only)
@@ -170,8 +170,8 @@ extern int parse_fastq(const CMD *cp, const int orient, const char *filename,
                        khash_t(pool_hash) *h, khash_t(mates) *m);
 
 
-/* int parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
- *                         khash_t(mates) *m, const int dist)
+/* int parse_forwardbuffer(const CMD *cp, char *buff, const size_t nl, khash_t(pool_hash) *h,
+ *                         khash_t(mates) *m)
  * Parses forward fastQ entries in the buffer
  * Arguments:
  * cp -- Pointer to command line data structure (read-only)
@@ -187,7 +187,7 @@ extern int parse_forwardbuffer(const CMD *cp, char *buff, const size_t nl, const
                                khash_t(mates) *m);
 
 
-/* int parse_reversebuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
+/* int parse_reversebuffer(const CMD *cp, char *buff, const size_t nl, khash_t(pool_hash) *h,
                            khash_t(mates) *m)
  * Parses reverse fastQ entries in the buffer
  * Arguments:
@@ -208,7 +208,7 @@ extern int parse_reversebuffer(const CMD *cp, char *buff, const size_t nl, const
  * Sequence pairing functions
  ******************************************************/
 
-/* int pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor, const char *frev)
+/* int pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor, const char *frev, FILE *lf)
  * Pairs mates in two fastQ files
  * Arguments:
  * filename -- Pointer to string for input forward fastQ (read-only)
@@ -246,7 +246,7 @@ extern int align_mates(const CMD *cp, const char *fin, const char *rin, const ch
  * UI functions
  ******************************************************/
 
-/* CMD* get_cmdline(int argc, char *argv[])
+/* CMD *get_cmdline(int argc, char *argv[])
  * Reads command line parameters into CMD data structure
  * Arguments:
  * argc -- Number of command line arguments
@@ -262,7 +262,7 @@ extern CMD *get_cmdline(int argc, char *argv[]);
  * I/O management functions
  ******************************************************/
 
-/* khash_t(pool_hash)* read_csv(const CMD *cp)
+/* khash_t(pool_hash) *read_csv(const CMD *cp)
  * Reads CSV database file into parsing hash database
  * Arguments:
  * cp -- Pointer to command line data structure (read-only)
@@ -284,7 +284,7 @@ extern khash_t(pool_hash) *read_csv(const CMD *cp);
 extern int check_csv(const CMD *cp);
 
 
-/* khash_t(fastq)* fastq_to_db(const char *filename)
+/* khash_t(fastq)* fastq_to_db(const char *filename, FILE *lf)
  * Populates a fastQ database from fastQ input file
  * Arguments:
  * filename -- Pointer to string holding input fastQ file name (read-only)
@@ -328,7 +328,7 @@ extern unsigned int traverse_dirtree(const CMD *cp, char **flist);
  * Buffer management functions
  ******************************************************/
 
-/* char* clean_buffer(char *buff, size_t *nl)
+/* char *clean_buffer(char *buff, size_t *nl)
  * Limits the buffer to hold only entire fastQ entries
  * Arguments:
  * buff -- Pointer to the string holding the buffer
@@ -337,7 +337,7 @@ extern unsigned int traverse_dirtree(const CMD *cp, char **flist);
  * Pointer to new end of buffer
  */
 
-extern char* clean_buffer(char *buff, size_t *nl);
+extern char *clean_buffer(char *buff, size_t *nl);
 
 
 /* size_t reset_buffer(char *buff, const char *r)
@@ -429,7 +429,7 @@ extern int free_matedb(khash_t(mates) *m);
  ******************************************************/
 
 /* ALIGN_RESULT local_align(int qlen, char *query, int tlen, char *target, const char *mat,
-                            int gapo, int gape, int xtra)
+                            int gapo, int gape, int xtra, FILE *lf)
  * Calculates the local sequence alignment by Smith-Waterman algorithm
  * Arguments:
  * qlen -- Length of query sequence
@@ -449,7 +449,7 @@ extern ALIGN_RESULT local_align(int qlen, char *query, int tlen, char *target, c
                                 int gapo, int gape, int xtra, FILE *lf);
 
 
-/* char* revcom(const char *s)
+/* char* revcom(const char *s, FILE *lf)
  * Reverse complement a DNA string with full IUPAC alphabet
  * Arguments:
  * s -- Pointer to string to be reverse-complemented (read-only)
