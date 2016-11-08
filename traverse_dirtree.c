@@ -39,13 +39,19 @@ static int get_pairfiles(const char *filepath, const struct stat *info,
                          const int typeflag, struct FTW *pathinfo);
 static int compare(const void * a, const void * b);
 
-unsigned int traverse_dirtree(const CMD *cp, char **flist)
+unsigned int traverse_dirtree(const CMD *cp, const char *caller, char ***flist)
 {
 	char *errstr = NULL;
-	const char *dirpath = (string_equal(cp->mode, "pair") || string_equal(cp->mode, "all")) ? cp->parent_indir : cp->outdir;
+	char *dirpath = NULL;
 	int r = 0;
+	int i = 0;
 	unsigned int x = 0;
 	FILE *lf = cp->lf;
+
+	if (string_equal(caller, "pair") || string_equal(caller, "trimend"))
+		dirpath = cp->outdir;
+	else
+		dirpath = cp->parent_indir;
 
 	/* Check validity of directory path */
 	if (dirpath == NULL || *dirpath == '\0')
@@ -53,9 +59,9 @@ unsigned int traverse_dirtree(const CMD *cp, char **flist)
 
 	/* Count number of files in directory tree */
 	n = 0;
-	if (string_equal(cp->mode, "pair"))
+	if (string_equal(caller, "pair"))
 		r = nftw(dirpath, count_parsefiles, USE_FDS, FTW_PHYS);
-	else if (string_equal(cp->mode, "trimend"))
+	else if (string_equal(caller, "trimend"))
 		r = nftw(dirpath, count_pairfiles, USE_FDS, FTW_PHYS);
 	else
 		r = nftw(dirpath, count_fastqfiles, USE_FDS, FTW_PHYS);
@@ -82,9 +88,9 @@ unsigned int traverse_dirtree(const CMD *cp, char **flist)
 		return 0;
 	}
 	n = 0;
-	if (string_equal(cp->mode, "pair"))
+	if (string_equal(caller, "pair"))
 		r = nftw(dirpath, get_parsefiles, USE_FDS, FTW_PHYS);
-	else if (string_equal(cp->mode, "trimend"))
+	else if (string_equal(caller, "trimend"))
 		r = nftw(dirpath, get_pairfiles, USE_FDS, FTW_PHYS);
 	else
 		r = nftw(dirpath, get_fastqfiles, USE_FDS, FTW_PHYS);
@@ -110,7 +116,15 @@ unsigned int traverse_dirtree(const CMD *cp, char **flist)
 	x = n;
 
 	/* Assign address of file list */
-	flist = f;
+	*flist = malloc(n * sizeof(char*));
+	for (i = 0; i < n; i++)
+	{
+		size_t len = strlen(f[i]) + 1;
+		(*flist)[i] = malloc(len);
+		memcpy((*flist)[i], f[i], len);
+		free(f[i]);
+	}
+	free(f);
 
 	return x;
 }

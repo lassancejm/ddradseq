@@ -24,7 +24,7 @@ int trimend_main(const CMD *cp)
 	loginfo(lf, "Beginning to trim 3\' end of reverse sequences in \'%s\'.\n", cp->outdir);
 
 	/* Get list of all files */
-	nfiles = traverse_dirtree(cp, filelist);
+	nfiles = traverse_dirtree(cp, "trimend", &filelist);
 	if (!filelist)
 		return 1;
 

@@ -227,7 +227,7 @@ extern int pair_mates(const char *filename, const khash_t(fastq) *h, const char 
  * Trimend functions
  ******************************************************/
 
-/* int align_mates(CMD *cp, const char *fin, const char *rin, const char *fout, const char *rout)
+/* int align_mates(const CMD *cp, const char *fin, const char *rin, const char *fout, const char *rout)
  * Align mates in two fastQ files and trim 3' end of reverse sequences
  * Arguments:
  * cp -- Pointer to command line data structure (read-only)
@@ -312,16 +312,17 @@ extern khash_t(fastq) *fastq_to_db(const char *filename, FILE *lf);
 extern int create_dirtree(const CMD *cp, const khash_t(pool_hash) *h);
 
 
-/* unsigned int traverse_dirtree(const CMD *cp, char **flist)
+/* unsigned int traverse_dirtree(const CMD *cp, const char *caller, char ***flist)
  * Produces a sorted list of all fastQ files in the input directory tree
  * Arguments:
  * cp -- Pointer to command line data structure (read-only)
+ * caller -- Pointer to string identifying calling function
  * flist -- Pointer to array of input file names
  * Returns:
  * The number of input files found in the input directory tree
  */
 
-extern unsigned int traverse_dirtree(const CMD *cp, char **flist);
+extern unsigned int traverse_dirtree(const CMD *cp, const char *caller, char ***flist);
 
 
 /******************************************************

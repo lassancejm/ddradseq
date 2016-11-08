@@ -50,7 +50,7 @@ int parse_main(const CMD *cp)
 		return 1;
 
 	/* Get list of all files */
-	nfiles = traverse_dirtree(cp, filelist);
+	nfiles = traverse_dirtree(cp, "parse", &filelist);
 	if (!filelist)
 		return 1;
 
