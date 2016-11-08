@@ -1,7 +1,7 @@
-/* file: parse_cmdline.c
+/* file: get_cmdline.c
  * description: Populates command line data structure from program arguments
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: October 2016
+ * updated: November 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */
@@ -20,14 +20,15 @@ const char *argp_program_version = "ddradseq v1.3-beta";
 const char *argp_program_bug_address = "<dgarriga@lummei.net>";
 static struct argp_option options[] =
 {
-  {"across", 'a', 0,      0, "Pool sequences across flow cells"},
-  {"mode",   'm', "STR",  0, "Run mode of ddradseq program"},
-  {"out",    'o', "DIR",  0, "Parent directory to write output"},
-  {"csv",    'c', "FILE", 0, "CSV file with index and barcode"},
-  {"dist",   'd', "INT",  0, "Edit distance for barcode matching"},
-  {"score",  's', "INT",  0, "Alignment score to consider mates properly paired"},
-  {"gapo",   'g', "INT",  0, "Penalty for opening a gap"},
-  {"gape",   'e', "INT",  0, "Penalty for extending open gap"},
+  {"across",  'a', 0,      0, "Pool sequences across flow cells"},
+  {"mode",    'm', "STR",  0, "Run mode of ddradseq program"},
+  {"out",     'o', "DIR",  0, "Parent directory to write output"},
+  {"csv",     'c', "FILE", 0, "CSV file with index and barcode"},
+  {"dist",    'd', "INT",  0, "Edit distance for barcode matching"},
+  {"score",   's', "INT",  0, "Alignment score to consider mates properly paired"},
+  {"gapo",    'g', "INT",  0, "Penalty for opening a gap"},
+  {"gape",    'e', "INT",  0, "Penalty for extending open gap"},
+  {"threads", 't', "INT",  0, "Number of threads available for concurrency"},
   {0}
 };
 
@@ -58,6 +59,9 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
 		case 'e':
 			cp->gape = atoi(arg);
 			break;
+		case 't':
+			cp->nthreads = atoi(arg);
+			break;
 		case 'c':
 			cp->csvfile = strdup(arg);
 			break;
@@ -84,7 +88,7 @@ static char doc[] =
 
 static struct argp argp = {options, parse_opt, args_doc, doc};
 
-CMD *parse_cmdline(int argc, char *argv[])
+CMD *get_cmdline(int argc, char *argv[])
 {
 	char *datec = NULL;
 	size_t strl = 0;
@@ -111,6 +115,8 @@ CMD *parse_cmdline(int argc, char *argv[])
 	cp->score = 100;
 	cp->gapo = 5;
 	cp->gape = 1;
+	cp->nthreads = 1;
+	cp->lf = NULL;
 
 	argp_parse(&argp, argc, argv, 0, 0, cp);
 

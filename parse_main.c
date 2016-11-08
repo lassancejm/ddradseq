@@ -1,7 +1,7 @@
 /* file: parse_main.c
  * description: Entry point for the parse modality
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: October 2016
+ * updated: November 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */
@@ -13,18 +13,19 @@
 
 int parse_main(const CMD *cp)
 {
-	char **f = NULL;
+	char **filelist = NULL;
 	int ret = 0;
 	unsigned int i = 0;
-	unsigned int n = 0;
+	unsigned int nfiles = 0;
 	khash_t(pool_hash) *h = NULL;
 	khash_t(mates) *m = NULL;
+	FILE *lf = cp->lf;
 
 	/* Check the integrity of the CSV input database file */
-	ret = check_csv(cp->csvfile);
+	ret = check_csv(cp);
 	if (ret)
 	{
-		logerror("%s:%d Problem with the format of the CSV database file.\n",
+		logerror(lf, "%s:%d Problem with the format of the CSV database file.\n",
 			     __func__, __LINE__);
 		return 1;
 	}
@@ -33,13 +34,13 @@ int parse_main(const CMD *cp)
 	h = read_csv(cp);
 	if (!h)
 	{
-		logerror("%s:%d Failed to read CSV database into memory.\n",
+		logerror(lf, "%s:%d Failed to read CSV database into memory.\n",
 			     __func__, __LINE__);
 		return 1;
 	}
 
 	/* Check for write permissions on parent of output directory */
-	ret = check_directories(cp, h);
+	ret = create_dirtree(cp, h);
 	if (ret)
 		return 1;
 
@@ -49,52 +50,48 @@ int parse_main(const CMD *cp)
 		return 1;
 
 	/* Get list of all files */
-	f = traverse_dirtree(cp->parent_indir, NULL, &n);
-	if (!f)
+	nfiles = traverse_dirtree(cp, filelist);
+	if (!filelist)
 		return 1;
 
-	for (i = 0; i < n; i += 2)
+	for (i = 0; i < nfiles; i += 2)
 	{
 		char *ffor = NULL;
 		char *frev = NULL;
 		size_t spn = 0;
 
 		/* Construct output file names */
-		ffor = strdup(f[i]);
+		ffor = strdup(filelist[i]);
 		if (UNLIKELY(!ffor))
 		{
-			logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+			logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 			return 1;
 		}
-		frev = strdup(f[i+1]);
+		frev = strdup(filelist[i+1]);
 		if (UNLIKELY(!frev))
 		{
-			logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+			logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 			return 1;
 		}
 		spn = strcspn(ffor, ".");
 		ret = strncmp(ffor, frev, spn);
 		if (ret)
 		{
-			logerror("%s:%d Files \'%s\' and \'%s\' do not appear to be mate-"
+			logerror(lf, "%s:%d Files \'%s\' and \'%s\' do not appear to be mate-"
 			         "pairs.\n", __func__, __LINE__, ffor, frev);
 			return 1;
 		}
 
-		/* Update time string */
-		get_timestr(&timestr[0]);
-
 		/* Print informational update to log file */
-		fprintf(lf, "[ddradseq: %s] INFO -- Deciphering mate-pair information for "
-		        "\'%s\' and \'%s\'.\n", timestr, ffor, frev);
+		loginfo(lf, "Deciphering mate-pair information for \'%s\' and \'%s\'.\n", ffor, frev);
 
 		/* Read the forward fastQ input file */
-		ret = parse_fastq(FORWARD, ffor, h, m, cp->dist);
+		ret = parse_fastq(cp, FORWARD, ffor, h, m);
 		if (ret)
 			return 1;
 
 		/* Read the reverse fastQ input file */
-		ret = parse_fastq(REVERSE, frev, h, m, cp->dist);
+		ret = parse_fastq(cp, REVERSE, frev, h, m);
 		if (ret)
 			return 1;
 		free(ffor);
@@ -102,18 +99,14 @@ int parse_main(const CMD *cp)
 	}
 
 	/* Deallocate memory from the heap */
-	for (i = 0; i < n; i++)
-		free(f[i]);
-	free(f);
+	for (i = 0; i < nfiles; i++)
+		free(filelist[i]);
+	free(filelist);
 	free_db(h);
 	free_matedb(m);
 
-	/* Update time string */
-	get_timestr(&timestr[0]);
-
 	/* Print informational message to log */
-	fprintf(lf, "[ddradseq: %s] INFO -- Parse step of pipeline is complete.\n",
-	        timestr);
+	loginfo(lf, "Parse step of pipeline is complete.\n");
 
 	return 0;
 }

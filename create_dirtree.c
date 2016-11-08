@@ -1,7 +1,7 @@
-/* file: check_directories.c
+/* file: create_dirtree.c
  * description: Creates and checks output directory tree
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: October 2016
+ * updated: November 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */
@@ -18,7 +18,7 @@
 #include "khash.h"
 #include "ddradseq.h"
 
-int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
+int create_dirtree(const CMD *cp, const khash_t(pool_hash) *h)
 {
 	char *pooldir = NULL;
 	char *flowdir = NULL;
@@ -35,17 +35,15 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 	khash_t(pool) *p = NULL;
 	POOL *pl = NULL;
 	struct dirent *next_file;
+	FILE *lf = cp->lf;
 	DIR *d;
-
-	/* Update time string */
-	get_timestr(&timestr[0]);
 
 	/* Check if parent output directory is writable */
 	writable = access(cp->parent_outdir, W_OK);
 	if (writable < 0)
 	{
 		errstr = strerror(errno);
-		logerror("%s:%d Cannot write to directory \'%s\': %s.\n", __func__,
+		logerror(lf, "%s:%d Cannot write to directory \'%s\': %s.\n", __func__,
 		         __LINE__, cp->parent_outdir, errstr);
 		return 1;
 	}
@@ -64,7 +62,7 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 			if (status < 0)
 			{
 				errstr = strerror(errno);
-				logerror("%s:%d Failed to create output directory \'%s\': %s.\n",
+				logerror(lf, "%s:%d Failed to create output directory \'%s\': %s.\n",
 				         __func__, __LINE__, cp->outdir, errstr);
 				return 1;
 			}
@@ -72,7 +70,7 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 		else
 		{
 			errstr = strerror(errno);
-			logerror("%s:%d Failed to create output directory \'%s\': %s.\n",
+			logerror(lf, "%s:%d Failed to create output directory \'%s\': %s.\n",
 						__func__, __LINE__, cp->outdir, errstr);
 			return 1;
 		}
@@ -88,7 +86,7 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 					flowdir = malloc(strl + 1u);
 					if (UNLIKELY(!flowdir))
 					{
-						logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+						logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 						return 1;
 					}
 					strcpy(flowdir, cp->outdir);
@@ -103,7 +101,7 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 						if (status < 0)
 						{
 							errstr = strerror(errno);
-							logerror("%s:%d Failed to create flowcell-level output "
+							logerror(lf, "%s:%d Failed to create flowcell-level output "
 							         "directory \'%s\': %s.\n", __func__, __LINE__,
 									 flowdir, errstr);
 							return 1;
@@ -112,7 +110,7 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 					else
 					{
 						errstr = strerror(errno);
-						logerror("%s:%d Failed to create flowcell-level directory \'%s\': %s.\n",
+						logerror(lf, "%s:%d Failed to create flowcell-level directory \'%s\': %s.\n",
 									__func__, __LINE__, flowdir, errstr);
 						return 1;
 					}
@@ -138,7 +136,7 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 							if (status < 0)
 							{
 								char *errstr = strerror(errno);
-								logerror("%s:%d Failed to create pool-level "
+								logerror(lf, "%s:%d Failed to create pool-level "
 								         "directory \'%s\': %s.\n", __func__,
 										 __LINE__, pooldir, errstr);
 								return 1;
@@ -148,7 +146,7 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 						parsedir = malloc(strl + 7u);
 						if (UNLIKELY(!parsedir))
 						{
-							logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+							logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 							return 1;
 						}
 						strcpy(parsedir, pooldir);
@@ -174,7 +172,7 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 							if (status < 0)
 							{
 								char *errstr = strerror(errno);
-								logerror("%s:%d Failed to create parse directory "
+								logerror(lf, "%s:%d Failed to create parse directory "
 								         "\'%s\': %s.\n", __func__, __LINE__, parsedir,
 										 errstr);
 								return 1;
@@ -183,7 +181,7 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 						else
 						{
 							errstr = strerror(errno);
-							logerror("%s:%d Failed to create parse directory \'%s\': %s.\n",
+							logerror(lf, "%s:%d Failed to create parse directory \'%s\': %s.\n",
 									 __func__, __LINE__, parsedir, errstr);
 							return 1;
 						}
@@ -192,7 +190,7 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 						pairdir = malloc(strl + 7u);
 						if (UNLIKELY(!pairdir))
 						{
-							logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+							logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 							return 1;
 						}
 						strcpy(pairdir, pooldir);
@@ -218,7 +216,7 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 							if (status < 0)
 							{
 								char *errstr = strerror(errno);
-								logerror("%s:%d Failed to create pairs directory "
+								logerror(lf, "%s:%d Failed to create pairs directory "
 								         "\'%s\': %s.\n", __func__, __LINE__, pairdir,
 										 errstr);
 								return 1;
@@ -227,7 +225,7 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 						else
 						{
 							errstr = strerror(errno);
-							logerror("%s:%d Failed to create pairs directory \'%s\': %s.\n",
+							logerror(lf, "%s:%d Failed to create pairs directory \'%s\': %s.\n",
 										__func__, __LINE__, pairdir, errstr);
 							return 1;
 						}
@@ -236,7 +234,7 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 						trimdir = malloc(strl + 7u);
 						if (UNLIKELY(!trimdir))
 						{
-							logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+							logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 							return 1;
 						}
 						strcpy(trimdir, pooldir);
@@ -262,7 +260,7 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 							if (status < 0)
 							{
 								char *errstr = strerror(errno);
-								logerror("%s:%d Failed to create final directory "
+								logerror(lf, "%s:%d Failed to create final directory "
 								         "\'%s\': %s.\n", __func__, __LINE__, trimdir,
 										 errstr);
 								return 1;
@@ -271,7 +269,7 @@ int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
 						else
 						{
 							errstr = strerror(errno);
-							logerror("%s:%d Failed to create final directory \'%s\': %s.\n",
+							logerror(lf, "%s:%d Failed to create final directory \'%s\': %s.\n",
 										__func__, __LINE__, trimdir, errstr);
 							return 1;
 						}

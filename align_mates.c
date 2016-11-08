@@ -1,7 +1,7 @@
 /* file align_mates.c
  * description: Align mates in two fastQ files and trim 3' end of reverse sequences
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: October 2016
+ * updated: November 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */
@@ -55,25 +55,23 @@ int align_mates(const CMD *cp, const char *forin, const char *revin, const char 
 	unsigned int count = 0;
 	size_t l = 0;
 	size_t lc = 0;
+	FILE *lf = cp->lf;
 	gzFile fin;
 	gzFile rin;
 	gzFile fout;
 	gzFile rout;
 
-	/* Update time string */
-	get_timestr(&timestr[0]);
-
 	/* Allocate buffer memory from the heap */
 	fbuf = malloc(BSIZE * sizeof(char*));
 	if (UNLIKELY(fbuf == NULL))
 	{
-		logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+		logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 		return 1;
 	}
 	rbuf = malloc(BSIZE * sizeof(char*));
 	if (UNLIKELY(rbuf == NULL))
 	{
-		logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+		logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 		return 1;
 	}
 	for (i = 0; i < BSIZE; i++)
@@ -81,13 +79,13 @@ int align_mates(const CMD *cp, const char *forin, const char *revin, const char 
 		fbuf[i] = malloc(MAX_LINE_LENGTH);
 		if (UNLIKELY(!fbuf[i]))
 		{
-			logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+			logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 			return 1;
 		}
 		rbuf[i] = malloc(MAX_LINE_LENGTH);
 		if (UNLIKELY(!rbuf[i]))
 		{
-			logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+			logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 			return 1;
 		}
 	}
@@ -97,7 +95,7 @@ int align_mates(const CMD *cp, const char *forin, const char *revin, const char 
 	if (!fin)
 	{
 		errstr = strerror(errno);
-		logerror("%s:%d Failed to open input forward fastQ file \'%s\': %s.\n",
+		logerror(lf, "%s:%d Failed to open input forward fastQ file \'%s\': %s.\n",
 		         __func__, __LINE__, forin, errstr);
 		return 1;
 	}
@@ -107,7 +105,7 @@ int align_mates(const CMD *cp, const char *forin, const char *revin, const char 
 	if (!rin)
 	{
 		errstr = strerror(errno);
-		logerror("%s:%d Failed to open input reverse fastQ file \'%s\': %s.\n",
+		logerror(lf, "%s:%d Failed to open input reverse fastQ file \'%s\': %s.\n",
 		         __func__, __LINE__, revin, errstr);
 		return 1;
 	}
@@ -116,7 +114,7 @@ int align_mates(const CMD *cp, const char *forin, const char *revin, const char 
 	fout = gzopen(forout, "wb");
 	if (!fout)
 	{
-		logerror("%s:%d Failed to open forward output fastQ file \'%s\': %s.\n",
+		logerror(lf, "%s:%d Failed to open forward output fastQ file \'%s\': %s.\n",
 		         __func__, __LINE__, forout, errstr);
 		return 1;
 	}
@@ -126,7 +124,7 @@ int align_mates(const CMD *cp, const char *forin, const char *revin, const char 
 	if (!rout)
 	{
 		errstr = strerror(errno);
-		logerror("%s:%d Failed to open reverse output fastQ file \'%s\': %s.\n",
+		logerror(lf, "%s:%d Failed to open reverse output fastQ file \'%s\': %s.\n",
 		         __func__, __LINE__, revout, errstr);
 		return 1;
 	}
@@ -177,7 +175,7 @@ int align_mates(const CMD *cp, const char *forin, const char *revin, const char 
 				char *target = NULL;
 				char *query = NULL;
 				target = strdup(&fbuf[l-2][0]);
-				query = revcom(&rbuf[l-2][0]);
+				query = revcom(&rbuf[l-2][0], lf);
 				if (!target || !query)
 					return 1;
 				int tlen = (int)strlen(target);
@@ -191,7 +189,7 @@ int align_mates(const CMD *cp, const char *forin, const char *revin, const char 
 					target[i] = seq_nt4_table[(unsigned char)target[i]];
 
 				/* Do the alignment */
-				r = local_align(qlen, query, tlen, target, mat, gap_open, gap_extend, xtra);
+				r = local_align(qlen, query, tlen, target, mat, gap_open, gap_extend, xtra, lf);
 				free(target);
 				free(query);
 
@@ -224,8 +222,7 @@ int align_mates(const CMD *cp, const char *forin, const char *revin, const char 
 	}
 
 	/* Print informational message to logfile */
-	get_timestr(&timestr[0]);
-	fprintf(lf, "[ddradseq: %s] INFO -- %u sequences trimmed.\n", timestr, count);
+	loginfo(lf, "%u sequences trimmed.\n", count);
 
 	/* Free memory from the heap */
 	for (i = 0; i < BSIZE; i++)

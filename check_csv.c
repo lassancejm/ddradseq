@@ -1,7 +1,7 @@
 /* file: check_csv.c
  * description: Check the integrity of the input CSV file
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: October 2016
+ * updated: November 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */
@@ -15,7 +15,7 @@
 
 static int compare(const void * a, const void * b);
 
-int check_csv(const char * csvfile)
+int check_csv(const CMD *cp)
 {
 	char buf[MAX_LINE_LENGTH];
 	char **list = NULL;
@@ -25,13 +25,14 @@ int check_csv(const char * csvfile)
 	unsigned int nlines = 0;
 	ptrdiff_t diffp;
 	ptrdiff_t diffq;
+	FILE *lf = cp->lf;
 	gzFile in;
 
-	in = gzopen(csvfile, "rb");
+	in = gzopen(cp->csvfile, "rb");
 	if (!in)
 	{
-		logerror("%s:%d Could not read CSV database file %s into memory.\n",
-			     __func__, __LINE__, csvfile);
+		logerror(lf, "%s:%d Could not read CSV database file %s into memory.\n",
+			     __func__, __LINE__, cp->csvfile);
 		return 1;;
 	}
 
@@ -43,7 +44,7 @@ int check_csv(const char * csvfile)
 	list = malloc(nlines * sizeof(char*));
 	if (UNLIKELY(!list))
 	{
-		logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+		logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 		return 1;
 	}
 	for (i = 0; i < nlines; i++)
@@ -51,7 +52,7 @@ int check_csv(const char * csvfile)
 		list[i] = malloc(MAX_LINE_LENGTH);
 		if (UNLIKELY(!list[i]))
 		{
-			logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+			logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 			return 1;
 		}
 	}
@@ -70,9 +71,9 @@ int check_csv(const char * csvfile)
 	for (i = 1; i < nlines; i++)
 	{
 		/* Look for duplicate lines */
-		if (strcmp(list[i], list[i-1]) == 0)
+		if (string_equal(list[i], list[i-1]))
 		{
-			logerror("%s:%d: CSV database file contains identical lines.\n",
+			logerror(lf, "%s:%d: CSV database file contains identical lines.\n",
 			         __func__, __LINE__);
 			return 1;
 		}
@@ -88,9 +89,9 @@ int check_csv(const char * csvfile)
 		{
 			if (strncmp(list[i-1], list[i], diffp) == 0)
 			{
-				if (strcmp(p+1, q+1) != 0)
+				if (string_equal(p+1, q+1) == 0)
 				{
-					logerror("%s:%d: Different individuals have the same key "
+					logerror(lf, "%s:%d: Different individuals have the same key "
 					         "pattern.\n", __func__, __LINE__);
 					return 1;
 				}

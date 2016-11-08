@@ -1,16 +1,18 @@
-/* file: free_cmdline.c
- * description: Deallocates memory for command line parameter data structure
+/* file: destroy_cmdline.c
+ * description: Destroy command line parameter data structure
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: October 2016
+ * updated: November 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include "ddradseq.h"
 
-int free_cmdline(CMD *cp)
+int destroy_cmdline(CMD *cp)
 {
+	fclose(cp->lf);
 	free(cp->parent_indir);
 	free(cp->parent_outdir);
 	free(cp->outdir);

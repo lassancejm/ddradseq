@@ -1,7 +1,7 @@
 /* file: ddradseq.h
  * description: Header for the ddradseq program
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: October 2016
+ * updated: November 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */
@@ -18,7 +18,6 @@
 #include <string.h>
 #include <stdarg.h>
 #include <stdbool.h>
-#include <linux/limits.h>
 #include <emmintrin.h>
 #include "khash.h"
 
@@ -73,6 +72,8 @@ typedef struct cmdparam
 	int score;
 	int gapo;
 	int gape;
+	int nthreads;
+	FILE *lf;
 } CMD;
 
 /* Data structure to hold a single fastQ entry */
@@ -143,10 +144,6 @@ KHASH_MAP_INIT_STR(fastq, FASTQ*)
 /* Hash to hold mate information */
 KHASH_MAP_INIT_STR(mates, char*)
 
-/* Globally scoped variables */
-char logfile[PATH_MAX];
-char timestr[80];
-FILE *lf;
 
 /******************************************************
  * Function prototypes
@@ -160,40 +157,41 @@ FILE *lf;
  *                 khash_t(mates) *m, const int dist)
  * Parses a fastQ file by index sequence
  * Arguments:
+ * cp -- Pointer to command line data structure (read-only)
  * orient -- Orientation of reads in fastQ file (read-only)
  * filename -- Pointer to string holding fastQ input file name (read-only)
  * h -- Pointer to pool_hash hash table with parsing database
  * m -- Pointer to mate information hash table
- * dist -- Maximum allowable edit distance (read-only)
  * Returns:
  * Zero on success and non-zero on failure
  */
 
-extern int parse_fastq(const int orient, const char *filename, khash_t(pool_hash) *h,
-                       khash_t(mates) *m, const int dist);
+extern int parse_fastq(const CMD *cp, const int orient, const char *filename,
+                       khash_t(pool_hash) *h, khash_t(mates) *m);
 
 
 /* int parse_forwardbuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
  *                         khash_t(mates) *m, const int dist)
  * Parses forward fastQ entries in the buffer
  * Arguments:
+ * cp -- Pointer to command line data structure (read-only)
  * buff -- Pointer to string holding the buffer
  * nl -- Number of lines in the buffer (read-only)
  * h -- Pointer to pool_hash hash table with parsing database (read-only)
  * m -- Pointer to mate information hash table
- * dist -- Maximum allowable edit distance (read-only)
  * Returns:
  * Zero on success and non-zero on failure
  */
 
-extern int parse_forwardbuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h,
-                               khash_t(mates) *m, const int dist);
+extern int parse_forwardbuffer(const CMD *cp, char *buff, const size_t nl, const khash_t(pool_hash) *h,
+                               khash_t(mates) *m);
 
 
 /* int parse_reversebuffer(char *buff, const size_t nl, khash_t(pool_hash) *h,
                            khash_t(mates) *m)
  * Parses reverse fastQ entries in the buffer
  * Arguments:
+ * cp -- Pointer to command line data structure (read-only)
  * buff -- Pointer to string holding the buffer
  * nl -- Number of lines in the buffer (read-only)
  * h -- Pointer to pool_hash hash table with parsing database (read-only)
@@ -202,7 +200,7 @@ extern int parse_forwardbuffer(char *buff, const size_t nl, const khash_t(pool_h
  * Zero on success and non-zero on failure
  */
 
-extern int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h,
+extern int parse_reversebuffer(const CMD *cp, char *buff, const size_t nl, const khash_t(pool_hash) *h,
                                const khash_t(mates) *m);
 
 
@@ -217,11 +215,12 @@ extern int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_h
  * h -- Pointer to hash table to hold forward sequences (read only)
  * ffor -- Pointer to string with forward output file name (read only)
  * frev -- Pointer to string with reverse output file name (read only)
+ * lf -- Pointer to log file stream
  * Returns:
  * Zero on success and non-zero on failure
  */
 
-extern int pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor, const char *frev);
+extern int pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor, const char *frev, FILE *lf);
 
 
 /******************************************************
@@ -247,7 +246,7 @@ extern int align_mates(const CMD *cp, const char *fin, const char *rin, const ch
  * UI functions
  ******************************************************/
 
-/* CMD* parse_cmdline(int argc, char *argv[])
+/* CMD* get_cmdline(int argc, char *argv[])
  * Reads command line parameters into CMD data structure
  * Arguments:
  * argc -- Number of command line arguments
@@ -256,7 +255,7 @@ extern int align_mates(const CMD *cp, const char *fin, const char *rin, const ch
  * Pointer to command line data structure on success or NULL on failure
  */
 
-extern CMD* parse_cmdline(int argc, char *argv[]);
+extern CMD *get_cmdline(int argc, char *argv[]);
 
 
 /******************************************************
@@ -271,36 +270,37 @@ extern CMD* parse_cmdline(int argc, char *argv[]);
  * Pointer to pool_hash hash table on success or NULL on failure
  */
 
-extern khash_t(pool_hash)* read_csv(const CMD *cp);
+extern khash_t(pool_hash) *read_csv(const CMD *cp);
 
 
-/* int check_csv(char *csvfile)
+/* int check_csv(const CMD *cp)
  * Check the integrity of the input CSV file
  * Arguments:
- * cp -- Pointer to the CSV input file name (read-only)
+ * cp -- Pointer to the command line parameter data structure (read-only)
  * Returns:
  * Zero on pass, non-zero on fail integrity test
  */
 
-extern int check_csv(const char *csvfile);
+extern int check_csv(const CMD *cp);
 
 
 /* khash_t(fastq)* fastq_to_db(const char *filename)
  * Populates a fastQ database from fastQ input file
  * Arguments:
  * filename -- Pointer to string holding input fastQ file name (read-only)
+ * lf -- Pointer to log file stream
  * Returns:
  * Pointer to fastQ hash table on success or NULL on failure
  */
 
-extern khash_t(fastq)* fastq_to_db(const char *filename);
+extern khash_t(fastq) *fastq_to_db(const char *filename, FILE *lf);
 
 
 /******************************************************
  * File system functions
  ******************************************************/
 
-/* int check_directories(const CMD *cp, const khash_t(pool_hash) *h)
+/* int create_dirtree(const CMD *cp, const khash_t(pool_hash) *h)
  * Creates and checks output directory tree
  * Arguments:
  * cp -- Pointer to command line data structure (read-only)
@@ -309,19 +309,19 @@ extern khash_t(fastq)* fastq_to_db(const char *filename);
  * Zero on success and non-zero on failure
  */
 
-extern int check_directories(const CMD *cp, const khash_t(pool_hash) *h);
+extern int create_dirtree(const CMD *cp, const khash_t(pool_hash) *h);
 
-/* char** traverse_dirtree(const char *dirpath, const char *pattern, unsigned int *x)
+
+/* unsigned int traverse_dirtree(const CMD *cp, char **flist)
  * Produces a sorted list of all fastQ files in the input directory tree
  * Arguments:
- * dirpath -- Pointer to string hold input parent directory (read-only)
- * pattern -- Pointer to string holding the directory pattern to filter on (read-only)
- * x -- Pointer to the number of input files found in the input directory tree
+ * cp -- Pointer to command line data structure (read-only)
+ * flist -- Pointer to array of input file names
  * Returns:
- * Pointer to array of input file names on success and NULL on failure
+ * The number of input files found in the input directory tree
  */
 
-extern char** traverse_dirtree(const char *dirpath, const char *pattern, unsigned int *x);
+extern unsigned int traverse_dirtree(const CMD *cp, char **flist);
 
 
 /******************************************************
@@ -368,26 +368,27 @@ extern size_t count_lines(const char *buff);
  * Arguments:
  * orient -- Orientation of reads in the buffer
  * bc -- Pointer to BARCODE data structure
+ * lf -- Pointer to log file stream
  * Returns:
  * Zero on success and non-zero on failure
  */
 
-extern int flush_buffer(int orient, BARCODE *bc);
+extern int flush_buffer(int orient, BARCODE *bc, FILE *lf);
 
 
 /******************************************************
  * Memory management functions
  ******************************************************/
 
-/* int free_cmdline(CMD *cp)
- * Deallocates memory for command line parameter data structure
+/* int destroy_cmdline(CMD *cp)
+ * Destroy command line parameter data structure
  * Arguments:
  * cp -- Pointer to command line data structure
  * Returns:
  * Zero on success and non-zero on failure
  */
 
-extern int free_cmdline(CMD *cp);
+extern int destroy_cmdline(CMD *cp);
 
 
 /* int free_db(khash_t(pool_hash) *h)
@@ -439,23 +440,25 @@ extern int free_matedb(khash_t(mates) *m);
  * gapo -- Gap penalty
  * gape -- Gap extension penalty
  * xtra -- Status variable
+ * lf -- Pointer to log file stream
  * Returns:
  * ALIGN_RESULT data structure
  */
 
 extern ALIGN_RESULT local_align(int qlen, char *query, int tlen, char *target, const char *mat,
-                                int gapo, int gape, int xtra);
+                                int gapo, int gape, int xtra, FILE *lf);
 
 
 /* char* revcom(const char *s)
  * Reverse complement a DNA string with full IUPAC alphabet
  * Arguments:
  * s -- Pointer to string to be reverse-complemented (read-only)
+ * lf -- Pointer to log file stream
  * Returns:
  * Pointer to newly allocated reverse-complemented string on success or NULL on failure
  */
 
-extern char* revcom(const char *s);
+extern char *revcom(const char *s, FILE *lf);
 
 
 /******************************************************
@@ -478,7 +481,7 @@ extern int levenshtein(const char *s1, const char *s2);
  * Log file functions
  ******************************************************/
 
-/* int log_init(const CMD *cp)
+/* int log_init(CMD *cp)
  * Initialize the ddradseq log file
  * Arguments:
  * cp -- Pointer to command line data structure (read-only)
@@ -486,11 +489,32 @@ extern int levenshtein(const char *s1, const char *s2);
  * Zero on success and non-zero on failure
  */
 
-extern int log_init(const CMD *cp);
+extern int log_init(CMD *cp);
+
+
+/* void loginfo(FILE *lf, const char *format)
+ * Write informational message to log file
+ */
+
+extern void loginfo(FILE *lf, const char *format, ...);
+
+
+/* void logwarn(FILE *lf, const char *format)
+ * Write warning message to log file
+ */
+
+extern void logwarn(FILE *lf, const char *format, ...);
+
+
+/* void logerror(FILE *lf, const char *format)
+ * Report error to both logfile and stderr
+ */
+
+extern void logerror(FILE *lf, const char *format, ...);
 
 
 /* int get_timestr(char *s);
- * Fill in current time for logfile reporting
+ * Fill in current time for log file reporting
  * Arguments:
  * s -- Pointer to time string
  * Returns:
@@ -510,18 +534,11 @@ extern int get_timestr(char *s);
 extern void error(const char *format, ...);
 
 
-/* void logerror(const char *format)
- * Report error to both logfile and stderr
- */
-
-extern void logerror(const char *format, ...);
-
-
 /******************************************************
  * Inline utility functions
  ******************************************************/
 
-static inline int string_equal(char* a, char* b)
+static inline int string_equal(const char *a, const char *b)
 {
 	return (strcmp(a, b) == 0);
 }

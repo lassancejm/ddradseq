@@ -1,7 +1,7 @@
 /* file: flush_buffer.c
  * description: Dumps a full buffer to file
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: October 2016
+ * updated: November 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */
@@ -20,7 +20,7 @@
 
 extern int errno;
 
-int flush_buffer(int orient, BARCODE *bc)
+int flush_buffer(int orient, BARCODE *bc, FILE *lf)
 {
 	char *filename = strdup(bc->outfile);
 	char *buffer = bc->buffer;
@@ -41,9 +41,6 @@ int flush_buffer(int orient, BARCODE *bc)
 	/* Set permissions if new output file needs to be created */
 	mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
 
-	/* Update time string */
-	get_timestr(&timestr[0]);
-
 	/* Convert forward output file name to reverse */
 	if (orient == REVERSE)
 	{
@@ -56,7 +53,7 @@ int flush_buffer(int orient, BARCODE *bc)
 	if (fd < 0)
 	{
 		errstr = strerror(errno);
-		logerror("%s:%d Unable to open output file \'%s\': %s.\n", __func__,
+		logerror(lf, "%s:%d Unable to open output file \'%s\': %s.\n", __func__,
 		         __LINE__, filename, errstr);
 		return 1;
 	}
@@ -69,7 +66,7 @@ int flush_buffer(int orient, BARCODE *bc)
 	{
 		if (ntry > 100)
 		{
-			logerror("%s:%d File \'%s\' is still locked after 100 attempts... exiting.\n", __func__,
+			logerror(lf, "%s:%d File \'%s\' is still locked after 100 attempts... exiting.\n", __func__,
 			         __LINE__, filename);
 			return 1;
 		}
@@ -85,7 +82,7 @@ int flush_buffer(int orient, BARCODE *bc)
 	if (fcntl(fd, F_SETLKW, &fl) == -1)
 	{
 		errstr = strerror(errno);
-		logerror("%s:%d Failed to set lock on file \'%s\': %s.\n", __func__,
+		logerror(lf, "%s:%d Failed to set lock on file \'%s\': %s.\n", __func__,
 		         __LINE__, filename, errstr);
 		return 1;
 	}
@@ -94,7 +91,7 @@ int flush_buffer(int orient, BARCODE *bc)
 	ret = gzwrite(gzf, buffer, len);
 	if (ret <= 0)
 	{
-		logerror("%s:%d Problem writing to output file \'%s\': %s.\n", __func__,
+		logerror(lf, "%s:%d Problem writing to output file \'%s\': %s.\n", __func__,
 		         __LINE__, filename);
 		return 1;
 	}

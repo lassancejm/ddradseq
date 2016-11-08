@@ -1,8 +1,8 @@
 /* file: local_align.c
  * description: Calculates the local sequence alignment by Smith-Waterman algorithm
- * author: Adapted from https://github.com/attractivechaos/klib/blob/master/ksw.c 
+ * author: Adapted from https://github.com/attractivechaos/klib/blob/master/ksw.c
  *         by Heng Li by Daniel Garrigan Lummei Analytics LLC
- * updated: October 2016
+ * updated: November 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */
@@ -20,23 +20,23 @@
 const ALIGN_RESULT g_defr = { 0, -1, -1, -1, -1, -1, -1 };
 
 /* Function prototypes */
-static ALIGN_QUERY* align_init(int qlen, const char *query, const char *mat);
+static ALIGN_QUERY* align_init(int qlen, const char *query, const char *mat, FILE *lf);
 
 ALIGN_RESULT smith_waterman(ALIGN_QUERY *q, int tlen, const char *target, int _gapo,
-                            int _gape, int xtra);
+                            int _gape, int xtra, FILE *lf);
 
 static void revseq(int l, char *s);
 
 
 ALIGN_RESULT local_align(int qlen, char *query, int tlen, char *target,
-                         const char *mat, int gapo, int gape, int xtra)
+                         const char *mat, int gapo, int gape, int xtra, FILE *lf)
 {
 	ALIGN_QUERY *q;
 	ALIGN_RESULT r;
 	ALIGN_RESULT rr;
 
-	q = align_init(qlen, query, mat);
-	r = smith_waterman(q, tlen, target, gapo, gape, xtra);
+	q = align_init(qlen, query, mat, lf);
+	r = smith_waterman(q, tlen, target, gapo, gape, xtra, lf);
 	free(q);
 	if (((xtra & KSW_XSTART) == 0 || (xtra & KSW_XSUBO)) && r.score < (xtra & 0xffff))
 		return r;
@@ -45,8 +45,8 @@ ALIGN_RESULT local_align(int qlen, char *query, int tlen, char *target,
 	/* +1 because qe/te points to the exact end */
 	/* not the position after the end */
 	revseq(r.target_end + 1, target);
-	q = align_init(r.query_end + 1, query, mat);
-	rr = smith_waterman(q, tlen, target, gapo, gape, KSW_XSTOP | r.score);
+	q = align_init(r.query_end + 1, query, mat, lf);
+	rr = smith_waterman(q, tlen, target, gapo, gape, KSW_XSTOP | r.score, lf);
 	revseq(r.query_end + 1, query);
 	revseq(r.target_end + 1, target);
 	free(q);
@@ -58,7 +58,7 @@ ALIGN_RESULT local_align(int qlen, char *query, int tlen, char *target,
 	return r;
 }
 
-static ALIGN_QUERY *align_init(int qlen, const char *query, const char *mat)
+static ALIGN_QUERY *align_init(int qlen, const char *query, const char *mat, FILE *lf)
 {
 	int slen = 0;
 	int a = 0;
@@ -75,7 +75,7 @@ static ALIGN_QUERY *align_init(int qlen, const char *query, const char *mat)
 	/* Allocate memory for query profile */
 	if ((q = malloc(sizeof(ALIGN_QUERY) + 256 + 16 * slen * (ALPHA_SIZE + 4))) == NULL)
 	{
-		logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+		logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 		return NULL;
 	}
 
@@ -123,7 +123,7 @@ static ALIGN_QUERY *align_init(int qlen, const char *query, const char *mat)
 }
 
 ALIGN_RESULT smith_waterman(ALIGN_QUERY *q, int tlen, const char *target,
-                            int _gapo, int _gape, int xtra)
+                            int _gapo, int _gape, int xtra, FILE *lf)
 {
 	int slen = 0;
 	int i = 0;
@@ -278,7 +278,7 @@ end_loop16:
 					m_b = m_b ? m_b << 1 : 8;
 					if ((b = realloc(b, 8 * m_b)) == NULL)
 					{
-						logerror("%s:%d Memory reallocation failure.\n", __func__, __LINE__);
+						logerror(lf, "%s:%d Memory reallocation failure.\n", __func__, __LINE__);
 						return r;
 					}
 				}

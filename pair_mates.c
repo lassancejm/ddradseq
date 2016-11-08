@@ -1,7 +1,7 @@
 /* file pair_mates.c
  * description: Pair mates in two fastQ files
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: October 2016
+ * updated: November 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */
@@ -18,7 +18,7 @@
 extern int errno;
 
 int pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor,
-               const char *frev)
+               const char *frev, FILE *lf)
 {
 	char **buf = NULL;
 	char *idline = NULL;
@@ -38,14 +38,11 @@ int pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor,
 	gzFile rout;
 	FASTQ *e = NULL;
 
-	/* Update time string */
-	get_timestr(&timestr[0]);
-
 	/* Allocate memory for buffer from heap */
 	buf = malloc(BSIZE * sizeof(char*));
 	if (UNLIKELY(!buf))
 	{
-		logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+		logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 		return 1;
 	}
 	for (i = 0; i < BSIZE; i++)
@@ -53,7 +50,7 @@ int pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor,
 		buf[i] = malloc(MAX_LINE_LENGTH);
 		if (UNLIKELY(!buf[i]))
 		{
-			logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+			logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 			return 1;
 		}
 	}
@@ -63,7 +60,7 @@ int pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor,
 	if (!in)
 	{
 		errstr = strerror(errno);
-		logerror("%s:%d Unable to open input file \'%s\': %s.\n", __func__, __LINE__,
+		logerror(lf, "%s:%d Unable to open input file \'%s\': %s.\n", __func__, __LINE__,
 		         filename, errstr);
 		return 1;
 	}
@@ -73,7 +70,7 @@ int pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor,
 	if (!fout)
 	{
 		errstr = strerror(errno);
-		logerror("%s:%d Unable to forward output file \'%s\': %s.\n", __func__,
+		logerror(lf, "%s:%d Unable to forward output file \'%s\': %s.\n", __func__,
 		         __LINE__, ffor, errstr);
 		return 1;
 	}
@@ -82,7 +79,7 @@ int pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor,
 	if (!rout)
 	{
 		errstr = strerror(errno);
-		logerror("%s:%d Unable to reverse output file \'%s\': %s.\n", __func__,
+		logerror(lf, "%s:%d Unable to reverse output file \'%s\': %s.\n", __func__,
 		         __LINE__, frev, errstr);
 		return 1;
 	}
@@ -116,7 +113,7 @@ int pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor,
 				idline = malloc(strl + 1u);
 				if (UNLIKELY(!idline))
 				{
-					logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+					logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 					return 1;
 				}
 				strcpy(idline, &buf[l-3][1]);
@@ -128,7 +125,7 @@ int pair_mates(const char *filename, const khash_t(fastq) *h, const char *ffor,
 				mkey = strndup(pstart+1, plen - 1);
 				if (UNLIKELY(!mkey))
 				{
-					logerror("%s:%d fastQ header parsing error.\n", __func__, __LINE__);
+					logerror(lf, "%s:%d fastQ header parsing error.\n", __func__, __LINE__);
 					return 1;
 				}
 				k = kh_get(fastq, h, mkey);

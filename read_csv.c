@@ -1,7 +1,7 @@
 /* file: read_csv.c
  * description: Read the input CSV file into hash database
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: October 2016
+ * updated: November 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */
@@ -14,7 +14,7 @@
 #include "khash.h"
 #include "ddradseq.h"
 
-khash_t(pool_hash) *read_csv (const CMD *cp)
+khash_t(pool_hash) *read_csv(const CMD *cp)
 {
 	const char *csvfile = cp->csvfile;  /* Pointer to CSV database file name */
 	const char *outpath = cp->outdir;	/* Pointer to parent of output directories */
@@ -36,13 +36,10 @@ khash_t(pool_hash) *read_csv (const CMD *cp)
 	khash_t(pool_hash) *h = NULL;       /* Pointer to flow hash table */
 	BARCODE *bc = NULL;                 /* Pointer barcode data structure */
 	POOL *pl = NULL;                    /* Pointer to pool data structure */
-
-	/* Get time string */
-	get_timestr(&timestr[0]);
+	FILE *lf = cp->lf;                  /* Pointer to log file stream */
 
 	/* Print informational message to log */
-	fprintf(lf, "[ddradseq: %s] INFO -- Parsing CSV database file \'%s\'.\n",
-	        timestr, csvfile);
+	loginfo(lf, "Parsing CSV database file \'%s\'.\n", csvfile);
 
 	/* Check for trailing slash on outpath */
 	pathl = strlen(outpath);
@@ -53,7 +50,7 @@ khash_t(pool_hash) *read_csv (const CMD *cp)
 	in = gzopen(csvfile, "rb");
 	if (!in)
 	{
-		logerror("%s:%d Could not read CSV database file %s into memory.\n",
+		logerror(lf, "%s:%d Could not read CSV database file %s into memory.\n",
 			     __func__, __LINE__, csvfile);
 		return NULL;
 	}
@@ -70,7 +67,7 @@ khash_t(pool_hash) *read_csv (const CMD *cp)
 		/* Get the flowcell entry */
 		if ((tok = strtok_r(buf, seps, &r)) == NULL)
 		{
-			logerror("%s:%d Parsing CSV file failed.\n", __func__, __LINE__);
+			logerror(lf, "%s:%d Parsing CSV file failed.\n", __func__, __LINE__);
 			return NULL;
 		}
 
@@ -79,7 +76,7 @@ khash_t(pool_hash) *read_csv (const CMD *cp)
 		tmp = malloc(strl + 1u);
 		if (UNLIKELY(!tmp))
 		{
-			logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+			logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 			return NULL;
 		}
 		if (!cp->across)
@@ -102,7 +99,7 @@ khash_t(pool_hash) *read_csv (const CMD *cp)
 		/* Get pool sequence */
 		if ((tok = strtok_r(NULL, seps, &r)) == NULL)
 		{
-			logerror("%s:%d Parsing CSV file failed.\n", __func__, __LINE__);
+			logerror(lf, "%s:%d Parsing CSV file failed.\n", __func__, __LINE__);
 			return NULL;
 		}
 
@@ -111,7 +108,7 @@ khash_t(pool_hash) *read_csv (const CMD *cp)
 		tmp = malloc(strl + 1u);
 		if (UNLIKELY(!tmp))
 		{
-			logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+			logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 			return NULL;
 		}
 		strcpy(tmp, tok);
@@ -128,7 +125,7 @@ khash_t(pool_hash) *read_csv (const CMD *cp)
 			pl = malloc(sizeof(POOL));
 			if (UNLIKELY(!pl))
 			{
-				logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+				logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 				return NULL;
 			}
 			b = kh_init(barcode);
@@ -141,7 +138,7 @@ khash_t(pool_hash) *read_csv (const CMD *cp)
 		/* Get pool value */
 		if ((tok = strtok_r(NULL, seps, &r)) == NULL)
 		{
-			logerror("%s:%d Parsing CSV file failed.\n", __func__, __LINE__);
+			logerror(lf, "%s:%d Parsing CSV file failed.\n", __func__, __LINE__);
 			return NULL;
 		}
 
@@ -150,7 +147,7 @@ khash_t(pool_hash) *read_csv (const CMD *cp)
 		tmp = malloc(strl + 1u);
 		if (UNLIKELY(!tmp))
 		{
-			logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+			logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 			return NULL;
 		}
 		pathl += strl + 1u;
@@ -166,7 +163,7 @@ khash_t(pool_hash) *read_csv (const CMD *cp)
 		tmp = malloc(pathl + 1u);
 		if (UNLIKELY(!tmp))
 		{
-			logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+			logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 			return NULL;
 		}
 		if (trail)
@@ -191,7 +188,7 @@ khash_t(pool_hash) *read_csv (const CMD *cp)
 		/* Get barcode sequence */
 		if ((tok = strtok_r(NULL, seps, &r)) == NULL)
 		{
-			logerror("%s:%d Parsing CSV file failed.\n", __func__, __LINE__);
+			logerror(lf, "%s:%d Parsing CSV file failed.\n", __func__, __LINE__);
 			return NULL;
 		}
 
@@ -200,7 +197,7 @@ khash_t(pool_hash) *read_csv (const CMD *cp)
 		tmp = malloc(strl + 1u);
 		if (UNLIKELY(!tmp))
 		{
-			logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+			logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 			return NULL;
 		}
 		strcpy(tmp, tok);
@@ -214,7 +211,7 @@ khash_t(pool_hash) *read_csv (const CMD *cp)
 		{
 			if (pl->barcode_length != strl)
 			{
-				logerror("%s:%d Unequal barcode lengths in CSV file %s.\n",
+				logerror(lf, "%s:%d Unequal barcode lengths in CSV file %s.\n",
 					     __func__, __LINE__, csvfile);
 				return NULL;
 			}
@@ -226,13 +223,13 @@ khash_t(pool_hash) *read_csv (const CMD *cp)
 			bc = malloc(sizeof(BARCODE));
 			if (UNLIKELY(!bc))
 			{
-				logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+				logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 				return NULL;
 			}
 			bc->buffer = malloc(BUFLEN);
 			if (UNLIKELY(!bc->buffer))
 			{
-				logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+				logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 				return NULL;
 			}
 			bc->buffer[0] = '\0';
@@ -245,7 +242,7 @@ khash_t(pool_hash) *read_csv (const CMD *cp)
 		/* Get barcode value */
 		if ((tok = strtok_r(NULL, seps, &r)) == NULL)
 		{
-			logerror("%s:%d Parsing CSV file failed.\n", __func__, __LINE__);
+			logerror(lf, "%s:%d Parsing CSV file failed.\n", __func__, __LINE__);
 			return NULL;
 		}
 
@@ -254,7 +251,7 @@ khash_t(pool_hash) *read_csv (const CMD *cp)
 		tmp = malloc(strl + 1u);
 		if (UNLIKELY(!tmp))
 		{
-			logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+			logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 			return NULL;
 		}
 		pathl += strl + 1u;
@@ -268,7 +265,7 @@ khash_t(pool_hash) *read_csv (const CMD *cp)
 		tmp = malloc(pathl + 1u);
 		if (UNLIKELY(!tmp))
 		{
-			logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+			logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 			return NULL;
 		}
 		sprintf(tmp, "%s/parse/smpl_%s.R1.fq.gz", pl->poolpath, bc->smplID);
@@ -278,12 +275,8 @@ khash_t(pool_hash) *read_csv (const CMD *cp)
 	/* Close input CSV file stream */
 	gzclose(in);
 
-	/* Update time string */
-	get_timestr(&timestr[0]);
-
 	/* Print informational message to log */
-	fprintf(lf, "[ddradseq: %s] INFO -- Successfully parsed CSV database file \'%s\'.\n",
-	        timestr, csvfile);
+	loginfo(lf, "Successfully parsed CSV database file \'%s\'.\n", csvfile);
 
 	return h;
 }

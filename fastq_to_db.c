@@ -1,7 +1,7 @@
 /* file fastq_to_db.c
  * brief Populates a fastQ database from fastQ input file
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: October 2016
+ * updated: November 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */
@@ -14,7 +14,7 @@
 #include "ddradseq.h"
 #include "khash.h"
 
-khash_t(fastq) *fastq_to_db(const char *filename)
+khash_t(fastq) *fastq_to_db(const char *filename, FILE *lf)
 {
 	char **buf = NULL;
 	char *idline = NULL;
@@ -33,14 +33,11 @@ khash_t(fastq) *fastq_to_db(const char *filename)
 	FASTQ *e = NULL;
 	khash_t(fastq) *h = NULL;
 
-	/* Update time string */
-	get_timestr(&timestr[0]);
-
 	/* Allocate memory for buffer from heap */
 	buf = malloc(BSIZE * sizeof(char*));
 	if (UNLIKELY(!buf))
 	{
-		logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+		logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 		return NULL;
 	}
 	for (i = 0; i < BSIZE; i++)
@@ -48,7 +45,7 @@ khash_t(fastq) *fastq_to_db(const char *filename)
 		buf[i] = malloc(MAX_LINE_LENGTH);
 		if (UNLIKELY(!buf[i]))
 		{
-			logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+			logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 			return NULL;
 		}
 	}
@@ -60,7 +57,7 @@ khash_t(fastq) *fastq_to_db(const char *filename)
 	in = gzopen(filename, "rb");
 	if (!in)
 	{
-		logerror("%s:%d Failed to open input fastQ file %s.\n", __func__,
+		logerror(lf, "%s:%d Failed to open input fastQ file %s.\n", __func__,
 			     __LINE__, filename);
 		return NULL;
 	}
@@ -89,7 +86,7 @@ khash_t(fastq) *fastq_to_db(const char *filename)
 				e = malloc(sizeof(FASTQ));
 				if (UNLIKELY(!e))
 				{
-					logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+					logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 					return NULL;
 				}
 
@@ -100,7 +97,7 @@ khash_t(fastq) *fastq_to_db(const char *filename)
 				e->id = malloc(strl + 1u);
 				if (UNLIKELY(!e->id))
 				{
-					logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+					logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 					return NULL;
 				}
 				strcpy(e->id, &buf[l-3][1]);
@@ -109,7 +106,7 @@ khash_t(fastq) *fastq_to_db(const char *filename)
 				idline = malloc(strl + 1u);
 				if (UNLIKELY(!idline))
 				{
-					logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+					logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 					return NULL;
 				}
 				strcpy(idline, &buf[l-3][1]);
@@ -121,7 +118,7 @@ khash_t(fastq) *fastq_to_db(const char *filename)
 				mkey = strndup(pstart+1, plen - 1);
 				if (UNLIKELY(!mkey))
 				{
-					logerror("%s:%d fastQ header parsing error.\n", __func__, __LINE__);
+					logerror(lf, "%s:%d fastQ header parsing error.\n", __func__, __LINE__);
 					return NULL;
 				}
 				k = kh_put(fastq, h, mkey, &a);
@@ -135,7 +132,7 @@ khash_t(fastq) *fastq_to_db(const char *filename)
 				e->seq = malloc(strl + 1u);
 				if (UNLIKELY(!e->seq))
 				{
-					logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+					logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 					return NULL;
 				}
 				strcpy(e->seq, &buf[l-2][0]);
@@ -147,7 +144,7 @@ khash_t(fastq) *fastq_to_db(const char *filename)
 				e->qual = malloc(strl + 1u);
 				if (UNLIKELY(!e->qual))
 				{
-					logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+					logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 					return NULL;
 				}
 				strcpy(e->qual, &buf[l][0]);

@@ -1,7 +1,7 @@
 /* file: parse_fastq.c
  * description: Parses a fastQ file by index sequence
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: October 2016
+ * updated: November 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */
@@ -16,8 +16,8 @@
 
 extern int errno;
 
-int parse_fastq(const int orient, const char *filename, khash_t(pool_hash) *h,
-                khash_t(mates) *m, const int dist)
+int parse_fastq(const CMD *cp, const int orient, const char *filename, khash_t(pool_hash) *h,
+                khash_t(mates) *m)
 {
 	char *r = NULL;
 	char *q = NULL;
@@ -34,21 +34,18 @@ int parse_fastq(const int orient, const char *filename, khash_t(pool_hash) *h,
 	khash_t(pool) *p = NULL;
 	BARCODE *bc = NULL;
 	POOL *pl = NULL;
+	FILE *lf = cp->lf;
 	gzFile fin;
 
-	/* Update time string */
-	get_timestr(&timestr[0]);
-
 	/* Print informational message to log */
-	fprintf(lf, "[ddradseq: %s] INFO -- Parsing fastQ file \'%s\'.\n", timestr,
-	        filename);
+	loginfo(lf, "Parsing fastQ file \'%s\'.\n", filename);
 
 	/* Open input file */
 	fin = gzopen(filename, "rb");
 	if (!fin)
 	{
 		errstr = strerror(errno);
-		logerror("%s:%d Unable to open file \'%s\': %s.\n", __func__, __LINE__,
+		logerror(lf, "%s:%d Unable to open file \'%s\': %s.\n", __func__, __LINE__,
 		         filename, errstr);
 		return 1;
 	}
@@ -64,7 +61,7 @@ int parse_fastq(const int orient, const char *filename, khash_t(pool_hash) *h,
 		bytes_read = gzread(fin, &buffer[buff_rem], BUFLEN - buff_rem - 1);
 		if (bytes_read < 0)
 		{
-			logerror("%s:%d Failed to read data from file \'%s\': %s.\n",
+			logerror(lf, "%s:%d Failed to read data from file \'%s\': %s.\n",
 			         __func__, __LINE__, filename);
 			return 1;
 		}
@@ -76,9 +73,9 @@ int parse_fastq(const int orient, const char *filename, khash_t(pool_hash) *h,
 		numlines = count_lines(q);
 		r = clean_buffer(q, &numlines);
 		if (orient == FORWARD)
-			ret = parse_forwardbuffer(q, numlines, h, m, dist);
+			ret = parse_forwardbuffer(cp, q, numlines, h, m);
 		else
-			ret = parse_reversebuffer(q, numlines, h, m);
+			ret = parse_reversebuffer(cp, q, numlines, h, m);
 		if (ret)
 			return 1;
 		buff_rem = reset_buffer(q, r);
@@ -107,10 +104,10 @@ int parse_fastq(const int orient, const char *filename, khash_t(pool_hash) *h,
 							bc = kh_value(b, k);
 							if (bc->curr_bytes > 0)
 							{
-								ret = flush_buffer(orient, bc);
+								ret = flush_buffer(orient, bc, lf);
 								if (ret)
 								{
-									logerror("%s:%d Problem writing buffer to file.\n",
+									logerror(lf, "%s:%d Problem writing buffer to file.\n",
 									         __func__, __LINE__);
 									return 1;
 								}
@@ -125,12 +122,8 @@ int parse_fastq(const int orient, const char *filename, khash_t(pool_hash) *h,
 	/* Close input file */
 	gzclose(fin);
 
-	/* Update time string */
-	get_timestr(&timestr[0]);
-
 	/* Print informational message to log */
-	fprintf(lf, "[ddradseq: %s] INFO -- Successfully parsed fastQ file \'%s\'.\n",
-	        timestr, filename);
+	loginfo(lf, "Successfully parsed fastQ file \'%s\'.\n", filename);
 
 	return 0;
 }

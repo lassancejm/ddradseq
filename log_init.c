@@ -1,29 +1,52 @@
 /* file: log_init.c
  * description: Initialize the ddradseq log file
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: October 2016
+ * updated: November 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <errno.h>
 #include <sys/utsname.h>
 #include <sys/sysinfo.h>
+#include <linux/limits.h>
 #include "ddradseq.h"
 
-int log_init(const CMD *cp)
+extern int errno;
+
+int log_init(CMD *cp)
 {
+	char logfile[PATH_MAX];
+	char *cwd = NULL;
+	char logfname[] = "/ddradseq.log";
 	char *user = NULL;
 	const double gigabyte = 1024 * 1024 * 1024;
 	struct utsname host;
 	struct sysinfo si;
 
-	/* Print logfile header */
-	fputs("***ddradseq LOG FILE***\n", lf);
+	/* Get current working directory */
+	cwd = getcwd(logfile, sizeof(logfile));
+	if (!cwd)
+	{
+		perror("Failed to get current working directory");
+		return 1;
+	}
+	strcat(logfile, logfname);
 
-	/* Get time information */
-	get_timestr(&timestr[0]);
+	/* Open log file for writing */
+	cp->lf = fopen(logfile, "a");
+	if (!cp->lf)
+	{
+		perror("Failed to open logfile");
+		return 1;
+	}
+
+	/* Print logfile header */
+	fputs("***ddradseq LOG FILE***\n", cp->lf);
 
 	/* Get user name */
 	user = getenv("USER");
@@ -35,23 +58,17 @@ int log_init(const CMD *cp)
 	sysinfo(&si);
 
 	/* Print information on starting parameters */
-	fprintf(lf, "[ddradseq: %s] INFO -- user specified directory %s "
-	        "for input.\n", timestr, cp->parent_indir);
-	fprintf(lf, "[ddradseq: %s] INFO -- user specified \'%s\' as database "
-	        "file.\n", timestr, cp->csvfile);
-	fprintf(lf, "[ddradseq: %s] INFO -- user specified \'%s\' as output "
-	        "directory.\n", timestr, cp->parent_outdir);
-	fprintf(lf, "[ddradseq: %s] INFO -- output will be written to \'%s\'.\n",
-	        timestr, cp->outdir);
-	fprintf(lf, "[ddradseq: %s] INFO -- program will use edit distance of "
-	        "%d base difference.\n", timestr, cp->dist);
-	fprintf(lf, "[ddradseq: %s] INFO -- program has started in %s mode ",
-	        timestr, cp->mode);
+	loginfo(cp->lf, "user specified directory %s for input.\n", cp->parent_indir);
+	loginfo(cp->lf, "user specified \'%s\' as database file.\n", cp->csvfile);
+	loginfo(cp->lf, "user specified \'%s\' as output directory.\n", cp->parent_outdir);
+	loginfo(cp->lf, "output will be written to \'%s\'.\n", cp->outdir);
+	loginfo(cp->lf, "program will use edit distance of %d base difference.\n", cp->dist);
+	loginfo(cp->lf, "program has started in %s mode ", cp->mode);
 	if (user)
-		fprintf(lf, "by user \'%s\' ", user);
-	fprintf(lf, "on host \'%s\' (%s)", host.nodename, host.release);
-	fputc('\n', lf);
-	fprintf(lf, "[ddradseq: %s] INFO -- host has %5.1f Gb total RAM and %5.1f Gb "
-	        "free RAM.\n", timestr, si.totalram/gigabyte, si.freeram/gigabyte);
+		loginfo(cp->lf, "by user \'%s\' ", user);
+	loginfo(cp->lf, "on host \'%s\' (%s)\n", host.nodename, host.release);
+	loginfo(cp->lf, "host has %5.1f Gb total RAM and %5.1f Gb free RAM.\n",
+	        si.totalram/gigabyte, si.freeram/gigabyte);
+
 	return 0;
 }

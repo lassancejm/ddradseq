@@ -5,33 +5,33 @@
 Restriction Associated DNA sequencing, or RADseq, is a method to construct reduced-representation libraries from
 random fragments of a genome that has been digested with restriction enzymes ([Baird et al. 2008](http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0003376)). The Double Digest
 RADseq (ddRADseq) method relies on combined indexing that allows for enhanced multiplexing and sequencing of a large
-number of individuals ([Peterson et al. 2012](http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0037135)). 
+number of individuals ([Peterson et al. 2012](http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0037135)).
 Once a ddRADseq library has been sequenced, the resulting fastQ files must be computationally parsed in an efficient manner.
 
 The stages of the Double Digest RADseq bioinformatic pipeline can be carried out using our program **ddradseq**.
 The source code is written in C and is freely available from the [GitHub website](https://github.com/dgarriga/ddradseq).
 This single program can handle all three steps of a simple ddRADseq pipeline. The software has been engineered to leave
 a small memory footprint, and thus, should be able to handle a large number of individuals. To accomplish this, the
-**ddradseq** program runs in three different modes, corresponding to different stages in the ddRADseq pipeline. The three 
+**ddradseq** program runs in three different modes, corresponding to different stages in the ddRADseq pipeline. The three
 stages/modes can be described as follows:
 
 1. **parse**:  A this first stage in the pipeline reads a database file to determine how the input fastQ sequences should be
    parsed. This step depends critically on a properly formatted text database file. For details on how to construct the
-   database file, please see the **The CSV database file** subsection below. The program then parses the input fastQ 
-   sequences into separate files (representing individual biological samples) in an output directory tree that corresponds 
+   database file, please see the **The CSV database file** subsection below. The program then parses the input fastQ
+   sequences into separate files (representing individual biological samples) in an output directory tree that corresponds
    to the hierarchical order FLOWCELL/POOL/BARCODE.
 
 2. **pair**: this second step in the pipeline insures that all sequences output from the first **parse** stage contain mates
    that are properly aligned and ordered in the files.
 
-3. **trimend**: this final stage in the pipeline reads mate-pairs output from the preceeding **pair** stage and checks 
+3. **trimend**: this final stage in the pipeline reads mate-pairs output from the preceeding **pair** stage and checks
    the 3' end of the reverse sequences for the presence of the custom barcode adapter sequence. The adapter sequence may
    be present if the library was constructing using fragments that are shorter than the combined resulting reads.
    When **ddradseq** is run in **trimend** mode, it performs a sequence alignment on the mate-pairs to check whether the
    reverse sequence runs past the beginning of the trimmed forward sequence. If this overhang is present, the **ddradseq**
    program will trim the overhang.
 
-When all three steps in the pipeline have been completed, the resulting fastQ files in the "final/" output subdirectory 
+When all three steps in the pipeline have been completed, the resulting fastQ files in the "final/" output subdirectory
 are ready to be used in a read mapping or assembly pipeline.
 
 A Makefile is provided to compile the program. The **ddradseq** program was specifically written to compile and run
@@ -62,6 +62,7 @@ index.
   -m, --mode=STR             Run mode of ddradseq program
   -o, --out=DIR              Parent directory to write output
   -s, --score=INT            Alignment score to consider mates properly paired
+  -t, --threads=INT          Number of threads available for concurrency
   -?, --help                 Give this help list
       --usage                Give a short usage message
   -V, --version              Print program version
@@ -77,25 +78,26 @@ Report bugs to <dgarriga@lummei.net>.
 The program *requires* that both the "--out" and "--csv" options are specified by the user. The following table explains
 each of the parameters in more detail:
 
-| Option        | Argument             | Description  |
-| ------------- |----------------------|--------------|
-| `-m, --mode`  | Name of mode         | This option should be invoked if the user wishes to re-run the pipeline starting at a particular stage. |
-| `-c, --csv`   | CSV text file        | The comma-separated database file, see **The CSV database file** section below for details on what information should be provided in this file. |
-| `-o, --out`   | Filesystem directory | An existing directory on the filesystem where **ddradseq** should write all of its output. |
-| `-d, --dist`  | Integer              | The maximum number of mismatches allowed for a barcode to be considered a match with a barcode sequence in the database file. |
-| `-s, --score` | Integer              | The number of matching bases for mate-pairs to be considered as overlapping. |
-| `-g, --gapo`  | Integer              | The gap penalty invoked during the alignment in the **trimend** stage. |
-| `-e, --gape`  | Integer              | The gap extension penalty invoked during the alignment in the **trimend** stage. |
-| `-a, --across` | None                | Pool all sequences across all specified input flow cells. |
+| Option          | Argument             | Description  |
+| ----------------|----------------------|--------------|
+| `-m, --mode`    | Name of mode         | This option should be invoked if the user wishes to re-run the pipeline starting at a particular stage. |
+| `-c, --csv`     | CSV text file        | The comma-separated database file, see **The CSV database file** section below for details on what information should be provided in this file. |
+| `-o, --out`     | Filesystem directory | An existing directory on the filesystem where **ddradseq** should write all of its output. |
+| `-d, --dist`    | Integer              | The maximum number of mismatches allowed for a barcode to be considered a match with a barcode sequence in the database file. |
+| `-s, --score`   | Integer              | The number of matching bases for mate-pairs to be considered as overlapping. |
+| `-g, --gapo`    | Integer              | The gap penalty invoked during the alignment in the **trimend** stage. |
+| `-e, --gape`    | Integer              | The gap extension penalty invoked during the alignment in the **trimend** stage. |
+| `-t, --threads` | Integer              | The number of CPU threads for parallel execution of parsing. |
+| `-a, --across`  | None                 | Pool all sequences across all specified input flow cells. |
 
 The program will write all of its activity to the logfile "ddradseq.log". The log file will be written to the user's
 current working directory.
 
 The non-optioned argument "[INPUT DIRECTORY]" specifies the parent filesystem directory where all of the input fastQ files
-are stored. The **ddradseq** program will consider all files ending in the suffix ".fq" or ".fastq" within this directory 
+are stored. The **ddradseq** program will consider all files ending in the suffix ".fq" or ".fastq" within this directory
 (and its children) as input for the program.
 
-It is wise to make sure that the output directory (specified by the "--out" option) and the "[INPUT DIRECTORY]" are 
+It is wise to make sure that the output directory (specified by the "--out" option) and the "[INPUT DIRECTORY]" are
 different directories, to insure that **ddradseq** does not consider fastQ files generated by previous runs as input.
 
 ### Example
@@ -131,13 +133,13 @@ C7G4NANXX,GCCAAT,TornadoB,TCACG,55
 ```
 The database file has five fields. The first field is the Illumina flow cell identifier (as it appears in the fastQ files).
 The second field is the DNA sequence of the Illumina multiplex index. The thrid field is the custom identifier associated
-with the multiplex index in the previous column (the pool ID). The fourth field is the DNA sequence of the custom barcode 
+with the multiplex index in the previous column (the pool ID). The fourth field is the DNA sequence of the custom barcode
 that appears on the 5' end of the forward reads. The final field/column is the sample identifier that is associated with the
 custom barcode sequence in the previous column (the sample ID).
 
 ## The output directory tree
 
-If the **ddradseq** program is run in **parse** mode and the user specifies that they want output to the existing 
+If the **ddradseq** program is run in **parse** mode and the user specifies that they want output to the existing
 file system directory "~/ddradseq/output/", the program will create the following output directory tree
 ```
 output/

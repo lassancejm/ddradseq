@@ -1,5 +1,5 @@
 # Makefile for the ddradseq program
-# Lummei Analytics LLC September 2016
+# Lummei Analytics LLC November 2016
 CC = gcc
 CFLAGS = -O2 -Wall -D_FILE_OFFSET_BITS=64
 DEBUG_CFLAGS = -ggdb -Wall -D_FILE_OFFSET_BITS=64

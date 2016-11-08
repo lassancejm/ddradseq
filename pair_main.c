@@ -1,7 +1,7 @@
 /* file: pair_main.c
  * description: Entry point for the pair modality
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: October 2016
+ * updated: November 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */
@@ -14,23 +14,18 @@
 int pair_main(const CMD *cp)
 {
 	char *pch = NULL;
-	char **f = NULL;
+	char **filelist = NULL;
 	int ret = 0;
 	unsigned int i = 0;
-	unsigned int n = 0;
-
-	/* Update time string */
-	get_timestr(&timestr[0]);
+	unsigned int nfiles = 0;
+	FILE *lf = cp->lf;
 
 	/* Get list of all files */
-	if (string_equal(cp->mode, "pair"))
-		f = traverse_dirtree(cp->parent_indir, "parse", &n);
-	else
-		f = traverse_dirtree(cp->outdir, "parse", &n);
-	if (!f)
+	nfiles = traverse_dirtree(cp, filelist);
+	if (!filelist)
 		return 1;
 
-	for (i = 0; i < n; i += 2)
+	for (i = 0; i < nfiles; i += 2)
 	{
 		khash_t(fastq) *h = NULL;
 		char *ffor = NULL;
@@ -38,16 +33,16 @@ int pair_main(const CMD *cp)
 		size_t spn = 0;
 
 		/* Construct output file names */
-		ffor = strdup(f[i]);
+		ffor = strdup(filelist[i]);
 		if (UNLIKELY(!ffor))
 		{
-			logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+			logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 			return 1;
 		}
-		frev = strdup(f[i+1]);
+		frev = strdup(filelist[i+1]);
 		if (UNLIKELY(!frev))
 		{
-			logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+			logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 			return 1;
 		}
 		pch = strstr(ffor, "parse");
@@ -64,23 +59,23 @@ int pair_main(const CMD *cp)
 		ret = strncmp(ffor, frev, spn);
 		if (ret)
 		{
-			logerror("%s:%d Files \'%s\' and \'%s\' do not appear to be mate-"
+			logerror(lf, "%s:%d Files \'%s\' and \'%s\' do not appear to be mate-"
 				     "pairs.\n", __func__, __LINE__, ffor, frev);
 			return 1;
 		}
 
 		/* Read forward fastQ file into hash table */
-		h = fastq_to_db(f[i]);
+		h = fastq_to_db(filelist[i], lf);
 		if (!h)
 			return 1;
 
 		/* Print informational update to log file */
-		fprintf(lf, "[ddradseq: %s] INFO -- Attempting to pair files \'%s\' and \'%s\'.\n",
-		        timestr, ffor, frev);
+		loginfo(lf, "Attempting to pair files \'%s\' and \'%s\'.\n", ffor, frev);
 
 		/* Align mated pairs and write to output file*/
-		ret = pair_mates(f[i + 1], h, ffor, frev);
-		if (ret) return 1;
+		ret = pair_mates(filelist[i + 1], h, ffor, frev, lf);
+		if (ret)
+			return 1;
 
 		/* Free allocated memory */
 		free(ffor);
@@ -88,21 +83,16 @@ int pair_main(const CMD *cp)
 		free_pairdb(h);
 	}
 
-	/* Update time string */
-	get_timestr(&timestr[0]);
-
 	/* Print informational message to logfile */
 	if (string_equal(cp->mode, "pair"))
-		fprintf(lf, "[ddradseq: %s] INFO -- Done pairing all fastQ files in \'%s\'.\n",
-		        timestr, cp->parent_indir);
+		loginfo(lf, "Done pairing all fastQ files in \'%s\'.\n", cp->parent_indir);
 	else
-		fprintf(lf, "[ddradseq: %s] INFO -- Done pairing all fastQ files in \'%s\'.\n",
-		        timestr, cp->outdir);
+		loginfo(lf, "Done pairing all fastQ files in \'%s\'.\n", cp->outdir);
 
 	/* Deallocate memory */
-	for (i = 0; i < n; i++)
-		free(f[i]);
-	free(f);
+	for (i = 0; i < nfiles; i++)
+		free(filelist[i]);
+	free(filelist);
 
 	return 0;
 }

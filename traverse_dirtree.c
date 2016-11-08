@@ -1,7 +1,7 @@
 /* file: traverse_dirtree.c
  * description: Produces a sorted list of all fastQ files in the input directory tree
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: October 2016
+ * updated: November 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */
@@ -39,78 +39,80 @@ static int get_pairfiles(const char *filepath, const struct stat *info,
                          const int typeflag, struct FTW *pathinfo);
 static int compare(const void * a, const void * b);
 
-char **traverse_dirtree(const char *dirpath, const char *pattern, unsigned int *x)
+unsigned int traverse_dirtree(const CMD *cp, char **flist)
 {
-	char *p = (char*)pattern;
 	char *errstr = NULL;
+	const char *dirpath = (string_equal(cp->mode, "pair") || string_equal(cp->mode, "all")) ? cp->parent_indir : cp->outdir;
 	int r = 0;
-
-	/* Update time string */
-	get_timestr(&timestr[0]);
+	unsigned int x = 0;
+	FILE *lf = cp->lf;
 
 	/* Check validity of directory path */
 	if (dirpath == NULL || *dirpath == '\0')
-		return NULL;
+		return 0;
 
 	/* Count number of files in directory tree */
 	n = 0;
-	if (!p)
-		r = nftw(dirpath, count_fastqfiles, USE_FDS, FTW_PHYS);
-	else if (string_equal(p, "parse"))
+	if (string_equal(cp->mode, "pair"))
 		r = nftw(dirpath, count_parsefiles, USE_FDS, FTW_PHYS);
-	else if (string_equal(p, "pairs"))
+	else if (string_equal(cp->mode, "trimend"))
 		r = nftw(dirpath, count_pairfiles, USE_FDS, FTW_PHYS);
+	else
+		r = nftw(dirpath, count_fastqfiles, USE_FDS, FTW_PHYS);
 
 	/* Check for errors */
 	if (r < 0)
 	{
 		errstr = strerror(errno);
-		logerror("%s:%d Directory traversal on %s failed: %s.\n", __func__, __LINE__,
+		logerror(lf, "%s:%d Directory traversal on %s failed: %s.\n", __func__, __LINE__,
 		         dirpath, errstr);
-		return NULL;
+		return 0;
 	}
 	else if (r > 0)
 	{
-		logerror("%s:%d Directory traversal callback failed.\n", __func__, __LINE__);
-		return NULL;
+		logerror(lf, "%s:%d Directory traversal callback failed.\n", __func__, __LINE__);
+		return 0;
 	}
 
 	/* Get list of filenames */
 	f = malloc(n * sizeof(char*));
 	if (UNLIKELY(!f))
 	{
-		logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
-		return NULL;
+		logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
+		return 0;
 	}
 	n = 0;
-	if (!p)
-		r = nftw(dirpath, get_fastqfiles, USE_FDS, FTW_PHYS);
-	else if (string_equal(p, "parse"))
+	if (string_equal(cp->mode, "pair"))
 		r = nftw(dirpath, get_parsefiles, USE_FDS, FTW_PHYS);
-	else if (string_equal(p, "pairs"))
+	else if (string_equal(cp->mode, "trimend"))
 		r = nftw(dirpath, get_pairfiles, USE_FDS, FTW_PHYS);
+	else
+		r = nftw(dirpath, get_fastqfiles, USE_FDS, FTW_PHYS);
 
 	/* Check for errors */
 	if (r < 0)
 	{
 		errstr = strerror(errno);
-		logerror("%s:%d Directory traversal failed: %s.\n", __func__, __LINE__,
+		logerror(lf, "%s:%d Directory traversal failed: %s.\n", __func__, __LINE__,
 		         errstr);
-		return NULL;
+		return 0;
 	}
 	else if (r > 0)
 	{
-		logerror("%s:%d Directory traversal callback failed.\n", __func__, __LINE__);
-		return NULL;
+		logerror(lf, "%s:%d Directory traversal callback failed.\n", __func__, __LINE__);
+		return 0;
 	}
-
-	/* Assign number of files */
-	*x = n;
 
 	/* Sort file list */
 	qsort(f, n, sizeof(const char *), compare);
 
-	return f;
+	/* Assign number of files */
+	x = n;
+
+	/* Assign address of file list */
+	flist = f;
+
+	return x;
 }
 
 static int count_fastqfiles(const char *filepath, const struct stat *info,
@@ -146,7 +148,7 @@ static int get_fastqfiles(const char *filepath, const struct stat *info,
 			f[n] = malloc(l + 1u);
 			if (UNLIKELY(!f[n]))
 			{
-				logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+				error("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 				return 1;
 			}
 			strcpy(f[n], filepath);
@@ -190,7 +192,7 @@ static int get_parsefiles(const char *filepath, const struct stat *info,
 			f[n] = malloc(l + 1u);
 			if (UNLIKELY(!f[n]))
 			{
-				logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+				error("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 				return 1;
 			}
 			strcpy(f[n], filepath);
@@ -233,7 +235,7 @@ static int get_pairfiles(const char *filepath, const struct stat *info,
 			f[n] = malloc(l + 1u);
 			if (UNLIKELY(!f[n]))
 			{
-				logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+				error("%s:%d Memory allocation failure.\n", __func__, __LINE__);
 				return 1;
 			}
 			strcpy(f[n], filepath);

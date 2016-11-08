@@ -1,7 +1,7 @@
 /* file: parse_reversebuffer.c
  * description: Parses reverse fastQ entries in the buffer
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: October 2016
+ * updated: November 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */
@@ -13,7 +13,7 @@
 #include "khash.h"
 #include "ddradseq.h"
 
-int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h,
+int parse_reversebuffer(const CMD *cp, char *buff, const size_t nl, const khash_t(pool_hash) *h,
                         const khash_t(mates) *m)
 {
 	char *q = buff;
@@ -41,15 +41,13 @@ int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 	khash_t(pool) *p = NULL;
 	BARCODE *bc = NULL;
 	POOL *pl = NULL;
-
-	/* Update time string */
-	get_timestr(&timestr[0]);
+	FILE *lf = cp->lf;
 
 	/* Indicator variable whether to skip processing a line */
 	skip = calloc(1, nl * sizeof(unsigned char));
 	if (!skip)
 	{
-		logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+		logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 		return 1;
 	}
 
@@ -66,13 +64,13 @@ int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 					copy = strdup(q);
 					if (!copy)
 					{
-						logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+						logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 						return 1;
 					}
 					idline = strdup(q);
 					if (!idline)
 					{
-						logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+						logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 						return 1;
 					}
 
@@ -83,7 +81,7 @@ int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 					mkey = strndup(pstart+1, plen - 1);
 					if (UNLIKELY(!mkey))
 					{
-						logerror("%s:%d fastQ header parsing error.\n", __func__, __LINE__);
+						logerror(lf, "%s:%d fastQ header parsing error.\n", __func__, __LINE__);
 						return 1;
 					}
 					/* Parse flowcell identifier */
@@ -93,7 +91,7 @@ int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 					flowcell = strndup(pstart+1, plen - 1);
 					if (!flowcell)
 					{
-						error("%s:%d Illumina ID parsing failure.\n", __func__, __LINE__);
+						logerror(lf, "%s:%d Illumina ID parsing failure.\n", __func__, __LINE__);
 						return 1;
 					}
 					/* Parse index sequence */
@@ -101,7 +99,7 @@ int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 					index_sequence = strdup(pstart+1);
 					if (!index_sequence)
 					{
-						error("%s:%d Illumina ID parsing failure.\n", __func__, __LINE__);
+						logerror(lf, "%s:%d Illumina ID parsing failure.\n", __func__, __LINE__);
 						return 1;
 					}
 
@@ -111,8 +109,8 @@ int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 					/* Flow cell identifier is not present in database */
 					if (i == kh_end(h))
 					{
-						fprintf(lf, "[ddradseq: %s] WARNING -- Hash lookup failure using key %s.\n", timestr, flowcell);
-						fprintf(lf, "[ddradseq: %s] WARNING -- Skipping sequence: %s\n", timestr, idline);
+						logwarn(lf, "Hash lookup failure using key %s.\n", flowcell);
+						logwarn(lf, "Skipping sequence: %s\n", idline);
 						skip[l+1] = 1;
 						skip[l+2] = 1;
 						skip[l+3] = 1;
@@ -133,8 +131,8 @@ int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 					mk = kh_get(mates, m, mkey);
 					if (mk == kh_end(m))
 					{
-						fprintf(lf, "[ddradseq: %s] WARNING -- Hash lookup failure using key %s.\n", timestr, mkey);
-						fprintf(lf, "[ddradseq: %s] WARNING -- Skipping sequence: %s\n", timestr, idline);
+						logwarn(lf, "Hash lookup failure using key %s.\n", mkey);
+						logwarn(lf, "Skipping sequence: %s\n", idline);
 						skip[l+1] = 1;
 						skip[l+2] = 1;
 						skip[l+3] = 1;
@@ -168,7 +166,7 @@ int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 					dna_sequence = strdup(q);
 					if (!dna_sequence)
 					{
-						logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+						logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 						return 1;
 					}
 					break;
@@ -180,7 +178,7 @@ int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 					qual_sequence = strdup(q);
 					if (!qual_sequence)
 					{
-						logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+						logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 						return 1;
 					}
 					add_bytes = strlen(idline) + strlen(dna_sequence) +
@@ -188,10 +186,10 @@ int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 					char *t = NULL;
 					if ((bc->curr_bytes + add_bytes) >= BUFLEN)
 					{
-						ret = flush_buffer(REVERSE, bc);
+						ret = flush_buffer(REVERSE, bc, lf);
 						if (ret)
 						{
-							logerror("%s:%d Problem writing to file.\n", __func__, __LINE__);
+							logerror(lf, "%s:%d Problem writing to file.\n", __func__, __LINE__);
 							return 1;
 						}
 					}
@@ -199,7 +197,7 @@ int parse_reversebuffer(char *buff, const size_t nl, const khash_t(pool_hash) *h
 					t = malloc(add_bytes + 1u);
 					if (!t)
 					{
-						logerror("%s:%d Memory allocation failure.\n", __func__, __LINE__);
+						logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 						return 1;
 					}
 					sprintf(t, "%s\n%s\n+\n%s\n", idline, dna_sequence, qual_sequence);

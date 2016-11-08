@@ -1,7 +1,7 @@
 /* file: revcom.c
  * description: Functions to reverse complement a DNA string with full IUPAC alphabet
  * author: Daniel Garrigan Lummei Analytics LLC
- * updated: October 2016
+ * updated: November 2016
  * email: dgarriga@lummei.net
  * copyright: MIT license
  */
@@ -17,18 +17,15 @@
 
 /* Function prototypes */
 static int reverse_string(char*);
-static int complement_string(char*);
+static int complement_string(char*, FILE *lf);
 
-char *revcom(const char *s)
+char *revcom(const char *s, FILE *lf)
 {
 	char *str = NULL;
 	char *pch = NULL;
 	int ret = 0;
 	size_t strl = 0;
 	size_t i = 0;
-
-	/* Update time string */
-	get_timestr(&timestr[0]);
 
 	/* Create local copy of DNA string */
 	str = strdup(s);
@@ -47,7 +44,7 @@ char *revcom(const char *s)
 			continue;
 		else
 		{
-			logerror("%s:%d Bad character \'%c\' at position %zu.\n", __func__,
+			logerror(lf, "%s:%d Bad character \'%c\' at position %zu.\n", __func__,
 			         __LINE__, str[i], i + 1u);
 			return NULL;
 		}
@@ -63,7 +60,7 @@ char *revcom(const char *s)
 			return NULL;
 
 		/* Complement string */
-		ret = complement_string(str);
+		ret = complement_string(str, lf);
 		if (ret)
 			return NULL;
 	}
@@ -87,7 +84,7 @@ static int reverse_string(char *s)
 	return 0;
 }
 
-static int complement_string(char *s)
+static int complement_string(char *s, FILE *lf)
 {
 	char c = 0;
 	char *pch1 = NULL;
@@ -98,9 +95,6 @@ static int complement_string(char *s)
 	unsigned int lookup_table[25] = { 6u, 0u, 19u,	0u, 0u, 0u, 0u,	 0u,  0u, 0u,
 									 12u, 0u, 10u, 13u, 0u, 0u, 0u, 17u, 22u, 2u,
 									  2u, 0u, 18u,	0u, 24u};
-
-	/* Update time string */
-	get_timestr(&timestr[0]);
 
 	/* Iterate through string and complement each base */
 	for (i = 0; i < strlen(s); i++)
@@ -114,12 +108,12 @@ static int complement_string(char *s)
 			pch2 = strchr(iupac_extend, c);
 			if (pch2)
 			{
-				logerror("%s:%d IUPAC codes with three bases at a site are not "
+				logerror(lf, "%s:%d IUPAC codes with three bases at a site are not "
 				         "supported.\n", __func__, __LINE__);
 			}
 			else
 			{
-				logerror("%s:%d Bad character \'%c\' at position %zu.\n",
+				logerror(lf, "%s:%d Bad character \'%c\' at position %zu.\n",
 					     __func__, __LINE__, s[i], i + 1u);
 			}
 			return 1;
