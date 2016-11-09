@@ -18,6 +18,8 @@
 #include "khash.h"
 #include "ddradseq.h"
 
+#define MAX_ATTEMPTS 100
+
 extern int errno;
 
 int flush_buffer(int orient, BARCODE *bc, FILE *lf)
@@ -28,7 +30,7 @@ int flush_buffer(int orient, BARCODE *bc, FILE *lf)
 	char *errstr = NULL;
 	int ret = 0;
 	int fd;
-	int ntry = 0;
+	int num_attempts = 0;
 	size_t len = bc->curr_bytes;
 	struct flock fl = {F_WRLCK, SEEK_SET, 0, 0, 0};
 	struct flock fl2;
@@ -59,22 +61,22 @@ int flush_buffer(int orient, BARCODE *bc, FILE *lf)
 	}
 
 	/* Test if output file has lock in 30 second intervals */
-	/* Will timeout after 100 attempts */
+	/* Will timeout after MAX_ATTEMPTS attempts to get a lock */
 	fcntl(fd, F_GETLK, &fl2);
-	ntry++;
+	num_attempts++;
 	while (fl2.l_type != F_UNLCK)
 	{
-		if (ntry > 100)
+		if (num_attempts > MAX_ATTEMPTS)
 		{
-			logerror(lf, "%s:%d File \'%s\' is still locked after 100 attempts... exiting.\n", __func__,
-			         __LINE__, filename);
+			logerror(lf, "%s:%d File \'%s\' is still locked after %d attempts... exiting.\n", __func__,
+			         __LINE__, filename, num_attempts);
 			return 1;
 		}
 		else
 		{
 			sleep(30);
 			fcntl(fd, F_GETLK, &fl2);
-			ntry++;
+			num_attempts++;
 		}
 	}
 

@@ -9,8 +9,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <zlib.h>
 #include <errno.h>
+#include <zlib.h>
 #include "ddradseq.h"
 
 #define NBASES 4

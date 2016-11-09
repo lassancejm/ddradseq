@@ -227,8 +227,7 @@ int parse_forwardbuffer(const CMD *cp, char *buff, const size_t nl, const khash_
 						logerror(lf, "%s:%d Memory allocation failure.\n", __func__, __LINE__);
 						return 1;
 					}
-					sprintf (t, "%s\n%s\n+\n%s\n", idline, dna_sequence,
-							 qual_sequence);
+					sprintf (t, "%s\n%s\n+\n%s\n", idline, dna_sequence, qual_sequence);
 					strcat(bc->buffer, t);
 
 					/* Free alloc'd memory for fastQ entry */

@@ -215,7 +215,7 @@ int parse_reversebuffer(const CMD *cp, char *buff, const size_t nl, const khash_
 		q += ll + 1u;
 	}
 
-	/* Deallocate memory */
+	/* Free memory from the heap */
 	free(skip);
 
 	return 0;

@@ -21,7 +21,7 @@ int pair_main(const CMD *cp)
 	FILE *lf = cp->lf;
 
 	/* Get list of all files */
-	nfiles = traverse_dirtree(cp, "pair", &filelist);
+	nfiles = traverse_dirtree(cp, __func__, &filelist);
 	if (!filelist)
 		return 1;
 

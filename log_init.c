@@ -6,6 +6,8 @@
  * copyright: MIT license
  */
 
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,37 +15,32 @@
 #include <errno.h>
 #include <sys/utsname.h>
 #include <sys/sysinfo.h>
-#include <linux/limits.h>
 #include "ddradseq.h"
 
 extern int errno;
 
 int log_init(CMD *cp)
 {
-	char logfile[PATH_MAX];
-	char *cwd = NULL;
-	char logfname[] = "/ddradseq.log";
+	char *logpath = NULL;
+	const char *logfile = "/ddradseq.log";
 	char *user = NULL;
 	const double gigabyte = 1024 * 1024 * 1024;
 	struct utsname host;
 	struct sysinfo si;
 
 	/* Get current working directory */
-	cwd = getcwd(logfile, sizeof(logfile));
-	if (!cwd)
-	{
-		perror("Failed to get current working directory");
-		return 1;
-	}
-	strcat(logfile, logfname);
+	logpath = get_current_dir_name();
+	logpath = realloc(logpath, strlen(logpath) + strlen(logfile) + 1);
+	strcat(logpath, logfile);
 
 	/* Open log file for writing */
-	cp->lf = fopen(logfile, "a");
+	cp->lf = fopen(logpath, "a");
 	if (!cp->lf)
 	{
 		perror("Failed to open logfile");
 		return 1;
 	}
+	free(logpath);
 
 	/* Print logfile header */
 	fputs("***ddradseq LOG FILE***\n", cp->lf);

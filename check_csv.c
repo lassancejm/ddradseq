@@ -13,7 +13,7 @@
 #include <zlib.h>
 #include "ddradseq.h"
 
-static int compare(const void * a, const void * b);
+static int compare(const void *a, const void *b);
 
 int check_csv(const CMD *cp)
 {
@@ -110,7 +110,7 @@ int check_csv(const CMD *cp)
 	return 0;
 }
 
-static int compare(const void * a, const void * b)
+static int compare(const void *a, const void *b)
 {
 	return strcmp(*(char **) a, *(char **) b);
 }

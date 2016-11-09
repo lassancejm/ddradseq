@@ -20,6 +20,7 @@
 #endif
 
 /* Globally scoped variables */
+/* nftw can only work with globally scoped variables */
 unsigned int n;
 char **f;
 extern int errno;
@@ -37,7 +38,7 @@ static int count_pairfiles(const char *filepath, const struct stat *info,
                            const int typeflag, struct FTW *pathinfo);
 static int get_pairfiles(const char *filepath, const struct stat *info,
                          const int typeflag, struct FTW *pathinfo);
-static int compare(const void * a, const void * b);
+static int compare(const void *a, const void *b);
 
 unsigned int traverse_dirtree(const CMD *cp, const char *caller, char ***flist)
 {
@@ -45,10 +46,10 @@ unsigned int traverse_dirtree(const CMD *cp, const char *caller, char ***flist)
 	char *dirpath = NULL;
 	int r = 0;
 	int i = 0;
-	unsigned int x = 0;
+	unsigned int nfiles = 0;
 	FILE *lf = cp->lf;
 
-	if (string_equal(caller, "pair") || string_equal(caller, "trimend"))
+	if (string_equal(caller, "pair_main") || string_equal(caller, "trimend_main"))
 		dirpath = cp->outdir;
 	else
 		dirpath = cp->parent_indir;
@@ -59,9 +60,9 @@ unsigned int traverse_dirtree(const CMD *cp, const char *caller, char ***flist)
 
 	/* Count number of files in directory tree */
 	n = 0;
-	if (string_equal(caller, "pair"))
+	if (string_equal(caller, "pair_main"))
 		r = nftw(dirpath, count_parsefiles, USE_FDS, FTW_PHYS);
-	else if (string_equal(caller, "trimend"))
+	else if (string_equal(caller, "trimend_main"))
 		r = nftw(dirpath, count_pairfiles, USE_FDS, FTW_PHYS);
 	else
 		r = nftw(dirpath, count_fastqfiles, USE_FDS, FTW_PHYS);
@@ -88,9 +89,9 @@ unsigned int traverse_dirtree(const CMD *cp, const char *caller, char ***flist)
 		return 0;
 	}
 	n = 0;
-	if (string_equal(caller, "pair"))
+	if (string_equal(caller, "pair_main"))
 		r = nftw(dirpath, get_parsefiles, USE_FDS, FTW_PHYS);
-	else if (string_equal(caller, "trimend"))
+	else if (string_equal(caller, "trimend_main"))
 		r = nftw(dirpath, get_pairfiles, USE_FDS, FTW_PHYS);
 	else
 		r = nftw(dirpath, get_fastqfiles, USE_FDS, FTW_PHYS);
@@ -113,7 +114,7 @@ unsigned int traverse_dirtree(const CMD *cp, const char *caller, char ***flist)
 	qsort(f, n, sizeof(const char *), compare);
 
 	/* Assign number of files */
-	x = n;
+	nfiles = n;
 
 	/* Assign address of file list */
 	*flist = malloc(n * sizeof(char*));
@@ -126,7 +127,7 @@ unsigned int traverse_dirtree(const CMD *cp, const char *caller, char ***flist)
 	}
 	free(f);
 
-	return x;
+	return nfiles;
 }
 
 static int count_fastqfiles(const char *filepath, const struct stat *info,
@@ -259,7 +260,7 @@ static int get_pairfiles(const char *filepath, const struct stat *info,
 	return 0;
 }
 
-static int compare(const void * a, const void * b)
+static int compare(const void *a, const void *b)
 {
 	return strcmp(*(const char **) a, *(const char **) b);
 }
