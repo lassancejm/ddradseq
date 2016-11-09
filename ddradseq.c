@@ -6,9 +6,6 @@
  * copyright: MIT license
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "ddradseq.h"
 
 /* Function prototypes */
