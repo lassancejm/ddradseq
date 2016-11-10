@@ -51,7 +51,7 @@ message:
 ```
 % ./ddradseq
 Usage: ddradseq [OPTION...] INPUT_DIRECTORY
-Parses fastQ files by flow cell, barcode and/or index.
+Parses fastQ files by flow cell, barcode, and/or index.
 
   -a, --across               Pool sequences across flow cells [default: false]
   -c, --csv=FILE             CSV file with index and barcode

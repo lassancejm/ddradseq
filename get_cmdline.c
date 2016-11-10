@@ -87,7 +87,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
 static char args_doc[] = "INPUT_DIRECTORY";
 
 static char doc[] =
-"Parses fastQ files by flow cell, barcode and/or index.\v"
+"Parses fastQ files by flow cell, barcode, and/or index.\v"
 "Valid run-time modes are \'parse\', \'pair\', and \'trimend\'. See https://github.com/dgarriga/ddradseq for documentation";
 
 static struct argp argp = {options, parse_opt, args_doc, doc};
