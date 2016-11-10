@@ -46,10 +46,9 @@ The following graphic illustrates the structure of the ddRADseq library.
 
 ## Running the program
 
-Running the base **ddradseq** program with no additional command line arguments produces the following informational
-message:
+Running the base **ddradseq** program with the "--help" option produces the following informational message:
 ```
-% ./ddradseq
+% ./ddradseq --help
 Usage: ddradseq [OPTION...] INPUT_DIRECTORY
 Parses fastQ files by flow cell, barcode, and/or index.
 
@@ -95,7 +94,7 @@ each of the parameters in more detail:
 | `-a, --across`  | None                 | Pool all sequences across all specified input flow cells. |
 
 The program will write all of its activity to the logfile "ddradseq.log". The log file will be written to the user's
-current working directory.
+current working directory. If the program fails, it is often useful to first check this log file for any error messages.
 
 The non-optioned argument "INPUT_DIRECTORY" specifies the parent filesystem directory where all of the input fastQ files
 are stored. The program will then search all child directories in the directory tree. By default, the **ddradseq** program 
@@ -229,4 +228,10 @@ The source code of the program can then be compiled by typing
 % make
 ```
 in the program directory. The resulting executable file `ddradseq` will be created in that same directory.
-The user can then place the program anywhere in their executable search path.
+The user can then place the program anywhere in their executable search path. Executing the make command with the
+"install" argument,
+```
+% make install
+```
+will install the executable program in the "bin/" directory in the user's home directory.
+
