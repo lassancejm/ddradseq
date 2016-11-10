@@ -16,7 +16,7 @@
 #include "ddradseq.h"
 
 extern int errno;
-const char *argp_program_version = "ddradseq v1.3";
+const char *argp_program_version = "ddradseq v1.4";
 const char *argp_program_bug_address = "<dgarriga@lummei.net>";
 static struct argp_option options[] =
 {
