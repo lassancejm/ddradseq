@@ -107,12 +107,12 @@ different directories, to insure that **ddradseq** does not consider fastQ files
 
 ### Example
 ```
-% ./ddradseq -c rad48.csv.gz -p "*.fq.gz" -s 130 -o ~/ddradseq/output ~/data/ddradseq
+% ./ddradseq -c rad48.csv.gz -p "test.*.fq.gz" -s 130 -o ~/ddradseq/output ~/data/ddradseq
 ```
 or, the same command using long option switches
 
 ```
-% ./ddradseq --csv rad48.csv.gz --pattern "*.fq.gz" --score 130 --out ~/ddradseq/output ~/data/ddradseq
+% ./ddradseq --csv rad48.csv.gz --pattern "test.*.fq.gz" --score 130 --out ~/ddradseq/output ~/data/ddradseq
 ```
 
 ## The CSV database file
