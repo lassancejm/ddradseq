@@ -17,6 +17,7 @@ int destroy_cmdline(CMD *cp)
 	free(cp->parent_outdir);
 	free(cp->outdir);
 	free(cp->mode);
+	free(cp->glob);
 	free(cp->csvfile);
 	free(cp);
 	return 0;
