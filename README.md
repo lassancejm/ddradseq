@@ -54,15 +54,19 @@ Usage: ddradseq [OPTION...] INPUT DIRECTORY
 ddradseq -- Parse fastQ file into separate files by flow cell, barcode and/or
 index.
 
-  -a, --across               Pool sequences across flow cells
+  -a, --across               Pool sequences across flow cells [default: false]
   -c, --csv=FILE             CSV file with index and barcode
-  -d, --dist=INT             Edit distance for barcode matching
-  -e, --gape=INT             Penalty for extending open gap
-  -g, --gapo=INT             Penalty for opening a gap
-  -m, --mode=STR             Run mode of ddradseq program
+  -d, --dist=INT             Edit distance for barcode matching [default: 1]
+  -e, --gape=INT             Penalty for extending open gap [default: 1]
+  -g, --gapo=INT             Penalty for opening a gap [default: 5]
+  -m, --mode=STR             Run mode of ddradseq program [default: all]
   -o, --out=DIR              Parent directory to write output
+  -p, --pattern=STR          Input fastQ file glob pattern to match [default:
+                             "*.fastq.gz"
   -s, --score=INT            Alignment score to consider mates properly paired
+                             [default: 100]
   -t, --threads=INT          Number of threads available for concurrency
+                             [default: 1]
   -?, --help                 Give this help list
       --usage                Give a short usage message
   -V, --version              Print program version
@@ -88,6 +92,7 @@ each of the parameters in more detail:
 | `-g, --gapo`    | Integer              | The gap penalty invoked during the alignment in the **trimend** stage. |
 | `-e, --gape`    | Integer              | The gap extension penalty invoked during the alignment in the **trimend** stage. |
 | `-t, --threads` | Integer              | The number of CPU threads for parallel execution of parsing. |
+| `-p, --pattern` | Glob expression      | A filename pattern to match all input fastQ files (e.g., "*.fq.gz"). |
 | `-a, --across`  | None                 | Pool all sequences across all specified input flow cells. |
 
 The program will write all of its activity to the logfile "ddradseq.log". The log file will be written to the user's
@@ -102,12 +107,12 @@ different directories, to insure that **ddradseq** does not consider fastQ files
 
 ### Example
 ```
-% ./ddradseq -c rad48.csv.gz -s 130 -o ~/ddradseq/output ~/data/ddradseq
+% ./ddradseq -c rad48.csv.gz -p "*.fq.gz" -s 130 -o ~/ddradseq/output ~/data/ddradseq
 ```
 or, the same command using long option switches
 
 ```
-% ./ddradseq --csv rad48.csv.gz --score 130 --out ~/ddradseq/output ~/data/ddradseq
+% ./ddradseq --csv rad48.csv.gz --pattern "*.fq.gz" --score 130 --out ~/ddradseq/output ~/data/ddradseq
 ```
 
 ## The CSV database file

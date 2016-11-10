@@ -25,6 +25,12 @@ int pair_main(const CMD *cp)
 	if (!filelist)
 		return 1;
 
+	if (nfiles < 1)
+	{
+		logerror(lf, "%s:%d No input fastQ files found.\n", __func__, __LINE__);
+		return 1;
+	}
+
 	for (i = 0; i < nfiles; i += 2)
 	{
 		khash_t(fastq) *h = NULL;

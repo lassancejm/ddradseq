@@ -20,15 +20,16 @@ const char *argp_program_version = "ddradseq v1.3";
 const char *argp_program_bug_address = "<dgarriga@lummei.net>";
 static struct argp_option options[] =
 {
-  {"across",  'a', 0,      0, "Pool sequences across flow cells"},
-  {"mode",    'm', "STR",  0, "Run mode of ddradseq program"},
+  {"across",  'a', 0,      0, "Pool sequences across flow cells [default: false]"},
+  {"mode",    'm', "STR",  0, "Run mode of ddradseq program [default: all]"},
   {"out",     'o', "DIR",  0, "Parent directory to write output"},
   {"csv",     'c', "FILE", 0, "CSV file with index and barcode"},
-  {"dist",    'd', "INT",  0, "Edit distance for barcode matching"},
-  {"score",   's', "INT",  0, "Alignment score to consider mates properly paired"},
-  {"gapo",    'g', "INT",  0, "Penalty for opening a gap"},
-  {"gape",    'e', "INT",  0, "Penalty for extending open gap"},
-  {"threads", 't', "INT",  0, "Number of threads available for concurrency"},
+  {"dist",    'd', "INT",  0, "Edit distance for barcode matching [default: 1]"},
+  {"score",   's', "INT",  0, "Alignment score to consider mates properly paired [default: 100]"},
+  {"gapo",    'g', "INT",  0, "Penalty for opening a gap [default: 5]"},
+  {"gape",    'e', "INT",  0, "Penalty for extending open gap [default: 1]"},
+  {"pattern", 'p', "STR",  0, "Input fastQ file glob pattern to match [default: \"*.fastq.gz\""},
+  {"threads", 't', "INT",  0, "Number of threads available for concurrency [default: 1]"},
   {0}
 };
 
@@ -61,6 +62,9 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
 			break;
 		case 't':
 			cp->nthreads = atoi(arg);
+			break;
+		case 'p':
+			cp->glob = strdup(arg);
 			break;
 		case 'c':
 			cp->csvfile = strdup(arg);
@@ -115,6 +119,7 @@ CMD *get_cmdline(int argc, char *argv[])
 	cp->score = 100;
 	cp->gapo = 5;
 	cp->gape = 1;
+	cp->glob = NULL;
 	cp->nthreads = 1;
 	cp->lf = NULL;
 
@@ -139,6 +144,9 @@ CMD *get_cmdline(int argc, char *argv[])
 		fputs("ERROR: \'--out\' switch is mandatory when running parse mode.\n", stderr);
 		return NULL;
 	}
+
+	if (!cp->glob && (string_equal(cp->mode, "parse") || string_equal(cp->mode, "all")))
+		cp->glob = strdup("*.fastq.gz");
 
 	datec = malloc(DATELEN + 3u);
 	if (UNLIKELY(!datec))

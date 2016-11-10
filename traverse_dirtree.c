@@ -13,6 +13,8 @@
 #include <unistd.h>
 #include <errno.h>
 #include <ftw.h>
+#include <fnmatch.h>
+#include <libgen.h>
 #include "ddradseq.h"
 
 #ifndef USE_FDS
@@ -22,6 +24,7 @@
 /* Globally scoped variables */
 /* nftw can only work with globally scoped variables */
 unsigned int n;
+char *pattern;
 char **f;
 extern int errno;
 
@@ -57,6 +60,9 @@ unsigned int traverse_dirtree(const CMD *cp, const char *caller, char ***flist)
 	/* Check validity of directory path */
 	if (dirpath == NULL || *dirpath == '\0')
 		return 0;
+
+	if (cp->glob)
+		pattern = strdup(cp->glob);
 
 	/* Count number of files in directory tree */
 	n = 0;
@@ -126,6 +132,7 @@ unsigned int traverse_dirtree(const CMD *cp, const char *caller, char ***flist)
 		free(f[i]);
 	}
 	free(f);
+	free(pattern);
 
 	return nfiles;
 }
@@ -133,15 +140,15 @@ unsigned int traverse_dirtree(const CMD *cp, const char *caller, char ***flist)
 static int count_fastqfiles(const char *filepath, const struct stat *info,
                             const int typeflag, struct FTW *pathinfo)
 {
-	char *p = NULL;
-	char *q = NULL;
-
 	if (typeflag == FTW_F)
 	{
-		p = strstr(filepath, ".fq");
-		q = strstr(filepath, ".fastq");
-		if (p != NULL || q != NULL)
+		int r;
+		char *fullname = strdup(filepath);
+		char *fname = basename(fullname);
+		r = fnmatch(pattern, fname, 0);
+		if (r == 0)
 			n++;
+		free(fullname);
 	}
 	return 0;
 }
@@ -149,26 +156,15 @@ static int count_fastqfiles(const char *filepath, const struct stat *info,
 static int get_fastqfiles(const char *filepath, const struct stat *info,
                           const int typeflag, struct FTW *pathinfo)
 {
-	char *p = NULL;
-	char *q = NULL;
-	size_t l = 0;
-
 	if (typeflag == FTW_F)
 	{
-		p = strstr(filepath, ".fq");
-		q = strstr(filepath, ".fastq");
-		if (p != NULL || q != NULL)
-		{
-			l = strlen(filepath);
-			f[n] = malloc(l + 1u);
-			if (UNLIKELY(!f[n]))
-			{
-				error("%s:%d Memory allocation failure.\n", __func__, __LINE__);
-				return 1;
-			}
-			strcpy(f[n], filepath);
-			n++;
-		}
+		int r;
+		char *fullname = strdup(filepath);
+		char *fname = basename(fullname);
+		r = fnmatch(pattern, fname, 0);
+		if (r == 0)
+			f[n++] = strdup(filepath);
+		free(fullname);
 	}
 	return 0;
 }

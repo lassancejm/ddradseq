@@ -68,6 +68,7 @@ typedef struct cmdparam
 	char *outdir;
 	char *csvfile;
 	char *mode;
+	char *glob;
 	int dist;
 	int score;
 	int gapo;
@@ -316,7 +317,7 @@ extern int create_dirtree(const CMD *cp, const khash_t(pool_hash) *h);
  * Produces a sorted list of all fastQ files in the input directory tree
  * Arguments:
  * cp -- Pointer to command line data structure (read-only)
- * caller -- Pointer to string identifying calling function
+ * caller -- Pointer to string identifying calling function (read-only)
  * flist -- Pointer to array of input file names
  * Returns:
  * The number of input files found in the input directory tree
