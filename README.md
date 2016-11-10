@@ -50,7 +50,7 @@ Running the base **ddradseq** program with no additional command line arguments 
 message:
 ```
 % ./ddradseq
-Usage: ddradseq [OPTION...] INPUT DIRECTORY
+Usage: ddradseq [OPTION...] INPUT_DIRECTORY
 Parses fastQ files by flow cell, barcode and/or index.
 
   -a, --across               Pool sequences across flow cells [default: false]
@@ -97,7 +97,7 @@ each of the parameters in more detail:
 The program will write all of its activity to the logfile "ddradseq.log". The log file will be written to the user's
 current working directory.
 
-The non-optioned argument "[INPUT DIRECTORY]" specifies the parent filesystem directory where all of the input fastQ files
+The non-optioned argument "INPUT_DIRECTORY" specifies the parent filesystem directory where all of the input fastQ files
 are stored. The **ddradseq** program will consider all files ending in the suffix ".fq" or ".fastq" within this directory
 (and its children) as input for the program.
 

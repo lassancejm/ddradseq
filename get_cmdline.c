@@ -84,7 +84,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
 	return 0;
 }
 
-static char args_doc[] = "INPUT DIRECTORY";
+static char args_doc[] = "INPUT_DIRECTORY";
 
 static char doc[] =
 "Parses fastQ files by flow cell, barcode and/or index.\v"
