@@ -56,7 +56,8 @@ Exits the script if bwa encounters run-time error
 def execBWA(threadID, nthreadsBWA, ddradseqDir, referenceFile,
             fileStart, fileEnd, filenamesForwardSort, filenamesReverseSort):
     for i in range(fileStart, fileEnd):
-        fileParse = re.split('[_.]', filenamesForwardSort[i])
+        base = os.path.basename(filenamesForwardSort[i]);
+        fileParse = re.split('[_.]', base)
         outfileBWA = "bam/smpl_" + fileParse[1] + "_" + fileParse[2] + ".bam"
         fulloutfileBWA = os.path.join(ddradseqDir, outfileBWA)
         cmdBWA = "bwa mem -t {:d} {} {} {} | samtools view -bS -T {} -o {} -".format(nthreadsBWA, referenceFile,
