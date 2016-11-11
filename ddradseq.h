@@ -15,7 +15,6 @@
 #endif
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -30,7 +29,7 @@
 #define UNLIKELY(x) (x)
 #endif
 
-/*! \def BUFLEN
+/** \def BUFLEN
     \brief File I/O buffer size
 */
 
@@ -101,13 +100,14 @@
  * Data structure defintions
  ******************************************************/
 
-/** @var typedef struct cmdparam CMD
+/** @var typedef struct cmdparam_t CMD
  *  @brief Data structure to hold user-provided command line parameters.
  */
 
-typedef struct cmdparam
+typedef struct cmdparam_t
 {
 	bool across;          /**< Flag to pool sequences across flow cells. */
+	bool mt_mode;         /**< Flag to indicate multi-threaded mode. */
 	char *parent_indir;   /**< String holding the full path and name of the parent input directory. */
 	char *parent_outdir;  /**< String holding the full path to the parent output directory. */
 	char *outdir;         /**< String holding the full path to the output directory. */
@@ -122,11 +122,11 @@ typedef struct cmdparam
 	FILE *lf;             /**< Pointer to the log file output stream. */
 } CMD;
 
-/** @var typedef struct _fastq_ FASTQ
+/** @var typedef struct fastq_t FASTQ
  *  @brief Data structure to hold a single fastQ entry.
  */
 
-typedef struct _fastq_
+typedef struct fastq_t
 {
 	char *id;       /**< String holding the Illumina identifier line for a fastQ entry. */
 	char *seq;      /**< String holding the DNA sequence line for a fastQ entry. */
@@ -134,11 +134,11 @@ typedef struct _fastq_
 } FASTQ;
 
 
-/** @var typedef struct _ksqr_t ALIGN_RESULT
+/** @var typedef struct ksqr_t ALIGN_RESULT
  *  @brief Data structure to hold the results of a local sequence alignment.
  */
 
-typedef struct _ksqr_t
+typedef struct ksqr_t
 {
 	int score;          /**< The score of the highest scoring local alignment. */
 	int target_begin;   /**< The position on the target sequence where the highest scoring local alignment begins. */
@@ -150,11 +150,11 @@ typedef struct _ksqr_t
 } ALIGN_RESULT;
 
 
-/** @var typedef struct _kswq_t ALIGN_QUERY
+/** @var typedef struct kswq_t ALIGN_QUERY
  *  @brief Data structure to hold align query parameters.
  */
 
-typedef struct _kswq_t
+typedef struct kswq_t
 {
     int qlen;
     int slen;
@@ -169,11 +169,11 @@ typedef struct _kswq_t
 } ALIGN_QUERY;
 
 
-/** @var typedef struct _barcode_ BARCODE
+/** @var typedef struct barcode_t BARCODE
  *  @brief Barcode-level data structure.
  */
 
-typedef struct _barcode_
+typedef struct barcode_t
 {
 	char *smplID;       /**< The sample identifier from the CSV database file. */
 	char *outfile;      /**< The full path to the output file associated with a biological sample. */
@@ -187,11 +187,11 @@ typedef struct _barcode_
 
 KHASH_MAP_INIT_STR(barcode, BARCODE*)
 
-/** @var typedef struct _pool_ POOL
+/** @var typedef struct pool_t POOL
  *  @brief Pool-level data structure.
  */
 
-typedef struct _pool_
+typedef struct pool_t
 {
 	char *poolID;            /**< The sample pool identifier from the CSV database file. */
 	char *poolpath;          /**< The full path to the output directory associated with a sample pool. */
