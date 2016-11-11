@@ -62,6 +62,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
 			break;
 		case 't':
 			cp->nthreads = atoi(arg);
+			cp->mt_mode = true;
 			break;
 		case 'p':
 			cp->glob = strdup(arg);
@@ -110,6 +111,7 @@ CMD *get_cmdline(int argc, char *argv[])
 
 	/* Set argument defaults */
 	cp->across = false;
+	cp->mt_mode = false;
 	cp->parent_indir = NULL;
 	cp->parent_outdir = NULL;
 	cp->outdir = NULL;

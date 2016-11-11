@@ -107,6 +107,7 @@
 typedef struct cmdparam_t
 {
 	bool across;          /**< Flag to pool sequences across flow cells. */
+	bool mt_mode;         /**< Flag to indicate multi-threaded mode. */
 	char *parent_indir;   /**< String holding the full path and name of the parent input directory. */
 	char *parent_outdir;  /**< String holding the full path to the parent output directory. */
 	char *outdir;         /**< String holding the full path to the output directory. */
