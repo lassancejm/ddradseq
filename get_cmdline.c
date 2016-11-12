@@ -62,7 +62,8 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state)
 			break;
 		case 't':
 			cp->nthreads = atoi(arg);
-			cp->mt_mode = true;
+			if (cp->nthreads > 1)
+				cp->mt_mode = true;
 			break;
 		case 'p':
 			cp->glob = strdup(arg);
